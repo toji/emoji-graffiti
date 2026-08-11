@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["esnext"],
+    "types": ["@types/web"],
+    "outDir": "dist/",
+    "rootDir": "./src",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "allowJs": true,
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    "media"
+  ]
+}
