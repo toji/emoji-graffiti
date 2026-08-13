@@ -9,8 +9,6 @@ export class EmojiRenderer {
     this.textureLoader = textureLoader;
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d')!;
-
-    this.canvas.style.float = 'left';
   }
 
   loadCustomEmojiImage(url: string): Promise<HTMLImageElement> {
@@ -48,7 +46,8 @@ export class EmojiRenderer {
       source: this.canvas
     }, {
       texture,
-      origin: [0, 0, layer]
+      origin: [0, 0, layer],
+      premultipliedAlpha: true,
     }, [texture.width, texture.height, 1]);
     this.textureLoader.mipmapGenerator.generateMipmap(texture);
   }

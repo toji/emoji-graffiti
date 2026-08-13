@@ -6,8 +6,10 @@ import { WebGPUApp, WebGPURenderer } from './webgpu-renderer.ts';
 const EMOJI_SIZE = 256;
 
 const EMOJI_SHADER = /* wgsl */`
-  const verts = array<vec2f, 3>(
-          vec2f(-1, -1), vec2f(-1, 3), vec2f(3, -1));
+  const verts = array<vec2f, 6>(
+          vec2f(-1, -1), vec2f(-1, 1), vec2f(1, -1),
+          vec2f(1, 1), vec2f(-1, 1), vec2f(1, -1),
+        );
 
   struct VertexOut {
     @builtin(position) pos: vec4f,
@@ -19,8 +21,8 @@ const EMOJI_SHADER = /* wgsl */`
 
   @vertex
   fn vertMain(@builtin(vertex_index)i: u32) -> VertexOut {
-    let pos = vec4f(verts[i], 0, 1);
-    let texCoord = vec2f(pos.x, -pos.y) * 0.5 + 0.5;
+    let pos = vec4f(verts[i] * 0.5, 0, 1);
+    let texCoord = vec2f(pos.x, -pos.y) * 2 * 0.5 + 0.5;
     return VertexOut(pos, texCoord);
   }
 
@@ -58,7 +60,12 @@ const EMOJI_SHADER = /* wgsl */`
         this.emojiPicker.customEmoji = await result.json();
       });
 
+      this.emojiRenderer.canvas.style.position = 'absolute';
+      this.emojiRenderer.canvas.style.right = '0px';
+      this.emojiRenderer.canvas.style.zIndex = '1';
       document.body.insertBefore(this.emojiRenderer.canvas, gpu.canvas);
+
+      // Initialize WebGPU resources
       const module = gpu.device.createShaderModule({
         label: 'Emoji',
         code: EMOJI_SHADER,
@@ -71,6 +78,16 @@ const EMOJI_SHADER = /* wgsl */`
           module,
           targets: [{
             format: navigator.gpu.getPreferredCanvasFormat(),
+            blend: {
+              color: {
+                srcFactor: 'one',
+                dstFactor: 'one-minus-src-alpha'
+              },
+              alpha: {
+                srcFactor: 'zero',
+                dstFactor: 'one',
+              }
+            }
           }]}
       });
 
@@ -130,7 +147,7 @@ const EMOJI_SHADER = /* wgsl */`
       if (this.currentEmojiBindGroup) {
         renderPass.setBindGroup(0, this.currentEmojiBindGroup);
         renderPass.setPipeline(this.emojiPipeline);
-        renderPass.draw(3);
+        renderPass.draw(6);
       }
 
       renderPass.end();
