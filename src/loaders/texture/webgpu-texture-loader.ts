@@ -3,7 +3,7 @@
  * such as mipmap generation.
  */
 
-import { WebGPUMipmapGenerator, calculateMipLevels } from './mipmap-generator.ts';
+import { WebGPUMipmapGenerator } from './mipmap-generator.ts';
 import {
   TextureLoaderBase,
   TextureClient,
@@ -60,13 +60,19 @@ function formatForColorSpace(format: GPUTextureFormat, colorSpace?: string): GPU
  * Variant of TextureLoaderBase which produces WebGPU textures.
  */
 export class WebGpuTextureLoader extends TextureLoaderBase {
+  device: GPUDevice;
+  mipmapGenerator: WebGPUMipmapGenerator;
+
   /**
    * Creates a WebTextureTool instance which produces WebGPU textures.
    *
    * @param {module:External.GPUDevice} device - WebGPU device to create textures with.
    */
   constructor(device: GPUDevice, imageCache?: Cache) {
-    super(new WebGpuTextureClient(device), imageCache);
+    const mipmapGenerator = new WebGPUMipmapGenerator(device);
+    super(new WebGpuTextureClient(device, mipmapGenerator), imageCache);
+    this.device = device;
+    this.mipmapGenerator = mipmapGenerator;
   }
 }
 
@@ -89,9 +95,9 @@ class WebGpuTextureClient implements TextureClient {
    *
    * @param device - WebGPU device to use.
    */
-  constructor(device: GPUDevice) {
+  constructor(device: GPUDevice, mipmapGenerator: WebGPUMipmapGenerator) {
     this.device = device;
-    this.mipmapGenerator = new WebGPUMipmapGenerator(device);
+    this.mipmapGenerator = mipmapGenerator;
 
     // Add any other formats that are exposed by WebGPU features.
     const featureList = device.features;
@@ -131,7 +137,7 @@ class WebGpuTextureClient implements TextureClient {
     const imageBitmap = await createImageBitmap(blob);
 
     const generateMipmaps = options.mipmaps;
-    const mipLevelCount = generateMipmaps ? calculateMipLevels(imageBitmap.width, imageBitmap.height) : 1;
+    const mipLevelCount = generateMipmaps ? WebGPUMipmapGenerator.calculateMipLevels(imageBitmap.width, imageBitmap.height) : 1;
 
     const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT;
 
@@ -175,7 +181,7 @@ class WebGpuTextureClient implements TextureClient {
     const generateMipmaps = options.mipmaps && wtFormat.canGenerateMipmaps;
 
     const mipLevelCount = textureData.mipLevelCount > 1 ? textureData.mipLevelCount :
-                            (generateMipmaps ? calculateMipLevels(textureData.width, textureData.height) : 1);
+                            (generateMipmaps ? WebGPUMipmapGenerator.calculateMipLevels(textureData.width, textureData.height) : 1);
 
     const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
 

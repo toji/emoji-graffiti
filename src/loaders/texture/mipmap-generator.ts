@@ -51,17 +51,6 @@ const mipmapShader = /* wgsl */`
   }
 `;
 
-/**
- * Determines the number of mip levels needed for a full mip chain given the width and height of texture level 0.
- *
- * @param width of texture level 0.
- * @param height of texture level 0.
- * @returns Ideal number of mip levels.
- */
-export function calculateMipLevels(width: number, height: number): number {
-  return Math.floor(Math.log2(Math.max(width, height))) + 1;
-}
-
 interface WebGPUMipmapResources {
   module: GPUShaderModule;
   sampler: GPUSampler;
@@ -76,6 +65,17 @@ export class WebGPUMipmapGenerator {
   #pipelines: Map<GPUTextureFormat, GPURenderPipeline> = new Map();
 
   constructor(public device: GPUDevice) {
+  }
+
+  /**
+   * Determines the number of mip levels needed for a full mip chain given the width and height of texture level 0.
+   *
+   * @param width of texture level 0.
+   * @param height of texture level 0.
+   * @returns Ideal number of mip levels.
+   */
+  static calculateMipLevels(width: number, height: number): number {
+    return Math.floor(Math.log2(Math.max(width, height))) + 1;
   }
 
   #ensureSharedResources(): WebGPUMipmapResources {

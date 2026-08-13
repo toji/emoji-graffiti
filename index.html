@@ -9,7 +9,7 @@
     <title>Grafitti - WebGPU test</title>
 
     <style>
-      html, body, canvas {
+      html, body, #webgpu-canvas {
         height: 100%;
         width: 100%;
         margin: 0;
@@ -17,10 +17,17 @@
         padding: 0;
         overflow: hidden;
       }
+      emoji-picker {
+        float: left;
+      }
     </style>
+
   </head>
   <body>
-    <canvas></canvas>
+    <script type='module' src='https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js'></script>
+    <emoji-picker></emoji-picker>
+
+    <canvas id='webgpu-canvas'></canvas>
     <script type='module' src="./dist/main.js"></script>
   </body>
 </html>
