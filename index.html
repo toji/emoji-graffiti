@@ -17,19 +17,34 @@
         padding: 0;
         overflow: hidden;
       }
-      emoji-picker {
-        float: left;
+      #emoji-picker-container {
         position: absolute;
-        z-index: 1;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        margin: 0.25em;
+      }
+      #emoji-button {
+        font-size: 2em;
+        width: 2em;
+        height: 2em;
+        padding: 0.25em;
+        border-radius: 0.25em;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 50%;
       }
     </style>
 
   </head>
   <body>
     <script type='module' src='https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js'></script>
-    <emoji-picker></emoji-picker>
+    <div id='emoji-picker-container'>
+      <button id='emoji-button'>😀</button>
+      <emoji-picker style='display: none'></emoji-picker>
+    </div>
 
     <canvas id='webgpu-canvas'></canvas>
-    <script type='module' src="./dist/main.js"></script>
+    <script type='module' src='./dist/main.js'></script>
   </body>
 </html>

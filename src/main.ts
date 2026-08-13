@@ -35,6 +35,7 @@ const EMOJI_SHADER = /* wgsl */`
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
+    emojiButton: HTMLButtonElement;
     emojiPicker: HTMLElement;
     emojiRenderer: EmojiRenderer;
     textureLoader: WebGpuTextureLoader;
@@ -53,13 +54,33 @@ const EMOJI_SHADER = /* wgsl */`
       // Initialize the Emoji picker control
       this.emojiPicker = document.querySelector('emoji-picker')!;
       this.emojiPicker.addEventListener('emoji-click', (event: Event) => {
-        this.onEmojiPicked((event as CustomEvent).detail);
+        const emojiEvent = (event as CustomEvent);
+        this.onEmojiPicked(emojiEvent.detail);
+
+        if (emojiEvent.detail.unicode) {
+          this.emojiButton.innerHTML = emojiEvent.detail.unicode;
+          this.emojiButton.style = '';
+        } else {
+          this.emojiButton.innerHTML = ' ';
+          this.emojiButton.style = `background-image: url("${emojiEvent.detail.emoji.url}")`;
+        }
       });
       fetch('./media/emoji/custom.json').then(async (result) => {
         // @ts-ignore
         this.emojiPicker.customEmoji = await result.json();
       });
 
+      this.emojiButton = document.querySelector('#emoji-button')!;
+      this.emojiButton.addEventListener('click', () => {
+        // Toggle the emoji picker.
+        if (this.emojiPicker.style.display === 'none') {
+          this.emojiPicker.style.display = '';
+        } else {
+          this.emojiPicker.style.display = 'none';
+        }
+      });
+
+      // TEMP: Attach the canvas from the EmojiRenderer to the DOM
       this.emojiRenderer.canvas.style.position = 'absolute';
       this.emojiRenderer.canvas.style.right = '0px';
       this.emojiRenderer.canvas.style.zIndex = '1';
