@@ -185,7 +185,7 @@ export class GeometryLayout {
   #locationsUsed?: Set<number>;
   #locationsInfo?: Map<number, GeometryAttributeInfo>;
 
-  private constructor(attribBuffers: GPUVertexBufferLayout[],
+  constructor(attribBuffers: GPUVertexBufferLayout[],
       topology: GPUPrimitiveTopology = 'triangle-list',
       indexFormat: GPUIndexFormat = 'uint32') {
     this.id = 0;

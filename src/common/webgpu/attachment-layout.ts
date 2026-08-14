@@ -137,7 +137,7 @@ export class AttachmentLayout {
   #serializedBuffer?: ArrayBuffer;
   #serializedString?: string;
 
-  private constructor(colorFormats: GPUTextureFormat | GPUTextureFormat[], depthStencilFormat?: GPUTextureFormat, sampleCount: number = 1) {
+  constructor(colorFormats: GPUTextureFormat | GPUTextureFormat[], depthStencilFormat?: GPUTextureFormat, sampleCount: number = 1) {
     // Copy the colorFormats, because the AttachmentLayout will take ownership of them.
     const formats: RenderableFormat[] = [];
 
