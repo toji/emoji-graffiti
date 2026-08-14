@@ -64,7 +64,7 @@ class ConditionalState {
 
 // Template literal tag that handles simple preprocessor symbols for WGSL
 // shaders. Supports #if/elif/else/endif statements.
-export function wgsl(strings: string[], ...values: any[]) {
+export function wgsl(strings: TemplateStringsArray, ...values: any[]) {
   const stateStack = [];
   let state = new ConditionalState(true);
   state.elseIsValid = false;

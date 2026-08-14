@@ -89,43 +89,7 @@ export class AttachmentLayout {
     return this.#cache.get(id);
   }
 
-  static Create(colorFormats: GPUTextureFormat | GPUTextureFormat[], depthStencilFormat?: GPUTextureFormat, sampleCount: number = 1): AttachmentLayout {
-    // Copy the colorFormats, because the AttachmentLayout will take ownership of them.
-    const formats: RenderableFormat[] = [];
-
-    if (Array.isArray(colorFormats)) {
-      for (const format of colorFormats) {
-        // @ts-expect-error
-        if (RenderableFormatValue[format] == undefined) {
-          throw new Error(`${format} is not a renderable format`);
-        }
-        formats.push(format as RenderableFormat);
-      }
-    } else {
-      // @ts-expect-error
-      if (RenderableFormatValue[colorFormats] == undefined) {
-        throw new Error(`${colorFormats} is not a renderable format`);
-      }
-      formats.push(colorFormats as RenderableFormat);
-    }
-
-    // @ts-expect-error
-    if (depthStencilFormat && DepthStencilFormatValue[depthStencilFormat] == undefined) {
-      throw new Error(`${depthStencilFormat} is not a depth/stencil format`);
-    }
-
-    const layout = new AttachmentLayout(formats, depthStencilFormat as DepthStencilFormat, sampleCount);
-    const key = layout.serializeToString();
-    const id = this.#keyMap.get(key);
-    if (id !== undefined) {
-      return this.#cache.get(id)!;
-    }
-
-    return this.#AddToCache(layout, key);
-  }
-
   static #AddToCache(layout: AttachmentLayout, key: string): AttachmentLayout {
-    layout.id = this.#nextId++;
     Object.freeze(layout);
 
     this.#keyMap.set(key, layout.id);
@@ -164,7 +128,7 @@ export class AttachmentLayout {
   }
 
   // Layout
-  id?: number;
+  id: number;
 
   colorFormats: RenderableFormat[];
   depthStencilFormat?: DepthStencilFormat;
@@ -173,10 +137,45 @@ export class AttachmentLayout {
   #serializedBuffer?: ArrayBuffer;
   #serializedString?: string;
 
-  private constructor(colorFormats: RenderableFormat[], depthStencilFormat?: DepthStencilFormat, sampleCount: number = 1) {
-    this.colorFormats = colorFormats;
-    this.depthStencilFormat = depthStencilFormat;
+  private constructor(colorFormats: GPUTextureFormat | GPUTextureFormat[], depthStencilFormat?: GPUTextureFormat, sampleCount: number = 1) {
+    // Copy the colorFormats, because the AttachmentLayout will take ownership of them.
+    const formats: RenderableFormat[] = [];
+
+    if (Array.isArray(colorFormats)) {
+      for (const format of colorFormats) {
+        // @ts-expect-error
+        if (RenderableFormatValue[format] == undefined) {
+          throw new Error(`${format} is not a renderable format`);
+        }
+        formats.push(format as RenderableFormat);
+      }
+    } else {
+      // @ts-expect-error
+      if (RenderableFormatValue[colorFormats] == undefined) {
+        throw new Error(`${colorFormats} is not a renderable format`);
+      }
+      formats.push(colorFormats as RenderableFormat);
+    }
+
+    // @ts-expect-error
+    if (depthStencilFormat && DepthStencilFormatValue[depthStencilFormat] == undefined) {
+      throw new Error(`${depthStencilFormat} is not a depth/stencil format`);
+    }
+
+    this.id = 0;
+    this.colorFormats = formats;
+    this.depthStencilFormat = depthStencilFormat as DepthStencilFormat;
     this.sampleCount = sampleCount;
+
+    const key = this.serializeToString();
+    const id = AttachmentLayout.#keyMap.get(key);
+    if (id !== undefined) {
+      return AttachmentLayout.#cache.get(id)!;
+    }
+
+    this.id = AttachmentLayout.#nextId++;
+
+    AttachmentLayout.#AddToCache(this, key);
   }
 
   // The AttachmentLayout's binary serialized format is:

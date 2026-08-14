@@ -33,7 +33,6 @@
  * formats.
  */
 
-
 import { BufferToHexString, HexStringToBuffer } from "../buffer-to-hex.ts";
 
 enum TopologyId {
@@ -110,38 +109,6 @@ export class GeometryLayout {
     return this.#cache.get(id);
   }
 
-  static Create(attribBuffers: GPUVertexBufferLayout[],
-    topology: GPUPrimitiveTopology = 'triangle-list',
-    indexFormat: GPUIndexFormat = 'uint32'): GeometryLayout {
-    const buffers = [];
-    // Copy the attribBuffers, because the GeometryLayout will take ownership of them.
-    for (const buffer of attribBuffers) {
-      const attributes = [];
-      for (const attrib of buffer.attributes) {
-        attributes.push({
-          shaderLocation: attrib.shaderLocation,
-          format: attrib.format,
-          offset: attrib.offset,
-        });
-      }
-
-      buffers.push({
-        arrayStride: buffer.arrayStride,
-        attributes
-      });
-    }
-
-    const layout = new GeometryLayout(buffers, topology, indexFormat);
-    const key = layout.serializeToString();
-    const id = this.#keyMap.get(key);
-
-    if (id !== undefined) {
-      return this.#cache.get(id)!;
-    }
-
-    return this.#AddToCache(layout, key);
-  }
-
   static #AddToCache(layout: GeometryLayout, key: string): GeometryLayout {
     layout.id = this.#nextId++;
     Object.freeze(layout);
@@ -207,7 +174,7 @@ export class GeometryLayout {
   }
 
   // Layout
-  id?: number;
+  id: number;
 
   buffers: GPUVertexBufferLayout[];
   topology: GPUPrimitiveTopology;
@@ -218,14 +185,26 @@ export class GeometryLayout {
   #locationsUsed?: Set<number>;
   #locationsInfo?: Map<number, GeometryAttributeInfo>;
 
-  private constructor(buffers: GPUVertexBufferLayout[],
-              topology: GPUPrimitiveTopology = 'triangle-list',
-              indexFormat: GPUIndexFormat = 'uint32') {
-    this.buffers = buffers;
+  private constructor(attribBuffers: GPUVertexBufferLayout[],
+      topology: GPUPrimitiveTopology = 'triangle-list',
+      indexFormat: GPUIndexFormat = 'uint32') {
+    this.id = 0;
+    // Copy the attribBuffers, because the GeometryLayout will take ownership of them.
+    this.buffers = structuredClone(attribBuffers);
     this.topology = topology;
     if (topology == 'triangle-strip' || topology == 'line-strip') {
       this.stripIndexFormat = indexFormat;
     }
+
+    const key = this.serializeToString();
+    const id = GeometryLayout.#keyMap.get(key);
+    if (id !== undefined) {
+      return GeometryLayout.#cache.get(id)!;
+    }
+
+    this.id = GeometryLayout.#nextId++;
+
+    GeometryLayout.#AddToCache(this, key);
   }
 
   get locationsUsed(): Set<number> {
