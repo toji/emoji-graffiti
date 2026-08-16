@@ -39,7 +39,8 @@ const EMOJI_SHADER = /* wgsl */`
 
   @fragment
   fn fragMain(in: VertexOut) -> @location(0) vec4f {
-    return textureSample(emojiTexture, emojiSampler, in.texCoord);
+    let color = textureSample(emojiTexture, emojiSampler, in.texCoord);
+    return vec4(color.rgb, 1.0);
   }
 `;
 

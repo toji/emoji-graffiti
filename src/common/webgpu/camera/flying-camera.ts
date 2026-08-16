@@ -3,7 +3,7 @@ import { Mat4, Vec3 } from 'gl-matrix';
 const DIR = Vec3.create();
 
 export class FlyingCamera {
-  #element: HTMLElement = null;
+  #element?: HTMLElement;
   #angles = new Vec3();
   #position = new Vec3();
   #viewMat = new Mat4();
@@ -89,7 +89,7 @@ export class FlyingCamera {
     }
   }
 
-  get element(): HTMLElement {
+  get element(): HTMLElement | undefined {
     return this.#element;
   }
 

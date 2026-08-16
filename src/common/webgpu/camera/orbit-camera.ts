@@ -22,14 +22,14 @@ export class OrbitCamera {
   #position = new Vec3();
   #dirty = true;
 
-  #element: HTMLElement;
-  #registerElement: (value: HTMLElement) => void;
+  #element?: HTMLElement;
+  #registerElement: (value?: HTMLElement) => void;
 
-  constructor(element = null) {
+  constructor(element?: HTMLElement) {
     let lastX: number;
     let lastY: number;
 
-    let eventCache = [];
+    let eventCache: PointerEvent[] = [];
     let lastPinchDelta = -1;
     const downCallback = (event: PointerEvent) => {
       const index = eventCache.findIndex(
@@ -98,7 +98,7 @@ export class OrbitCamera {
       this.distance = this.#distance[2] + (delta * this.distanceStep);
     };
 
-    this.#registerElement = (value: HTMLElement) => {
+    this.#registerElement = (value?: HTMLElement) => {
       if (this.#element && this.#element != value) {
         this.#element.removeEventListener('pointerdown', downCallback);
         this.#element.removeEventListener('pointermove', moveCallback);
@@ -125,11 +125,11 @@ export class OrbitCamera {
     this.#registerElement(element);
   }
 
-  set element(value) {
+  set element(value: HTMLElement | undefined) {
     this.#registerElement(value);
   }
 
-  get element() {
+  get element(): HTMLElement | undefined {
     return this.#element;
   }
 
