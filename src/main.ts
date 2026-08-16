@@ -1,6 +1,6 @@
 import { Mat4 } from 'gl-matrix';
 import { OrbitCamera } from './common/webgpu/camera/orbit-camera.ts';
-import { BoxGeometry } from './common/webgpu/geometries/box-geometry.ts';
+import { BoxGeometry } from './common/webgpu/geometries/box.ts';
 import { AttribLocation, Geometry } from './common/webgpu/geometry.ts';
 import { EmojiRenderer } from './emoji-renderer.ts';
 import { WebGPUMipmapGenerator } from './loaders/texture/mipmap-generator.ts';
@@ -67,7 +67,7 @@ const EMOJI_SHADER = /* wgsl */`
 
       this.camera = new OrbitCamera(gpu.canvas);
       this.camera.distance = 4;
-      this.box = new Geometry(gpu.device, { ...new BoxGeometry(), vertexUsage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE });
+      this.box = new Geometry(gpu.device, new BoxGeometry());
 
       this.cameraBuffer = gpu.device.createBuffer({
         label: 'Camera',
