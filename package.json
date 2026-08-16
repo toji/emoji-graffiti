@@ -5,13 +5,16 @@
   "license": "MIT",
   "author": "Brandon Jones",
   "type": "module",
-  "main": "src/index.js",
+  "main": "src/main.ts",
   "scripts": {
     "watch": "tsc --watch --preserveWatchOutput",
-    "build": "tsc"
+    "build": "tsc",
+    "esbuild": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist",
+    "eswatch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --watch"
   },
   "devDependencies": {
     "@types/web": "^0.0.352",
+    "esbuild": "0.28.2",
     "typescript": "^7.0.2"
   },
   "dependencies": {

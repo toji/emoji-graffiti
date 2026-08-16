@@ -1,7 +1,11 @@
-import { Geometry } from '../geometry.ts';
+import { Geometry, GeometryAttribute, GeometryDescriptor } from '../geometry.ts';
 
-export class BoxGeometry extends Geometry {
-  constructor(device: GPUDevice, desc: {
+export class BoxGeometry implements GeometryDescriptor {
+  position: GeometryAttribute;
+  normal: GeometryAttribute;
+  texcoord0: GeometryAttribute;
+
+  constructor(desc: {
     width?: number,
     height?: number,
     depth?: number,
@@ -62,10 +66,8 @@ export class BoxGeometry extends Geometry {
       x-w, y+h, z-d,  0, 0, -1,  0, 0,
     ]);
 
-    super(device, {
-      position: { values: boxVertArray, stride: 32 },
-      normal: { values: boxVertArray, stride: 32, offset: 12 },
-      texcoord0: { values: boxVertArray, stride: 32, offset: 24 },
-    });
+    this.position = { values: boxVertArray, stride: 32 };
+    this.normal = { values: boxVertArray, stride: 32, offset: 12 };
+    this.texcoord0 = { values: boxVertArray, stride: 32, offset: 24 };
   }
 }
