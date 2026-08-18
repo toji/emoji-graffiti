@@ -6,6 +6,8 @@ import { EmojiRenderer } from './emoji-renderer.ts';
 import { WebGPUMipmapGenerator } from './loaders/texture/mipmap-generator.ts';
 import { WebGpuTextureLoader } from './loaders/texture/webgpu-texture-loader.ts';
 import { WebGPUApp, WebGPURenderer } from './webgpu-renderer.ts';
+import { Stage } from './common/stage.ts';
+import { Actor } from './common/actor.ts';
 
 const EMOJI_SIZE = 256;
 
@@ -57,17 +59,23 @@ const EMOJI_SHADER = /* wgsl */`
     cameraBindGroup: GPUBindGroup;
     currentEmojiBindGroup?: GPUBindGroup;
 
+    stage: Stage = new Stage();
+    box: Actor;
+
     projection = new Mat4();
     camera: OrbitCamera;
-    box: Geometry;
     cameraBuffer: GPUBuffer;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
 
+      const boxGeometry = new Geometry(gpu.device, new BoxGeometry());
+      this.box = new Actor(
+        boxGeometry
+      );
+
       this.camera = new OrbitCamera(gpu.canvas);
       this.camera.distance = 4;
-      this.box = new Geometry(gpu.device, new BoxGeometry());
 
       this.cameraBuffer = gpu.device.createBuffer({
         label: 'Camera',
@@ -121,7 +129,7 @@ const EMOJI_SHADER = /* wgsl */`
       this.emojiPipeline = gpu.device.createRenderPipeline({
         label: 'Emoji',
         layout: 'auto',
-        vertex: { module, buffers: this.box.layout.buffers },
+        vertex: { module, buffers: boxGeometry.layout.buffers },
         depthStencil: {
           format: gpu.depthStencilFormat,
           depthWriteEnabled: true,
@@ -225,7 +233,9 @@ const EMOJI_SHADER = /* wgsl */`
         renderPass.setBindGroup(0, this.cameraBindGroup);
         renderPass.setBindGroup(1, this.currentEmojiBindGroup);
         renderPass.setPipeline(this.emojiPipeline);
-        this.box.bindAndDraw(renderPass);
+
+        const boxGeometry = this.box.get(Geometry)!;
+        boxGeometry.bindAndDraw(renderPass);
         //renderPass.draw(6);
       }
 
