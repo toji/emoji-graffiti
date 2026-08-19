@@ -131,7 +131,7 @@ const EMOJI_SHADER = /* wgsl */`
         layout: 'auto',
         vertex: { module, buffers: boxGeometry.layout.buffers },
         depthStencil: {
-          format: gpu.depthStencilFormat,
+          format: gpu.config.depthStencilFormat,
           depthWriteEnabled: true,
           depthCompare: 'less',
         },

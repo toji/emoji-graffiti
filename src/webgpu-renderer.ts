@@ -1,3 +1,6 @@
+import { Config } from "./common/config.ts";
+import { RendererConfig } from "./config/renderer.ts";
+
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
   depthStencilFormat?: GPUTextureFormat;
@@ -9,11 +12,9 @@ export class WebGPURenderer {
   device: GPUDevice;
   canvas: HTMLCanvasElement;
   context: GPUCanvasContext;
-  colorFormat: GPUTextureFormat;
-  hasDepth: boolean;
-  depthStencilFormat: GPUTextureFormat;
-  depthStencilUsage: GPUTextureUsageFlags;
-  sampleCount: number;
+
+  config: RendererConfig;
+
   depthStencilTexture?: GPUTexture;
   msaaColorTexture?: GPUTexture;
 
@@ -21,35 +22,39 @@ export class WebGPURenderer {
     this.device = device;
     this.canvas = options.canvas ?? document.createElement('canvas');
     this.context = this.canvas.getContext("webgpu") as GPUCanvasContext;
-    this.colorFormat = navigator.gpu?.getPreferredCanvasFormat();
-    this.hasDepth = !!options.depthStencilFormat;
-    this.depthStencilFormat = options.depthStencilFormat ?? 'depth24plus';
-    this.depthStencilUsage = options.depthStencilUsage ?? GPUTextureUsage.RENDER_ATTACHMENT;
-    this.sampleCount = options.sampleCount ?? 1;
+
+    this.config = Config.Create(RendererConfig, device);
 
     // Set up the canvas context
     this.context.configure({
       device: this.device,
-      format: this.colorFormat,
+      format: this.config.colorFormat,
     });
   }
 
   reallocateRenderpassTargets(width: number, height: number) {
-    if (this.hasDepth) {
-      if (this.depthStencilTexture) {
-        this.depthStencilTexture.destroy();
-      }
+    width = Math.floor(width * this.config.outputScale);
+    height = Math.floor(height * this.config.outputScale);
 
-      this.depthStencilTexture = this.device.createTexture({
-        label: 'WebGPURenderer depthStencil',
-        size: { width, height },
-        sampleCount: this.sampleCount,
-        format: this.depthStencilFormat,
-        usage: this.depthStencilUsage,
-      });
+    // Resize the output canvas.
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    // Resize the depthStencil texture.
+    if (this.depthStencilTexture) {
+      this.depthStencilTexture.destroy();
     }
 
-    if (this.sampleCount > 1) {
+    this.depthStencilTexture = this.device.createTexture({
+      label: 'WebGPURenderer depthStencil',
+      size: { width, height },
+      sampleCount: this.config.sampleCount,
+      format: this.config.depthStencilFormat,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+
+    // Resize the MSAA color texture if needed.
+    if (this.config.sampleCount > 1) {
       if (this.msaaColorTexture) {
         this.msaaColorTexture.destroy();
       }
@@ -57,8 +62,8 @@ export class WebGPURenderer {
       this.msaaColorTexture = this.device.createTexture({
         label: 'WebGPURenderer msaaColor',
         size: { width, height },
-        sampleCount: this.sampleCount,
-        format: this.colorFormat,
+        sampleCount: this.config.sampleCount,
+        format: this.config.colorFormat,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
     }
@@ -148,7 +153,7 @@ export class WebGPUApp implements WebGPUAppCallbacks {
     // Start listening for resize events
     ResizeHandler.observe(gpu.canvas, (width, height) => {
       app.onResize(gpu, width, height);
-      gpu.reallocateRenderpassTargets(gpu.canvas.width, gpu.canvas.height);
+      gpu.reallocateRenderpassTargets(width, width);
     });
 
     // Start the render loop
@@ -175,8 +180,6 @@ export class WebGPUApp implements WebGPUAppCallbacks {
   async onInit(gpu: WebGPURenderer) {}
 
   onResize(gpu: WebGPURenderer, width: number, height: number) {
-    gpu.canvas.width = width;
-    gpu.canvas.height = height;
   }
 
   onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {}
