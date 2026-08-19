@@ -122,6 +122,7 @@ export interface GeometryInit {
 }
 
 export class Geometry implements GeometryInit {
+  static SharedComponent = true;
   static #nextId = 1;
 
   layout: GeometryLayout;
@@ -135,7 +136,7 @@ export class Geometry implements GeometryInit {
 
   /**
    * Create a new Geometry instance
-   * 
+   *
    * @param device - The GPUDevice to create the Geometry with
    * @param descriptor - Description of the Geometry to create
    */

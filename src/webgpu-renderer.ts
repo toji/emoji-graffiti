@@ -1,4 +1,5 @@
 import { Config } from "./common/config.ts";
+import { AttachmentLayout } from "./common/webgpu/attachment-layout.ts";
 import { RendererConfig } from "./config/renderer.ts";
 
 export interface WebGPURendererOptions {
@@ -18,6 +19,8 @@ export class WebGPURenderer {
   depthStencilTexture?: GPUTexture;
   msaaColorTexture?: GPUTexture;
 
+  attachmentLayout: AttachmentLayout;
+
   constructor(device: GPUDevice, options: WebGPURendererOptions) {
     this.device = device;
     this.canvas = options.canvas ?? document.createElement('canvas');
@@ -30,6 +33,12 @@ export class WebGPURenderer {
       device: this.device,
       format: this.config.colorFormat,
     });
+
+    this.attachmentLayout = new AttachmentLayout(
+      [this.config.colorFormat],
+      this.config.depthStencilFormat,
+      this.config.sampleCount
+    );
   }
 
   reallocateRenderpassTargets(width: number, height: number) {

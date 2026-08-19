@@ -8,6 +8,8 @@ import { WebGpuTextureLoader } from './loaders/texture/webgpu-texture-loader.ts'
 import { WebGPUApp, WebGPURenderer } from './webgpu-renderer.ts';
 import { Stage } from './common/stage.ts';
 import { Actor } from './common/actor.ts';
+import { UnlitMaterial, UnlitPipelineFactory } from './common/webgpu/materials/unlit.ts';
+import { RenderPipeline } from './common/webgpu/pipeline-factory.ts';
 
 const EMOJI_SIZE = 256;
 
@@ -64,14 +66,18 @@ const EMOJI_SHADER = /* wgsl */`
 
     projection = new Mat4();
     camera: OrbitCamera;
+    cameraBGL: GPUBindGroupLayout;
     cameraBuffer: GPUBuffer;
+
+    unlitPipelineFactory: UnlitPipelineFactory;
+    unlitPipeline: RenderPipeline;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
 
       const boxGeometry = new Geometry(gpu.device, new BoxGeometry());
       this.box = new Actor(
-        boxGeometry
+        boxGeometry,
       );
 
       this.camera = new OrbitCamera(gpu.canvas);
@@ -85,6 +91,18 @@ const EMOJI_SHADER = /* wgsl */`
 
       this.textureLoader = new WebGpuTextureLoader(gpu.device);
       this.emojiRenderer = new EmojiRenderer(this.textureLoader);
+
+      this.cameraBGL = gpu.device.createBindGroupLayout({
+        label: 'Camera',
+        entries: [{
+          binding: 0,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {}
+        }]
+      });
+
+      this.unlitPipelineFactory = new UnlitPipelineFactory(gpu, this.cameraBGL);
+      this.unlitPipeline = this.unlitPipelineFactory.getPipeline(boxGeometry.layout, gpu.attachmentLayout, { transparent: false });
 
       // Initialize the Emoji picker control
       this.emojiPicker = document.querySelector('emoji-picker')!;
@@ -198,7 +216,13 @@ const EMOJI_SHADER = /* wgsl */`
           binding: 1,
           resource: this.emojiSampler,
         }]
-      })
+      });
+
+      const emojiMaterial = new UnlitMaterial({
+        baseColorFactor: [Math.random(), Math.random(), Math.random(), 1],
+        baseColorTexture: this.currentEmojiTexture,
+      });
+      this.box.add(emojiMaterial);
     }
 
     onResize(gpu: WebGPURenderer, width: number, height: number): void {
@@ -243,7 +267,6 @@ const EMOJI_SHADER = /* wgsl */`
       gpu.device.queue.submit([commandEncoder.finish()]);
     }
   }, {
-    canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement,
-    depthStencilFormat: 'depth24plus'
+    canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement
   });
 })();
