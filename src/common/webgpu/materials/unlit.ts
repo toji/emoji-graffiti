@@ -15,16 +15,30 @@ export interface UnlitMaterialDesc {
 export class UnlitMaterial implements UnlitMaterialDesc {
   static SharedComponent = true;
 
+  uniformBuffer: GPUBuffer;
+
   label?: string;
   transparent: boolean;
   baseColorFactor: Vec4;
   baseColorTexture?: GPUTexture;
 
-  constructor(desc?: UnlitMaterialDesc) {
+  constructor(device: GPUDevice, desc?: UnlitMaterialDesc) {
     this.label = desc?.label;
     this.transparent = desc?.transparent ?? false;
     this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
     this.baseColorTexture = desc?.baseColorTexture;
+
+    this.uniformBuffer = device.createBuffer({
+      label: 'Unlit Material',
+      size: Vec4.BYTE_LENGTH,
+      usage: GPUBufferUsage.UNIFORM,
+      mappedAtCreation: true,
+    });
+
+    const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
+    mapped.set(this.baseColorFactor, 0);
+
+    this.uniformBuffer.unmap();
 
     // Materials are immutable after creation.
     Object.freeze(this);
@@ -66,7 +80,7 @@ const EMOJI_SHADER = /* wgsl */`
 
   @fragment
   fn fragMain(in: VertexOut) -> @location(0) vec4f {
-    let baseColor = baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+    let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
     return vec4(baseColor.rgb, 1.0);
   }
 `;

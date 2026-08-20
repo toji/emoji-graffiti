@@ -96,7 +96,7 @@ const EMOJI_SHADER = /* wgsl */`
         label: 'Camera',
         entries: [{
           binding: 0,
-          visibility: GPUShaderStage.FRAGMENT,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
           buffer: {}
         }]
       });
@@ -181,7 +181,7 @@ const EMOJI_SHADER = /* wgsl */`
 
       this.cameraBindGroup = gpu.device.createBindGroup({
         label: 'Camera',
-        layout: this.emojiPipeline.getBindGroupLayout(0),
+        layout: this.cameraBGL,
         entries: [{
           binding: 0,
           resource: this.cameraBuffer,
@@ -207,22 +207,26 @@ const EMOJI_SHADER = /* wgsl */`
       }
 
       this.currentEmojiTexture = texture;
-      this.currentEmojiBindGroup = this.gpu.device.createBindGroup({
-        layout: this.emojiPipeline.getBindGroupLayout(1),
-        entries: [{
-          binding: 0,
-          resource: this.currentEmojiTexture,
-        }, {
-          binding: 1,
-          resource: this.emojiSampler,
-        }]
-      });
 
-      const emojiMaterial = new UnlitMaterial({
+      const emojiMaterial = new UnlitMaterial(this.gpu.device, {
         baseColorFactor: [Math.random(), Math.random(), Math.random(), 1],
         baseColorTexture: this.currentEmojiTexture,
       });
       this.box.add(emojiMaterial);
+
+      this.currentEmojiBindGroup = this.gpu.device.createBindGroup({
+        layout: this.unlitPipelineFactory.materialBGL,
+        entries: [{
+          binding: 0,
+          resource: emojiMaterial.uniformBuffer,
+        }, {
+          binding: 1,
+          resource: this.currentEmojiTexture,
+        }, {
+          binding: 2,
+          resource: this.emojiSampler,
+        }]
+      });
     }
 
     onResize(gpu: WebGPURenderer, width: number, height: number): void {
@@ -256,7 +260,7 @@ const EMOJI_SHADER = /* wgsl */`
       if (this.currentEmojiBindGroup) {
         renderPass.setBindGroup(0, this.cameraBindGroup);
         renderPass.setBindGroup(1, this.currentEmojiBindGroup);
-        renderPass.setPipeline(this.emojiPipeline);
+        this.unlitPipeline.use(renderPass);
 
         const boxGeometry = this.box.get(Geometry)!;
         boxGeometry.bindAndDraw(renderPass);
