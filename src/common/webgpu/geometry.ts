@@ -25,6 +25,7 @@
  */
 
 //import { GeometryBounds } from './geometry-bounds.js';
+import { Actor } from '../actor.ts';
 import { GeometryLayout } from './geometry-layout.js';
 
 // The shader locations for each Geometry attribute.

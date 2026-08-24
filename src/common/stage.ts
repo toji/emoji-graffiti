@@ -22,6 +22,10 @@ export class Stage extends Actor {
     return component.ComponentName ?? component.constructor.name;
   }
 
+  static getComponentType(component: any) {
+    return component.constructor;
+  }
+
   constructor() {
     super();
     this.#stageData.addActor(this, false);

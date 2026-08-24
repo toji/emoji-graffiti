@@ -4,6 +4,7 @@ import { WebGPURenderer } from "../../../webgpu-renderer.ts";
 import { GeometryLayout } from "../geometry-layout.ts";
 import { AttachmentLayout } from "../attachment-layout.ts";
 import { AttribLocation } from "../geometry.ts";
+import { MaterialBase } from "./material-base.ts";
 
 export interface UnlitMaterialDesc {
   label?: string;
@@ -12,7 +13,7 @@ export interface UnlitMaterialDesc {
   baseColorTexture?: GPUTexture;
 }
 
-export class UnlitMaterial implements UnlitMaterialDesc {
+export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
   static SharedComponent = true;
 
   uniformBuffer: GPUBuffer;
@@ -23,6 +24,8 @@ export class UnlitMaterial implements UnlitMaterialDesc {
   baseColorTexture?: GPUTexture;
 
   constructor(device: GPUDevice, desc?: UnlitMaterialDesc) {
+    super();
+
     this.label = desc?.label;
     this.transparent = desc?.transparent ?? false;
     this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);

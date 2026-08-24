@@ -1,6 +1,13 @@
+import { Mat4 } from "gl-matrix";
 import { Config } from "./common/config.ts";
+import { Stage } from "./common/stage.ts";
 import { AttachmentLayout } from "./common/webgpu/attachment-layout.ts";
 import { RendererConfig } from "./config/renderer.ts";
+import { OrbitCamera } from "./common/webgpu/camera/orbit-camera.ts";
+import { UnlitMaterial, UnlitPipelineFactory } from "./common/webgpu/materials/unlit.ts";
+import { RenderPipeline } from "./common/webgpu/pipeline-factory.ts";
+import { Geometry } from "./common/webgpu/geometry.ts";
+import { Actor } from "./common/actor.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -21,6 +28,14 @@ export class WebGPURenderer {
 
   attachmentLayout: AttachmentLayout;
 
+  projection = new Mat4();
+  cameraBGL: GPUBindGroupLayout;
+  cameraBuffer: GPUBuffer;
+  cameraBindGroup: GPUBindGroup;
+
+  unlitPipelineFactory: UnlitPipelineFactory;
+  //unlitPipeline: RenderPipeline;
+
   constructor(device: GPUDevice, options: WebGPURendererOptions) {
     this.device = device;
     this.canvas = options.canvas ?? document.createElement('canvas');
@@ -39,9 +54,35 @@ export class WebGPURenderer {
       this.config.depthStencilFormat,
       this.config.sampleCount
     );
+
+    this.cameraBuffer = device.createBuffer({
+      label: 'Camera',
+      size: Mat4.BYTE_LENGTH * 2,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+
+    this.cameraBGL = device.createBindGroupLayout({
+      label: 'Camera',
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: {}
+      }]
+    });
+
+    this.cameraBindGroup = device.createBindGroup({
+      label: 'Camera',
+      layout: this.cameraBGL,
+      entries: [{
+        binding: 0,
+        resource: this.cameraBuffer,
+      }]
+    });
+
+    this.unlitPipelineFactory = new UnlitPipelineFactory(this, this.cameraBGL);
   }
 
-  reallocateRenderpassTargets(width: number, height: number) {
+  onResize(width: number, height: number) {
     width = Math.floor(width * this.config.outputScale);
     height = Math.floor(height * this.config.outputScale);
 
@@ -76,6 +117,57 @@ export class WebGPURenderer {
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
     }
+
+    this.projection.perspectiveZO(Math.PI * 0.5, width/height, 0.1, 16);
+  }
+
+  gatherInstances(stage: Stage) {
+    stage.query(Geometry, UnlitMaterial).forEach((actor: Actor, geometry: Geometry, material: UnlitMaterial) => {
+      // Build the buffers/bind groups neccessary for rendering any instances of the gemoetry/material combinations.
+
+
+    });
+  }
+
+  render(stage: Stage, camera: OrbitCamera, timestamp: number = performance.now()) {
+    this.gatherInstances(stage);
+
+    //this.unlitPipeline = this.unlitPipelineFactory.getPipeline(boxGeometry.layout, gpu.attachmentLayout, { transparent: false });
+
+    // Update camera uniforms
+    this.device.queue.writeBuffer(this.cameraBuffer, 0, this.projection);
+    this.device.queue.writeBuffer(this.cameraBuffer, Mat4.BYTE_LENGTH, camera.viewMatrix);
+
+    const colorTexture = this.context.getCurrentTexture();
+
+    const commandEncoder = this.device.createCommandEncoder();
+    const renderPass = commandEncoder.beginRenderPass({
+      colorAttachments: [{
+        view: colorTexture,
+        loadOp: 'clear',
+        clearValue: [0, Math.sin(timestamp / 1000), 1, 1],
+        storeOp: 'store',
+      }],
+      depthStencilAttachment: {
+        view: this.depthStencilTexture!,
+        depthLoadOp: 'clear',
+        depthClearValue: 1,
+        depthStoreOp: 'discard',
+      }
+    });
+
+    /*if (this.currentEmojiBindGroup) {
+      renderPass.setBindGroup(0, this.cameraBindGroup);
+      renderPass.setBindGroup(1, this.currentEmojiBindGroup);
+      this.unlitPipeline.use(renderPass);
+
+      const boxGeometry = this.box.get(Geometry)!;
+      boxGeometry.bindAndDraw(renderPass);
+      //renderPass.draw(6);
+    }*/
+
+    renderPass.end();
+    this.device.queue.submit([commandEncoder.finish()]);
   }
 }
 
@@ -161,8 +253,8 @@ export class WebGPUApp implements WebGPUAppCallbacks {
 
     // Start listening for resize events
     ResizeHandler.observe(gpu.canvas, (width, height) => {
+      gpu.onResize(width, width);
       app.onResize(gpu, width, height);
-      gpu.reallocateRenderpassTargets(width, width);
     });
 
     // Start the render loop
