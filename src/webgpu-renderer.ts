@@ -100,7 +100,7 @@ export class WebGPURenderer {
 
     this.instanceManager = new InstanceManager(this);
 
-    this.unlitPipelineFactory = new UnlitPipelineFactory(this, this.cameraBGL);
+    this.unlitPipelineFactory = new UnlitPipelineFactory(this, this.cameraBGL, this.instanceBGL);
   }
 
   onResize(width: number, height: number) {
@@ -139,7 +139,7 @@ export class WebGPURenderer {
       });
     }
 
-    this.projection.perspectiveZO(Math.PI * 0.5, width/height, 0.1, 16);
+    this.projection.perspectiveZO(Math.PI * 0.5, width/height, 0.1, 256);
   }
 
   gatherInstances(stage: Stage) {
@@ -178,6 +178,25 @@ export class WebGPURenderer {
         depthStoreOp: 'discard',
       }
     });
+
+    renderPass.setBindGroup(0, this.cameraBindGroup);
+    renderPass.setBindGroup(1, this.instanceManager.instanceBuffers!.instanceBindGroup);
+
+    const offsetArray = new Uint32Array(1);
+
+    // Build up the arrays that will populate the instance buffers
+    for (let materialGeometries of this.instanceManager.materials.values()) {
+      //renderPass.setBindGroup(2, this.currentEmojiBindGroup);
+
+      for (let geometryInstances of materialGeometries.geometries.values()) {
+        const unlitPipeline = this.unlitPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, { transparent: false });
+        offsetArray[0] = geometryInstances.indexOffset;
+        // @ts-expect-error Till setImmediates gets rolled into the TypeScript WebGPU definitions.
+        renderPass.setImmediates(0, offsetArray);
+        unlitPipeline.use(renderPass);
+        geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+      }
+    }
 
     /*if (this.currentEmojiBindGroup) {
       renderPass.setBindGroup(0, this.cameraBindGroup);

@@ -49,9 +49,12 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 }
 
 const EMOJI_SHADER = /* wgsl */`
+  requires immediate_address_space;
+
   struct VertexIn {
     @location(${AttribLocation.position}) pos: vec4f,
     @location(${AttribLocation.texcoord0}) texCoord: vec2f,
+    @builtin(instance_index) instance: u32,
   };
 
   struct VertexOut {
@@ -66,24 +69,30 @@ const EMOJI_SHADER = /* wgsl */`
 
   @group(0) @binding(0) var<uniform> camera: Camera;
 
-  struct Material {
-    baseColorFactor: vec4f,
-  };
+  @group(1) @binding(0) var<storage> transforms: array<mat4x4f>;
+  @group(1) @binding(1) var<storage> transformIndices: array<u32>;
 
-  @group(1) @binding(0) var<uniform> material: Material;
-  @group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
-  @group(1) @binding(2) var texSampler: sampler;
+  //struct Material {
+  //  baseColorFactor: vec4f,
+  //};
+//
+  //@group(1) @binding(0) var<uniform> material: Material;
+  //@group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
+  //@group(1) @binding(2) var texSampler: sampler;
 
   @vertex
   fn vertMain(in: VertexIn) -> VertexOut {
-    let pos = camera.projection * camera.view * in.pos;
+    let transformIndex = transformIndices[in.instance];
+    let modelMat = transforms[transformIndex];
+    let pos = camera.projection * camera.view * modelMat * in.pos;
     let texCoord = in.texCoord;
     return VertexOut(pos, texCoord);
   }
 
   @fragment
   fn fragMain(in: VertexOut) -> @location(0) vec4f {
-    let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+    //let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+    let baseColor = vec4f(1, 1, 0, 1);
     return vec4(baseColor.rgb, 1.0);
   }
 `;
@@ -96,7 +105,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
   materialBGL: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
 
-  constructor(gpu: WebGPURenderer, cameraBGL: GPUBindGroupLayout) {
+  constructor(gpu: WebGPURenderer, cameraBGL: GPUBindGroupLayout, instanceBGL: GPUBindGroupLayout) {
     const config = gpu.config.watch();
     super(gpu.device, config);
 
@@ -118,7 +127,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     });
 
     this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [cameraBGL, this.materialBGL]
+      bindGroupLayouts: [cameraBGL, instanceBGL]
     });
   }
 
