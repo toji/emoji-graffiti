@@ -8,8 +8,8 @@
   "main": "src/main.ts",
   "scripts": {
     "check": "tsc",
-    "build": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist",
-    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --watch"
+    "build": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names",
+    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names --watch"
   },
   "devDependencies": {
     "@types/web": "^0.0.352",

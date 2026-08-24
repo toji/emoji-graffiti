@@ -8,43 +8,11 @@ import { WebGPUApp, WebGPURenderer } from './webgpu-renderer.ts';
 import { Stage } from './common/stage.ts';
 import { Actor } from './common/actor.ts';
 import { UnlitMaterial } from './common/webgpu/materials/unlit.ts';
+import { SphereGeometry } from './common/webgpu/geometries/sphere.ts';
+import { CylinderGeometry } from './common/webgpu/geometries/cylinder.ts';
+import { ConeGeometry } from './common/webgpu/geometries/cone.ts';
 
 const EMOJI_SIZE = 256;
-
-const EMOJI_SHADER = /* wgsl */`
-  struct VertexIn {
-    @location(${AttribLocation.position}) pos: vec4f,
-    @location(${AttribLocation.texcoord0}) texCoord: vec2f,
-  };
-
-  struct VertexOut {
-    @builtin(position) pos: vec4f,
-    @location(0) texCoord: vec2f,
-  };
-
-  struct Camera {
-    projection: mat4x4f,
-    view: mat4x4f,
-  };
-
-  @group(0) @binding(0) var<uniform> camera: Camera;
-
-  @group(1) @binding(0) var emojiTexture: texture_2d<f32>;
-  @group(1) @binding(1) var emojiSampler: sampler;
-
-  @vertex
-  fn vertMain(in: VertexIn) -> VertexOut {
-    let pos = camera.projection * camera.view * in.pos;
-    let texCoord = in.texCoord;
-    return VertexOut(pos, texCoord);
-  }
-
-  @fragment
-  fn fragMain(in: VertexOut) -> @location(0) vec4f {
-    let color = textureSample(emojiTexture, emojiSampler, in.texCoord);
-    return vec4(color.rgb, 1.0);
-  }
-`;
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -54,22 +22,56 @@ const EMOJI_SHADER = /* wgsl */`
     textureLoader: WebGpuTextureLoader;
 
     emojiSampler: GPUSampler;
-    emojiPipeline: GPURenderPipeline;
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
 
     stage: Stage = new Stage();
     box: Actor;
 
+    shapes: Actor[] = [];
+
     camera: OrbitCamera;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
 
-      const boxGeometry = new Geometry(gpu.device, new BoxGeometry());
+      const geometries = [
+        new Geometry(gpu.device, new BoxGeometry()),
+        new Geometry(gpu.device, new SphereGeometry()),
+        new Geometry(gpu.device, new CylinderGeometry()),
+        new Geometry(gpu.device, new ConeGeometry()),
+      ];
+
+      const materials = [
+        new UnlitMaterial(gpu.device, { baseColorFactor: [1, 0, 0, 1] }),
+        new UnlitMaterial(gpu.device, { baseColorFactor: [0, 1, 0, 1] }),
+        new UnlitMaterial(gpu.device, { baseColorFactor: [0, 0, 1, 1] }),
+        new UnlitMaterial(gpu.device, { baseColorFactor: [1, 1, 0, 1] }),
+        new UnlitMaterial(gpu.device, { baseColorFactor: [1, 0, 1, 1] }),
+        new UnlitMaterial(gpu.device, { baseColorFactor: [0, 1, 1, 1] }),
+      ];
+
       this.box = new Actor(
-        boxGeometry,
+        geometries[0],
+        materials[0]
       );
+      this.stage.attachChild(this.box);
+
+      for (let i = 0; i < 100; ++i) {
+        const actor = new Actor(
+          geometries[Math.floor(Math.random() * geometries.length)],
+          materials[Math.floor(Math.random() * materials.length)]
+        );
+
+        actor.transform.translation = [Math.random() * 100, Math.random() * 100, Math.random() * 100];
+        actor.transform.scale = [Math.random() + 0.5, Math.random() + 0.5, Math.random() + 0.5];
+        actor.transform.rotationRef.rotateX(Math.random() * Math.PI);
+        actor.transform.rotationRef.rotateY(Math.random() * Math.PI);
+
+        this.shapes.push(actor);
+
+        this.stage.attachChild(actor);
+      }
 
       this.camera = new OrbitCamera(gpu.canvas);
       this.camera.distance = 4;
@@ -113,36 +115,6 @@ const EMOJI_SHADER = /* wgsl */`
       document.body.insertBefore(this.emojiRenderer.canvas, gpu.canvas);
 
       // Initialize WebGPU resources
-      const module = gpu.device.createShaderModule({
-        label: 'Emoji',
-        code: EMOJI_SHADER,
-      });
-      this.emojiPipeline = gpu.device.createRenderPipeline({
-        label: 'Emoji',
-        layout: 'auto',
-        vertex: { module, buffers: boxGeometry.layout.buffers },
-        depthStencil: {
-          format: gpu.config.depthStencilFormat,
-          depthWriteEnabled: true,
-          depthCompare: 'less',
-        },
-        fragment: {
-          module,
-          targets: [{
-            format: navigator.gpu.getPreferredCanvasFormat(),
-            blend: {
-              color: {
-                srcFactor: 'one',
-                dstFactor: 'one-minus-src-alpha'
-              },
-              alpha: {
-                srcFactor: 'zero',
-                dstFactor: 'one',
-              }
-            }
-          }]}
-      });
-
       this.emojiSampler = gpu.device.createSampler({
         label: 'Emoji',
         addressModeU: 'clamp-to-edge',

@@ -8,6 +8,7 @@ import { UnlitMaterial, UnlitPipelineFactory } from "./common/webgpu/materials/u
 import { RenderPipeline } from "./common/webgpu/pipeline-factory.ts";
 import { Geometry } from "./common/webgpu/geometry.ts";
 import { Actor } from "./common/actor.ts";
+import { InstanceManager } from "./instance-manager.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -32,6 +33,9 @@ export class WebGPURenderer {
   cameraBGL: GPUBindGroupLayout;
   cameraBuffer: GPUBuffer;
   cameraBindGroup: GPUBindGroup;
+
+  instanceBGL: GPUBindGroupLayout;
+  instanceManager: InstanceManager;
 
   unlitPipelineFactory: UnlitPipelineFactory;
   //unlitPipeline: RenderPipeline;
@@ -79,6 +83,23 @@ export class WebGPURenderer {
       }]
     });
 
+    this.instanceBGL = device.createBindGroupLayout({
+      label: 'Instance',
+      entries: [{
+        // Instance Transforms
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: { type: 'read-only-storage' }
+      }, {
+        // Instance Index
+        binding: 1,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: { type: 'read-only-storage' }
+      }]
+    });
+
+    this.instanceManager = new InstanceManager(this);
+
     this.unlitPipelineFactory = new UnlitPipelineFactory(this, this.cameraBGL);
   }
 
@@ -122,11 +143,13 @@ export class WebGPURenderer {
   }
 
   gatherInstances(stage: Stage) {
+    this.instanceManager.clear();
     stage.query(Geometry, UnlitMaterial).forEach((actor: Actor, geometry: Geometry, material: UnlitMaterial) => {
       // Build the buffers/bind groups neccessary for rendering any instances of the gemoetry/material combinations.
-
-
+      // TODO: This sucks but I'm forcing myself to ignore that until it actually becomes a problem for the sake of getting anything else done.
+      this.instanceManager.addInstance(material, geometry, actor);
     });
+    this.instanceManager.updateBuffers();
   }
 
   render(stage: Stage, camera: OrbitCamera, timestamp: number = performance.now()) {

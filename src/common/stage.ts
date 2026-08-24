@@ -19,7 +19,7 @@ export class Stage extends Actor {
   #lastTimestamp: number = 0;
 
   static getComponentName(component: any) {
-    return component.ComponentName ?? component.constructor.name;
+    return component.name ?? component.ComponentName ?? component.constructor.name;
   }
 
   static getComponentType(component: any) {
@@ -280,11 +280,11 @@ export class StageQuery {
 
         if (i == 0) {
           // For the first query term, include all actors with the component.
-          queryActors.union(componentActors);
+          queryActors = componentActors;
         } else {
           // For each term afterwards, filter the list to only include actors
           // that also have the next component.
-          queryActors!.intersection(componentActors);
+          queryActors = queryActors!.intersection(componentActors);
         }
 
         // Early out if we've reduced the actor set to zero.
