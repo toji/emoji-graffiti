@@ -13,6 +13,7 @@ import { OrbitCamera } from './camera/orbit-camera.ts';
 import { UnlitMaterial } from './materials/unlit.ts';
 import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
+import { PerspectiveCamera } from './camera/camera.ts';
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -28,10 +29,9 @@ import { Config } from './util/config.ts';
 
     stage: Stage = new Stage();
     box: Actor;
+    camera: Actor;
 
-    shapes: Actor[] = [];
-
-    camera: OrbitCamera;
+    orbitCamera: OrbitCamera;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
@@ -75,13 +75,14 @@ import { Config } from './util/config.ts';
         actor.transform.rotationRef.rotateX(Math.random() * Math.PI);
         actor.transform.rotationRef.rotateY(Math.random() * Math.PI);
 
-        this.shapes.push(actor);
-
         this.stage.attachChild(actor);
       }
 
-      this.camera = new OrbitCamera(gpu.canvas);
-      this.camera.distance = 4;
+      this.camera = new Actor(new PerspectiveCamera());
+      this.stage.attachChild(this.camera);
+
+      this.orbitCamera = new OrbitCamera(gpu.canvas);
+      this.orbitCamera.distance = 4;
 
       this.emojiRenderer = new EmojiRenderer(gpu.textureLoader);
 
@@ -171,8 +172,12 @@ import { Config } from './util/config.ts';
       });
     }
 
+    onResize(gpu: WebGPURenderer, width: number, height: number): void {
+      this.camera.get(PerspectiveCamera)!.aspect = width/height;
+    }
+
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
-      gpu.render(this.stage, this.camera, timestamp);
+      gpu.render(this.stage, this.orbitCamera, timestamp);
     }
   }, {
     canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement
