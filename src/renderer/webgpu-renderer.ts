@@ -1,15 +1,14 @@
 import { Mat4 } from "gl-matrix";
-import { Config } from "./common/config.ts";
-import { Stage } from "./common/stage.ts";
-import { AttachmentLayout } from "./common/webgpu/attachment-layout.ts";
-import { RendererConfig } from "./config/renderer.ts";
-import { OrbitCamera } from "./common/webgpu/camera/orbit-camera.ts";
-import { UnlitMaterial, UnlitPipelineFactory } from "./common/webgpu/materials/unlit.ts";
-import { RenderPipeline } from "./common/webgpu/pipeline-factory.ts";
-import { Geometry } from "./common/webgpu/geometry.ts";
-import { Actor } from "./common/actor.ts";
+import { Config } from "../util/config.ts";
+import { RenderConfig } from "./render-config.ts";
+import { Stage } from "../core/stage.ts";
+import { Actor } from "../core/actor.ts";
+import { AttachmentLayout } from "./attachment-layout.ts";
+import { OrbitCamera } from "../camera/orbit-camera.ts";
+import { UnlitMaterial, UnlitPipelineFactory } from "../materials/unlit.ts";
+import { Geometry } from "../geometry/geometry.ts";
 import { InstanceManager } from "./instance-manager.ts";
-import { WebGpuTextureLoader } from "./loaders/texture/webgpu-texture-loader.ts";
+import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -23,7 +22,7 @@ export class WebGPURenderer {
   canvas: HTMLCanvasElement;
   context: GPUCanvasContext;
 
-  config: RendererConfig;
+  config: RenderConfig;
 
   textureLoader: WebGpuTextureLoader;
 
@@ -52,7 +51,7 @@ export class WebGPURenderer {
     this.canvas = options.canvas ?? document.createElement('canvas');
     this.context = this.canvas.getContext("webgpu") as GPUCanvasContext;
 
-    this.config = Config.Create(RendererConfig, device);
+    this.config = Config.Create(RenderConfig, device);
 
     // Set up the canvas context
     this.context.configure({

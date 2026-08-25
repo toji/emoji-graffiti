@@ -1,18 +1,18 @@
-import { OrbitCamera } from './common/webgpu/camera/orbit-camera.ts';
-import { BoxGeometry } from './common/webgpu/geometries/box.ts';
-import { Geometry } from './common/webgpu/geometry.ts';
 import { EmojiRenderer } from './emoji-renderer.ts';
+
+import { Stage } from './core/stage.ts';
+import { Actor } from './core/actor.ts';
+import { Geometry } from './geometry/geometry.ts';
+import { BoxGeometry } from './geometry/descriptors/box.ts';
+import { SphereGeometry } from './geometry/descriptors/sphere.ts';
+import { CylinderGeometry } from './geometry/descriptors/cylinder.ts';
+import { ConeGeometry } from './geometry/descriptors/cone.ts';
 import { WebGPUMipmapGenerator } from './loaders/texture/mipmap-generator.ts';
-import { WebGpuTextureLoader } from './loaders/texture/webgpu-texture-loader.ts';
-import { WebGPUApp, WebGPURenderer } from './webgpu-renderer.ts';
-import { Stage } from './common/stage.ts';
-import { Actor } from './common/actor.ts';
-import { UnlitMaterial } from './common/webgpu/materials/unlit.ts';
-import { SphereGeometry } from './common/webgpu/geometries/sphere.ts';
-import { CylinderGeometry } from './common/webgpu/geometries/cylinder.ts';
-import { ConeGeometry } from './common/webgpu/geometries/cone.ts';
-import { AppConfig } from './config/app.ts';
-import { Config } from './common/config.ts';
+import { WebGPUApp, WebGPURenderer } from './renderer/webgpu-renderer.ts';
+import { OrbitCamera } from './camera/orbit-camera.ts';
+import { UnlitMaterial } from './materials/unlit.ts';
+import { AppConfig } from './app-config.ts';
+import { Config } from './util/config.ts';
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {

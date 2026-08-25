@@ -25,8 +25,7 @@
  */
 
 //import { GeometryBounds } from './geometry-bounds.js';
-import { Actor } from '../actor.ts';
-import { GeometryLayout } from './geometry-layout.js';
+import { GeometryLayout } from './geometry-layout.ts';
 
 // The shader locations for each Geometry attribute.
 export const AttribLocation: Record<string, number> = {

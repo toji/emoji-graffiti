@@ -1,9 +1,9 @@
 import { Vec4, Vec4Like } from "gl-matrix";
-import { RenderPipelineFactory } from "../pipeline-factory.ts";
-import { WebGPURenderer } from "../../../webgpu-renderer.ts";
-import { GeometryLayout } from "../geometry-layout.ts";
-import { AttachmentLayout } from "../attachment-layout.ts";
-import { AttribLocation } from "../geometry.ts";
+import { RenderPipelineFactory } from "../renderer/pipeline-factory.ts";
+import { WebGPURenderer } from "../renderer/webgpu-renderer.ts";
+import { AttachmentLayout } from "../renderer/attachment-layout.ts";
+import { GeometryLayout } from "../geometry/geometry-layout.ts";
+import { AttribLocation } from "../geometry/geometry.ts";
 import { MaterialBase } from "./material-base.ts";
 
 export interface UnlitMaterialDesc {
@@ -52,7 +52,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
         binding: 2,
         resource: gpu.defaultSampler,
       }]
-    })
+    });
 
     const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
     mapped.set(this.baseColorFactor, 0);

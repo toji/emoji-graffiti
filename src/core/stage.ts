@@ -1,4 +1,4 @@
-import { Transform } from '../common/transform.js';
+import { Transform } from './transform.js';
 import { Actor, ComponentType } from './actor.js';
 
 export interface TickData {

@@ -1,7 +1,7 @@
 import { Mat4 } from "gl-matrix";
-import { Actor } from "./common/actor.ts";
-import { Geometry } from "./common/webgpu/geometry.ts";
-import { MaterialBase } from "./common/webgpu/materials/material-base.ts";
+import { Actor } from "../core/actor.ts";
+import { Geometry } from "../geometry/geometry.ts";
+import { MaterialBase } from "../materials/material-base.ts";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
 
 function nextMultipleOf(multiple: number, value: number): number {

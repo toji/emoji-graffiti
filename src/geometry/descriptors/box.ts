@@ -1,4 +1,4 @@
-import { Geometry, GeometryAttribute, GeometryDescriptor } from '../geometry.ts';
+import { GeometryAttribute, GeometryDescriptor } from '../geometry.ts';
 
 export class BoxGeometry implements GeometryDescriptor {
   position: GeometryAttribute;

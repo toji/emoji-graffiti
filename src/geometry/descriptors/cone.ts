@@ -1,4 +1,4 @@
-import { CylinderGeometry } from './cylinder.js';
+import { CylinderGeometry } from './cylinder.ts';
 
 // Big swaths of this code lifted with love from Three.js
 export class ConeGeometry extends CylinderGeometry {

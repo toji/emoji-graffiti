@@ -27,7 +27,7 @@
  * (though only for the given session.)
  */
 
-import { BufferToHexString, HexStringToBuffer } from '../buffer-to-hex.ts';
+import { BufferToHexString, HexStringToBuffer } from '../util/buffer-to-hex.ts';
 
 // Do not place numeric values in these enums with another format.
 // Can go up to 256 before the serialized format needs to change

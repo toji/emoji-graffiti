@@ -29,9 +29,9 @@
  * previously requested async one.
  */
 
-import { Config } from '../config.js';
-import { GeometryLayout } from './geometry-layout.js';
-import { wgsl } from './wgsl-preprocessor.js';
+import { Config } from '../util/config.ts';
+import { GeometryLayout } from '../geometry/geometry-layout.ts';
+import { wgsl } from '../util/wgsl-preprocessor.ts';
 import { AttachmentLayout } from './attachment-layout.js';
 //import { PipelinePrecacheFactory, PipelinePrecache } from './pipeline-precache.js';
 

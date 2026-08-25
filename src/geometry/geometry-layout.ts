@@ -33,7 +33,7 @@
  * formats.
  */
 
-import { BufferToHexString, HexStringToBuffer } from "../buffer-to-hex.ts";
+import { BufferToHexString, HexStringToBuffer } from "../util/buffer-to-hex.ts";
 
 enum TopologyId {
   'point-list',

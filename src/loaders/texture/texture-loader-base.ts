@@ -5,8 +5,8 @@
  * streaming in new assets.
  */
 
-import { WorkerPool } from '../../common/worker-pool.ts'
-import { CacheHelper } from '../../common/cache-helper.ts'
+import { WorkerPool } from '../../util/worker-pool.ts'
+import { CacheHelper } from '../../util/cache-helper.ts'
 
 export type WebTexture = GPUTexture;
 

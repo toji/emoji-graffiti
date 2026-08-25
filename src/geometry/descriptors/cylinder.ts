@@ -1,4 +1,4 @@
-import { GeometryAttribute, GeometryDescriptor, GeometryIndexValues } from '../geometry.js';
+import { GeometryAttribute, GeometryDescriptor, GeometryIndexValues } from '../geometry.ts';
 //import { GeometryBounds } from '../geometry-bounds.js';
 import { Vec3 } from 'gl-matrix';
 

@@ -1,5 +1,5 @@
-import { Actor, ComponentType } from "../../actor.ts";
-import { Stage } from "../../stage.ts";
+import { Actor, ComponentType } from "../core/actor.ts";
+import { Stage } from "../core/stage.ts";
 
 export class ActorMaterial {
   material: MaterialBase;
