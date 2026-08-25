@@ -11,11 +11,13 @@ import { UnlitMaterial } from './common/webgpu/materials/unlit.ts';
 import { SphereGeometry } from './common/webgpu/geometries/sphere.ts';
 import { CylinderGeometry } from './common/webgpu/geometries/cylinder.ts';
 import { ConeGeometry } from './common/webgpu/geometries/cone.ts';
-
-const EMOJI_SIZE = 256;
+import { AppConfig } from './config/app.ts';
+import { Config } from './common/config.ts';
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
+    config: AppConfig;
+
     emojiButton: HTMLButtonElement;
     emojiPicker: HTMLElement;
     emojiRenderer: EmojiRenderer;
@@ -33,6 +35,8 @@ const EMOJI_SIZE = 256;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
+
+      this.config = Config.Create(AppConfig);
 
       const geometries = [
         new Geometry(gpu.device, new BoxGeometry()),
@@ -130,10 +134,11 @@ const EMOJI_SIZE = 256;
     async onEmojiPicked(emoji: any) {
       console.log(emoji);
 
+      const emojiSize = this.config.emojiTextureSize;
       const texture = this.gpu.device.createTexture({
         //label: `Emoji '${emoji.unicode}'`,
-        size: [EMOJI_SIZE, EMOJI_SIZE, 1],
-        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(EMOJI_SIZE, EMOJI_SIZE),
+        size: [emojiSize, emojiSize, 1],
+        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
         format: 'rgba8unorm',
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
       });
@@ -147,7 +152,6 @@ const EMOJI_SIZE = 256;
       this.currentEmojiTexture = texture;
 
       const emojiMaterial = new UnlitMaterial(this.gpu, {
-        baseColorFactor: [Math.random(), Math.random(), Math.random(), 1],
         baseColorTexture: this.currentEmojiTexture,
       });
       this.box.add(emojiMaterial);

@@ -315,7 +315,7 @@ export class WebGPUApp implements WebGPUAppCallbacks {
 
     // Start listening for resize events
     ResizeHandler.observe(gpu.canvas, (width, height) => {
-      gpu.onResize(width, width);
+      gpu.onResize(width, height);
       app.onResize(gpu, width, height);
     });
 
