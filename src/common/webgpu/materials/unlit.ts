@@ -17,26 +17,42 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
   static SharedComponent = true;
 
   uniformBuffer: GPUBuffer;
+  materialBindGroup: GPUBindGroup;
 
   label?: string;
   transparent: boolean;
   baseColorFactor: Vec4;
   baseColorTexture?: GPUTexture;
 
-  constructor(device: GPUDevice, desc?: UnlitMaterialDesc) {
+  constructor(gpu: WebGPURenderer, desc?: UnlitMaterialDesc) {
     super();
 
     this.label = desc?.label;
     this.transparent = desc?.transparent ?? false;
     this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
-    this.baseColorTexture = desc?.baseColorTexture;
+    this.baseColorTexture = desc?.baseColorTexture ?? gpu.whiteTexture;
 
-    this.uniformBuffer = device.createBuffer({
+    this.uniformBuffer = gpu.device.createBuffer({
       label: 'Unlit Material',
       size: Vec4.BYTE_LENGTH,
       usage: GPUBufferUsage.UNIFORM,
       mappedAtCreation: true,
     });
+
+    this.materialBindGroup = gpu.device.createBindGroup({
+      label: 'Unlit Material',
+      layout: gpu.unlitPipelineFactory.materialBGL,
+      entries: [{
+        binding: 0,
+        resource: this.uniformBuffer,
+      }, {
+        binding: 1,
+        resource: this.baseColorTexture,
+      }, {
+        binding: 2,
+        resource: gpu.defaultSampler,
+      }]
+    })
 
     const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
     mapped.set(this.baseColorFactor, 0);
@@ -72,13 +88,13 @@ const EMOJI_SHADER = /* wgsl */`
   @group(1) @binding(0) var<storage> transforms: array<mat4x4f>;
   @group(1) @binding(1) var<storage> transformIndices: array<u32>;
 
-  //struct Material {
-  //  baseColorFactor: vec4f,
-  //};
+  struct Material {
+    baseColorFactor: vec4f,
+  };
 //
-  //@group(1) @binding(0) var<uniform> material: Material;
-  //@group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
-  //@group(1) @binding(2) var texSampler: sampler;
+  @group(2) @binding(0) var<uniform> material: Material;
+  @group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
+  @group(2) @binding(2) var texSampler: sampler;
 
   @vertex
   fn vertMain(in: VertexIn) -> VertexOut {
@@ -91,8 +107,8 @@ const EMOJI_SHADER = /* wgsl */`
 
   @fragment
   fn fragMain(in: VertexOut) -> @location(0) vec4f {
-    //let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-    let baseColor = vec4f(1, 1, 0, 1);
+    let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+    //let baseColor = vec4f(1, 1, 0, 1);
     return vec4(baseColor.rgb, 1.0);
   }
 `;
@@ -127,7 +143,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     });
 
     this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [cameraBGL, instanceBGL]
+      bindGroupLayouts: [cameraBGL, instanceBGL, this.materialBGL]
     });
   }
 

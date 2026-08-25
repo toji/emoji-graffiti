@@ -1,6 +1,6 @@
 import { OrbitCamera } from './common/webgpu/camera/orbit-camera.ts';
 import { BoxGeometry } from './common/webgpu/geometries/box.ts';
-import { AttribLocation, Geometry } from './common/webgpu/geometry.ts';
+import { Geometry } from './common/webgpu/geometry.ts';
 import { EmojiRenderer } from './emoji-renderer.ts';
 import { WebGPUMipmapGenerator } from './loaders/texture/mipmap-generator.ts';
 import { WebGpuTextureLoader } from './loaders/texture/webgpu-texture-loader.ts';
@@ -19,7 +19,6 @@ const EMOJI_SIZE = 256;
     emojiButton: HTMLButtonElement;
     emojiPicker: HTMLElement;
     emojiRenderer: EmojiRenderer;
-    textureLoader: WebGpuTextureLoader;
 
     emojiSampler: GPUSampler;
     currentEmojiTexture?: GPUTexture;
@@ -43,12 +42,12 @@ const EMOJI_SIZE = 256;
       ];
 
       const materials = [
-        new UnlitMaterial(gpu.device, { baseColorFactor: [1, 0, 0, 1] }),
-        new UnlitMaterial(gpu.device, { baseColorFactor: [0, 1, 0, 1] }),
-        new UnlitMaterial(gpu.device, { baseColorFactor: [0, 0, 1, 1] }),
-        new UnlitMaterial(gpu.device, { baseColorFactor: [1, 1, 0, 1] }),
-        new UnlitMaterial(gpu.device, { baseColorFactor: [1, 0, 1, 1] }),
-        new UnlitMaterial(gpu.device, { baseColorFactor: [0, 1, 1, 1] }),
+        new UnlitMaterial(gpu, { baseColorFactor: [1, 0, 0, 1] }),
+        new UnlitMaterial(gpu, { baseColorFactor: [0, 1, 0, 1] }),
+        new UnlitMaterial(gpu, { baseColorFactor: [0, 0, 1, 1] }),
+        new UnlitMaterial(gpu, { baseColorFactor: [1, 1, 0, 1] }),
+        new UnlitMaterial(gpu, { baseColorFactor: [1, 0, 1, 1] }),
+        new UnlitMaterial(gpu, { baseColorFactor: [0, 1, 1, 1] }),
       ];
 
       this.box = new Actor(
@@ -57,13 +56,17 @@ const EMOJI_SIZE = 256;
       );
       this.stage.attachChild(this.box);
 
-      for (let i = 0; i < 100; ++i) {
+      for (let i = 0; i < 500; ++i) {
         const actor = new Actor(
           geometries[Math.floor(Math.random() * geometries.length)],
           materials[Math.floor(Math.random() * materials.length)]
         );
 
-        actor.transform.translation = [Math.random() * 100, Math.random() * 100, Math.random() * 100];
+        actor.transform.translation = [
+          Math.random() * 50 - 25,
+          Math.random() * 50 - 25,
+          Math.random() * 50 - 25
+        ];
         actor.transform.scale = [Math.random() + 0.5, Math.random() + 0.5, Math.random() + 0.5];
         actor.transform.rotationRef.rotateX(Math.random() * Math.PI);
         actor.transform.rotationRef.rotateY(Math.random() * Math.PI);
@@ -76,8 +79,7 @@ const EMOJI_SIZE = 256;
       this.camera = new OrbitCamera(gpu.canvas);
       this.camera.distance = 4;
 
-      this.textureLoader = new WebGpuTextureLoader(gpu.device);
-      this.emojiRenderer = new EmojiRenderer(this.textureLoader);
+      this.emojiRenderer = new EmojiRenderer(gpu.textureLoader);
 
       // Initialize the Emoji picker control
       this.emojiPicker = document.querySelector('emoji-picker')!;
@@ -144,7 +146,7 @@ const EMOJI_SIZE = 256;
 
       this.currentEmojiTexture = texture;
 
-      const emojiMaterial = new UnlitMaterial(this.gpu.device, {
+      const emojiMaterial = new UnlitMaterial(this.gpu, {
         baseColorFactor: [Math.random(), Math.random(), Math.random(), 1],
         baseColorTexture: this.currentEmojiTexture,
       });
@@ -167,16 +169,6 @@ const EMOJI_SIZE = 256;
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
       gpu.render(this.stage, this.camera, timestamp);
-
-      /*if (this.currentEmojiBindGroup) {
-        renderPass.setBindGroup(0, this.cameraBindGroup);
-        renderPass.setBindGroup(1, this.currentEmojiBindGroup);
-        this.unlitPipeline.use(renderPass);
-
-        const boxGeometry = this.box.get(Geometry)!;
-        boxGeometry.bindAndDraw(renderPass);
-        //renderPass.draw(6);
-      }*/
     }
   }, {
     canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement

@@ -9,6 +9,7 @@ import { RenderPipeline } from "./common/webgpu/pipeline-factory.ts";
 import { Geometry } from "./common/webgpu/geometry.ts";
 import { Actor } from "./common/actor.ts";
 import { InstanceManager } from "./instance-manager.ts";
+import { WebGpuTextureLoader } from "./loaders/texture/webgpu-texture-loader.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -23,6 +24,8 @@ export class WebGPURenderer {
   context: GPUCanvasContext;
 
   config: RendererConfig;
+
+  textureLoader: WebGpuTextureLoader;
 
   depthStencilTexture?: GPUTexture;
   msaaColorTexture?: GPUTexture;
@@ -40,6 +43,10 @@ export class WebGPURenderer {
   unlitPipelineFactory: UnlitPipelineFactory;
   //unlitPipeline: RenderPipeline;
 
+  defaultSampler: GPUSampler;
+
+  whiteTexture: GPUTexture;
+
   constructor(device: GPUDevice, options: WebGPURendererOptions) {
     this.device = device;
     this.canvas = options.canvas ?? document.createElement('canvas');
@@ -52,6 +59,8 @@ export class WebGPURenderer {
       device: this.device,
       format: this.config.colorFormat,
     });
+
+    this.textureLoader = new WebGpuTextureLoader(device);
 
     this.attachmentLayout = new AttachmentLayout(
       [this.config.colorFormat],
@@ -82,6 +91,17 @@ export class WebGPURenderer {
         resource: this.cameraBuffer,
       }]
     });
+
+    this.defaultSampler = device.createSampler({
+      label: 'Default',
+      addressModeU: 'clamp-to-edge',
+      addressModeV: 'clamp-to-edge',
+      minFilter: 'linear',
+      magFilter: 'linear',
+      mipmapFilter: 'linear',
+    });
+
+    this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
 
     this.instanceBGL = device.createBindGroupLayout({
       label: 'Instance',
@@ -186,7 +206,7 @@ export class WebGPURenderer {
 
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of this.instanceManager.materials.values()) {
-      //renderPass.setBindGroup(2, this.currentEmojiBindGroup);
+      renderPass.setBindGroup(2, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
       for (let geometryInstances of materialGeometries.geometries.values()) {
         const unlitPipeline = this.unlitPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, { transparent: false });
