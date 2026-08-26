@@ -70,7 +70,6 @@ const EMOJI_SHADER = /* wgsl */`
   struct VertexIn {
     @location(${AttribLocation.position}) pos: vec4f,
     @location(${AttribLocation.texcoord0}) texCoord: vec2f,
-    @builtin(instance_index) instance: u32,
   };
 
   struct VertexOut {
@@ -80,7 +79,9 @@ const EMOJI_SHADER = /* wgsl */`
 
   struct Camera {
     projection: mat4x4f,
+    invProjection: mat4x4f,
     view: mat4x4f,
+    viewPos: vec3f,
   };
 
   @group(0) @binding(0) var<uniform> camera: Camera;
@@ -97,8 +98,8 @@ const EMOJI_SHADER = /* wgsl */`
   @group(2) @binding(2) var texSampler: sampler;
 
   @vertex
-  fn vertMain(in: VertexIn) -> VertexOut {
-    let transformIndex = transformIndices[in.instance];
+  fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
+    let transformIndex = transformIndices[instanceIdx];
     let modelMat = transforms[transformIndex];
     let pos = camera.projection * camera.view * modelMat * in.pos;
     let texCoord = in.texCoord;
@@ -163,7 +164,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
         depthStencil: {
           format: attachmentLayout.depthStencilFormat!,
           depthWriteEnabled: true,
-          depthCompare: 'less',
+          depthCompare: 'greater',
         },
         fragment: {
           module,

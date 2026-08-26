@@ -1,14 +1,14 @@
-import { Mat4 } from "gl-matrix";
+import { Mat4, Vec3 } from "gl-matrix";
 import { Config } from "../util/config.ts";
 import { RenderConfig } from "./render-config.ts";
 import { Stage } from "../core/stage.ts";
 import { Actor } from "../core/actor.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
-import { OrbitCamera } from "../camera/orbit-camera.ts";
 import { UnlitMaterial, UnlitPipelineFactory } from "../materials/unlit.ts";
 import { Geometry } from "../geometry/geometry.ts";
 import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
+import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -31,7 +31,12 @@ export class WebGPURenderer {
 
   attachmentLayout: AttachmentLayout;
 
-  projection = new Mat4();
+  #cameraArray = new Float32Array(16*3 + 4);
+  #projMat = new Mat4(this.#cameraArray.buffer, 0);
+  #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
+  #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
+  #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
+
   cameraBGL: GPUBindGroupLayout;
   cameraBuffer: GPUBuffer;
   cameraBindGroup: GPUBindGroup;
@@ -69,7 +74,7 @@ export class WebGPURenderer {
 
     this.cameraBuffer = device.createBuffer({
       label: 'Camera',
-      size: Mat4.BYTE_LENGTH * 2,
+      size: this.#cameraArray.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });
 
@@ -157,8 +162,22 @@ export class WebGPURenderer {
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
     }
+  }
 
-    this.projection.perspectiveZO(Math.PI * 0.5, width/height, 0.1, 256);
+  updateCamera(cameraActor: Actor) {
+    const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
+    if (!camera) {
+      throw new Error('cameraActor passed to WebGPURenderer.render() must have a camera component');
+    }
+
+    // Update the various camera matrices.
+    camera.getProjection(this.#projMat);
+    Mat4.invert(this.#inverseProjMat, this.#projMat);
+    Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
+    this.#viewPos.set(cameraActor.worldTransform.translation);
+
+    // Update camera uniforms
+    this.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
   }
 
   gatherInstances(stage: Stage) {
@@ -171,14 +190,14 @@ export class WebGPURenderer {
     this.instanceManager.updateBuffers();
   }
 
-  render(stage: Stage, camera: OrbitCamera, timestamp: number = performance.now()) {
+  render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
+    this.updateCamera(cameraActor);
+
     this.gatherInstances(stage);
 
     //this.unlitPipeline = this.unlitPipelineFactory.getPipeline(boxGeometry.layout, gpu.attachmentLayout, { transparent: false });
 
-    // Update camera uniforms
-    this.device.queue.writeBuffer(this.cameraBuffer, 0, this.projection);
-    this.device.queue.writeBuffer(this.cameraBuffer, Mat4.BYTE_LENGTH, camera.viewMatrix);
+
 
     const colorTexture = this.context.getCurrentTexture();
 
@@ -193,7 +212,7 @@ export class WebGPURenderer {
       depthStencilAttachment: {
         view: this.depthStencilTexture!,
         depthLoadOp: 'clear',
-        depthClearValue: 1,
+        depthClearValue: 0,
         depthStoreOp: 'discard',
       }
     });

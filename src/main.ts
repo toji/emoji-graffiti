@@ -9,11 +9,11 @@ import { CylinderGeometry } from './geometry/descriptors/cylinder.ts';
 import { ConeGeometry } from './geometry/descriptors/cone.ts';
 import { WebGPUMipmapGenerator } from './loaders/texture/mipmap-generator.ts';
 import { WebGPUApp, WebGPURenderer } from './renderer/webgpu-renderer.ts';
-import { OrbitCamera } from './camera/orbit-camera.ts';
 import { UnlitMaterial } from './materials/unlit.ts';
 import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
-import { PerspectiveCamera } from './camera/camera.ts';
+import { PerspectiveCamera } from './core/camera.ts';
+import { OrbitController } from './controllers/orbit-controller.ts';
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -30,8 +30,6 @@ import { PerspectiveCamera } from './camera/camera.ts';
     stage: Stage = new Stage();
     box: Actor;
     camera: Actor;
-
-    orbitCamera: OrbitCamera;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
@@ -78,11 +76,11 @@ import { PerspectiveCamera } from './camera/camera.ts';
         this.stage.attachChild(actor);
       }
 
-      this.camera = new Actor(new PerspectiveCamera());
+      this.camera = new Actor(
+        new PerspectiveCamera(),
+        new OrbitController(gpu.canvas),
+      );
       this.stage.attachChild(this.camera);
-
-      this.orbitCamera = new OrbitCamera(gpu.canvas);
-      this.orbitCamera.distance = 4;
 
       this.emojiRenderer = new EmojiRenderer(gpu.textureLoader);
 
@@ -177,7 +175,8 @@ import { PerspectiveCamera } from './camera/camera.ts';
     }
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
-      gpu.render(this.stage, this.orbitCamera, timestamp);
+      this.stage.tick(timestamp);
+      gpu.render(this.stage, this.camera, timestamp);
     }
   }, {
     canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement

@@ -42,6 +42,8 @@ export class Camera {
 }
 
 export class PerspectiveCamera extends Camera {
+  static SharedComponent = true;
+
   // Projection Matrix values
   fieldOfView: number = Math.PI * 0.5; // 90 deg
   aspect: number = 1;
@@ -67,6 +69,8 @@ export class PerspectiveCamera extends Camera {
 }
 
 export class OrthographicCamera extends Camera {
+  static SharedComponent = true;
+
   // Ortho Matrix values
   left: number = -1;
   right: number = 1;

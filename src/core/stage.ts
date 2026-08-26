@@ -113,7 +113,7 @@ export class StageData {
         order: (componentType as any).TickOrder ?? 0,
         componentType,
       });
-      this.tickTypes.sort((a, b) => a.order - b.order);
+      this.tickTypes = this.tickTypes.sort((a, b) => a.order - b.order);
     }
   }
 
