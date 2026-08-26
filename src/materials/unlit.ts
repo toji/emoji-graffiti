@@ -3,7 +3,6 @@ import { RenderPipelineFactory } from "../renderer/pipeline-factory.ts";
 import { WebGPURenderer } from "../renderer/webgpu-renderer.ts";
 import { AttachmentLayout } from "../renderer/attachment-layout.ts";
 import { GeometryLayout } from "../geometry/geometry-layout.ts";
-import { AttribLocation } from "../geometry/geometry.ts";
 import { MaterialBase } from "./material-base.ts";
 
 export interface UnlitMaterialDesc {
@@ -64,56 +63,6 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
   }
 }
 
-const EMOJI_SHADER = /* wgsl */`
-  requires immediate_address_space;
-
-  struct VertexIn {
-    @location(${AttribLocation.position}) pos: vec4f,
-    @location(${AttribLocation.texcoord0}) texCoord: vec2f,
-  };
-
-  struct VertexOut {
-    @builtin(position) pos: vec4f,
-    @location(0) texCoord: vec2f,
-  };
-
-  struct Camera {
-    projection: mat4x4f,
-    invProjection: mat4x4f,
-    view: mat4x4f,
-    viewPos: vec3f,
-  };
-
-  @group(0) @binding(0) var<uniform> camera: Camera;
-
-  @group(1) @binding(0) var<storage> transforms: array<mat4x4f>;
-  @group(1) @binding(1) var<storage> transformIndices: array<u32>;
-
-  struct Material {
-    baseColorFactor: vec4f,
-  };
-//
-  @group(2) @binding(0) var<uniform> material: Material;
-  @group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
-  @group(2) @binding(2) var texSampler: sampler;
-
-  @vertex
-  fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
-    let transformIndex = transformIndices[instanceIdx];
-    let modelMat = transforms[transformIndex];
-    let pos = camera.projection * camera.view * modelMat * in.pos;
-    let texCoord = in.texCoord;
-    return VertexOut(pos, texCoord);
-  }
-
-  @fragment
-  fn fragMain(in: VertexOut) -> @location(0) vec4f {
-    let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-    //let baseColor = vec4f(1, 1, 0, 1);
-    return vec4(baseColor.rgb, 1.0);
-  }
-`;
-
 interface UnlitPipelineArgs {
   transparent: boolean,
 }
@@ -154,7 +103,48 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     args: UnlitPipelineArgs): GPURenderPipelineDescriptor {
       const module = this.device.createShaderModule({
         label: 'Unlit Material',
-        code: EMOJI_SHADER,
+        code: /* wgsl */`
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+          };
+
+          struct Camera {
+            projection: mat4x4f,
+            invProjection: mat4x4f,
+            view: mat4x4f,
+            viewPos: vec3f,
+          };
+
+          @group(0) @binding(0) var<uniform> camera: Camera;
+
+          @group(1) @binding(0) var<storage> transforms: array<mat4x4f>;
+          @group(1) @binding(1) var<storage> transformIndices: array<u32>;
+
+          struct Material {
+            baseColorFactor: vec4f,
+          };
+
+          @group(2) @binding(0) var<uniform> material: Material;
+          @group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
+          @group(2) @binding(2) var texSampler: sampler;
+
+          @vertex
+          fn vertMain(in: VertexIn, @builtin(instance_index) instance: u32) -> VertexOut {
+            let transformIndex = transformIndices[instance];
+            let modelMat = transforms[transformIndex];
+            let pos = camera.projection * camera.view * modelMat * in.position;
+            return VertexOut(pos, in.texcoord0);
+          }
+
+          @fragment
+          fn fragMain(in: VertexOut) -> @location(0) vec4f {
+            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+            return vec4(baseColor.rgb, 1.0);
+          }
+        `,
       });
 
       return {

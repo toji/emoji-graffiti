@@ -34,6 +34,8 @@
  */
 
 import { BufferToHexString, HexStringToBuffer } from "../util/buffer-to-hex.ts";
+import { wgsl } from "../util/wgsl-preprocessor.ts";
+import { AttribLocation } from "./geometry.ts";
 
 enum TopologyId {
   'point-list',
@@ -252,6 +254,38 @@ export class GeometryLayout {
     // Should not get here.
     console.error(`Shader Location ${shaderLocation} has format "${format}" with an unknown base type.`);
     return undefined;
+  }
+
+  getStandardVertexInStruct(structName: string = 'VertexIn'): string {
+    const used = this.locationsUsed;
+    return wgsl`
+      struct ${structName} {
+      #if ${used.has(AttribLocation.position)}
+          @location(${AttribLocation.position}) position: vec4<${this.getLocationBaseType(AttribLocation.position)}>,
+      #endif
+      #if ${used.has(AttribLocation.normal)}
+          @location(${AttribLocation.normal}) normal: vec3<${this.getLocationBaseType(AttribLocation.normal)}>,
+      #endif
+      #if ${used.has(AttribLocation.tangent)}
+          @location(${AttribLocation.tangent}) tangent: vec4<${this.getLocationBaseType(AttribLocation.tangent)}>,
+      #endif
+      #if ${used.has(AttribLocation.texcoord0)}
+          @location(${AttribLocation.texcoord0}) texcoord0: vec2<${this.getLocationBaseType(AttribLocation.texcoord0)}>,
+      #endif
+      #if ${used.has(AttribLocation.texcoord1)}
+          @location(${AttribLocation.texcoord1}) texcoord1: vec2<${this.getLocationBaseType(AttribLocation.texcoord1)}>,
+      #endif
+      #if ${used.has(AttribLocation.color)}
+          @location(${AttribLocation.color}) color: vec4<${this.getLocationBaseType(AttribLocation.color)}>,
+      #endif
+      #if ${used.has(AttribLocation.joints)}
+          @location(${AttribLocation.joints}) joints: vec4<${this.getLocationBaseType(AttribLocation.joints)}>,
+      #endif
+      #if ${used.has(AttribLocation.weights)}
+          @location(${AttribLocation.weights}) weights: vec4<${this.getLocationBaseType(AttribLocation.weights)}>,
+      #endif
+      }
+    `;
   }
 
   // The GeometryLayout's binary serialized format is:

@@ -18,7 +18,7 @@ export class MaterialBase {
     if (actorMaterial) {
       actor.remove(actorMaterial.materialType);
     }
-    actorMaterial = new ActorMaterial(this);
+    actor.add(new ActorMaterial(this));
   }
 
   removedFromActor(actor: Actor) {

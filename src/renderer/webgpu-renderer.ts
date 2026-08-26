@@ -9,6 +9,7 @@ import { Geometry } from "../geometry/geometry.ts";
 import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
+import { ActorMaterial } from "../materials/material-base.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -182,10 +183,10 @@ export class WebGPURenderer {
 
   gatherInstances(stage: Stage) {
     this.instanceManager.clear();
-    stage.query(Geometry, UnlitMaterial).forEach((actor: Actor, geometry: Geometry, material: UnlitMaterial) => {
+    stage.query(Geometry, ActorMaterial).forEach((actor: Actor, geometry: Geometry, material: ActorMaterial) => {
       // Build the buffers/bind groups neccessary for rendering any instances of the gemoetry/material combinations.
       // TODO: This sucks but I'm forcing myself to ignore that until it actually becomes a problem for the sake of getting anything else done.
-      this.instanceManager.addInstance(material, geometry, actor);
+      this.instanceManager.addInstance(material.material, geometry, actor);
     });
     this.instanceManager.updateBuffers();
   }
@@ -195,10 +196,6 @@ export class WebGPURenderer {
 
     this.gatherInstances(stage);
 
-    //this.unlitPipeline = this.unlitPipelineFactory.getPipeline(boxGeometry.layout, gpu.attachmentLayout, { transparent: false });
-
-
-
     const colorTexture = this.context.getCurrentTexture();
 
     const commandEncoder = this.device.createCommandEncoder();
@@ -206,7 +203,7 @@ export class WebGPURenderer {
       colorAttachments: [{
         view: colorTexture,
         loadOp: 'clear',
-        clearValue: [0, Math.sin(timestamp / 1000), 1, 1],
+        clearValue: [0.1, 0.1, 0.2, 1],
         storeOp: 'store',
       }],
       depthStencilAttachment: {
@@ -220,17 +217,12 @@ export class WebGPURenderer {
     renderPass.setBindGroup(0, this.cameraBindGroup);
     renderPass.setBindGroup(1, this.instanceManager.instanceBuffers!.instanceBindGroup);
 
-    const offsetArray = new Uint32Array(1);
-
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of this.instanceManager.materials.values()) {
       renderPass.setBindGroup(2, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
       for (let geometryInstances of materialGeometries.geometries.values()) {
         const unlitPipeline = this.unlitPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, { transparent: false });
-        offsetArray[0] = geometryInstances.indexOffset;
-        // @ts-expect-error Till setImmediates gets rolled into the TypeScript WebGPU definitions.
-        renderPass.setImmediates(0, offsetArray);
         unlitPipeline.use(renderPass);
         geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
       }
