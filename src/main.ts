@@ -14,6 +14,8 @@ import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
 import { PerspectiveCamera } from './core/camera.ts';
 import { OrbitController } from './controllers/orbit-controller.ts';
+import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
+import { FlyingController } from './controllers/flying-controller.ts';
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -31,10 +33,19 @@ import { OrbitController } from './controllers/orbit-controller.ts';
     box: Actor;
     camera: Actor;
 
+    gltfLoader: GltfLoader;
+
     constructor(gpu: WebGPURenderer) {
       super(gpu);
-
       this.config = Config.Create(AppConfig);
+
+      this.gltfLoader = new GltfLoader(gpu);
+
+      this.gltfLoader.loadFromUrl('./media/models/gallery.glb').then((scene: Actor) => {
+        this.stage.attachChild(scene);
+      }).catch((err) => {
+        console.error('Gltf failed to load.', err);
+      });
 
       const geometries = [
         new Geometry(gpu.device, new BoxGeometry()),
@@ -78,7 +89,7 @@ import { OrbitController } from './controllers/orbit-controller.ts';
 
       this.camera = new Actor(
         new PerspectiveCamera(),
-        new OrbitController(gpu.canvas),
+        new FlyingController(gpu.canvas),
       );
       this.stage.attachChild(this.camera);
 
