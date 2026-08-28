@@ -10,6 +10,7 @@ import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
 import { ActorMaterial } from "../materials/material-base.ts";
+import { Decal } from "../materials/decal.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -41,6 +42,10 @@ export class WebGPURenderer {
   cameraBGL: GPUBindGroupLayout;
   cameraBuffer: GPUBuffer;
   cameraBindGroup: GPUBindGroup;
+
+  decalBGL: GPUBindGroupLayout;
+  decalBuffer: GPUBuffer;
+  decalBindGroup?: GPUBindGroup;
 
   instanceBGL: GPUBindGroupLayout;
   instanceManager: InstanceManager;
@@ -97,6 +102,29 @@ export class WebGPURenderer {
       }]
     });
 
+    this.decalBGL = device.createBindGroupLayout({
+      label: 'Decal',
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: {}
+      }, {
+        binding: 1,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 2,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        sampler: {}
+      }]
+    });
+
+    this.decalBuffer = device.createBuffer({
+      label: 'Decal',
+      size: Mat4.BYTE_LENGTH * 2,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+    });
+
     this.defaultSampler = device.createSampler({
       label: 'Default',
       addressModeU: 'clamp-to-edge',
@@ -125,7 +153,7 @@ export class WebGPURenderer {
 
     this.instanceManager = new InstanceManager(this);
 
-    this.unlitPipelineFactory = new UnlitPipelineFactory(this, this.cameraBGL, this.instanceBGL);
+    this.unlitPipelineFactory = new UnlitPipelineFactory(this);
   }
 
   onResize(width: number, height: number) {
@@ -191,10 +219,37 @@ export class WebGPURenderer {
     this.instanceManager.updateBuffers();
   }
 
+  gatherDecals(stage: Stage) {
+    const invProj = new Mat4();
+    stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
+      Mat4.invert(decal.projection, invProj);
+      
+      // Update camera uniforms
+      this.device.queue.writeBuffer(this.decalBuffer, 0, invProj);
+      this.device.queue.writeBuffer(this.decalBuffer, Mat4.BYTE_LENGTH, actor.worldTransform.matrix);
+
+      this.decalBindGroup = this.device.createBindGroup({
+        label: 'Decal',
+        layout: this.decalBGL,
+        entries: [{
+          binding: 0,
+          resource: this.decalBuffer,
+        }, {
+          binding: 1,
+          resource: decal.texture,
+        }, {
+          binding: 2,
+          resource: this.defaultSampler,
+        }]
+      })
+    });
+  }
+
   render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
     this.updateCamera(cameraActor);
 
     this.gatherInstances(stage);
+    this.gatherDecals(stage);
 
     const colorTexture = this.context.getCurrentTexture();
 
@@ -216,10 +271,11 @@ export class WebGPURenderer {
 
     renderPass.setBindGroup(0, this.cameraBindGroup);
     renderPass.setBindGroup(1, this.instanceManager.instanceBuffers!.instanceBindGroup);
+    renderPass.setBindGroup(2, this.decalBindGroup!);
 
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of this.instanceManager.materials.values()) {
-      renderPass.setBindGroup(2, (materialGeometries.material as UnlitMaterial).materialBindGroup);
+      renderPass.setBindGroup(3, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
       for (let geometryInstances of materialGeometries.geometries.values()) {
         if (geometryInstances.instances.length) {

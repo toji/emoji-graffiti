@@ -7,7 +7,7 @@ export class RenderConfig extends Config {
 
   // How large the render targets are compared to the screen resolution.
   // (Canvas render target size will always be 1:1 to allow for better UI)
-  outputScale = 0.5;
+  outputScale = 0.3;
 
   static SetDefaults(isMobile: boolean, device: GPUDevice): RenderConfig {
     const defaults: RenderConfig = isMobile ? new MobileRenderConfig() : new RenderConfig();

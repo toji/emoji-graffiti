@@ -16,6 +16,7 @@ import { PerspectiveCamera } from './core/camera.ts';
 import { OrbitController } from './controllers/orbit-controller.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
 import { FlyingController } from './controllers/flying-controller.ts';
+import { Decal } from './materials/decal.ts';
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -32,6 +33,7 @@ import { FlyingController } from './controllers/flying-controller.ts';
     stage: Stage = new Stage();
     box: Actor;
     camera: Actor;
+    decal: Actor;
 
     gltfLoader: GltfLoader;
 
@@ -67,9 +69,10 @@ import { FlyingController } from './controllers/flying-controller.ts';
         geometries[0],
         materials[0]
       );
+      this.box.transform.translation = [4, 2, -2];
       this.stage.attachChild(this.box);
 
-      for (let i = 0; i < 500; ++i) {
+      /*for (let i = 0; i < 500; ++i) {
         const actor = new Actor(
           geometries[Math.floor(Math.random() * geometries.length)],
           materials[Math.floor(Math.random() * materials.length)]
@@ -85,13 +88,22 @@ import { FlyingController } from './controllers/flying-controller.ts';
         actor.transform.rotationRef.rotateY(Math.random() * Math.PI);
 
         this.stage.attachChild(actor);
-      }
+      }*/
 
+      const controller = new FlyingController(gpu.canvas);
+      controller.speed = 0.0025;
       this.camera = new Actor(
         new PerspectiveCamera(),
-        new FlyingController(gpu.canvas),
+        controller,
       );
+      this.camera.transform.translation = [0.2, 1.6, 2];
       this.stage.attachChild(this.camera);
+
+      this.decal = new Actor(
+        new Decal(gpu.textureLoader.fromColor(0, 1, 0))
+      );
+      this.decal.transform.translation = [0, 0, -2];
+      this.camera.attachChild(this.decal);
 
       this.emojiRenderer = new EmojiRenderer(gpu.textureLoader);
 
@@ -160,6 +172,8 @@ import { FlyingController } from './controllers/flying-controller.ts';
       }
 
       this.currentEmojiTexture = texture;
+
+      this.decal.get(Decal)!.texture = texture;
 
       const emojiMaterial = new UnlitMaterial(this.gpu, {
         baseColorTexture: this.currentEmojiTexture,

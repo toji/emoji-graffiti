@@ -76,7 +76,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
   materialBGL: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
 
-  constructor(gpu: WebGPURenderer, cameraBGL: GPUBindGroupLayout, instanceBGL: GPUBindGroupLayout) {
+  constructor(gpu: WebGPURenderer) {
     const config = gpu.config.watch();
     super(gpu.device, config);
 
@@ -98,7 +98,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     });
 
     this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [cameraBGL, instanceBGL, this.materialBGL]
+      bindGroupLayouts: [gpu.cameraBGL, gpu.instanceBGL, gpu.decalBGL, this.materialBGL]
     });
   }
 
@@ -128,13 +128,20 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           @group(1) @binding(0) var<storage> transforms: array<mat4x4f>;
           @group(1) @binding(1) var<storage> transformIndices: array<u32>;
 
+          struct Decal {
+            decalProj: mat4x4f,
+          };
+          @group(2) @binding(0) var<uniform> decal: Decal;
+          @group(2) @binding(1) var decalTexture: texture_2d<f32>;
+          @group(2) @binding(2) var decalSampler: sampler;
+
           struct Material {
             baseColorFactor: vec4f,
           };
 
-          @group(2) @binding(0) var<uniform> material: Material;
-          @group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
-          @group(2) @binding(2) var texSampler: sampler;
+          @group(3) @binding(0) var<uniform> material: Material;
+          @group(3) @binding(1) var baseColorTexture: texture_2d<f32>;
+          @group(3) @binding(2) var texSampler: sampler;
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instance: u32) -> VertexOut {
@@ -157,7 +164,11 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           @fragment
           fn fragMain(in: VertexOut) -> @location(0) vec4f {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-            return vec4(linearTosRGB(baseColor.rgb), 1.0);
+            let decalColor = textureSample(decalTexture, decalSampler, in.texCoord);
+
+            let lightEst = baseColor.rgb / vec3f(0.5);
+            let color = (baseColor.rgb * (1.0 - decalColor.a)) + ((decalColor.rgb * decalColor.a) * lightEst);
+            return vec4(color, baseColor.a);
           }
         `,
       });
