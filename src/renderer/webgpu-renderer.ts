@@ -222,7 +222,7 @@ export class WebGPURenderer {
       renderPass.setBindGroup(2, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
       for (let geometryInstances of materialGeometries.geometries.values()) {
-        const unlitPipeline = this.unlitPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, { transparent: false });
+        const unlitPipeline = this.unlitPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, materialGeometries.material as UnlitMaterial);
         unlitPipeline.use(renderPass);
         geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
       }

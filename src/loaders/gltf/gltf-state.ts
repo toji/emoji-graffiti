@@ -493,6 +493,7 @@ export class GltfState {
        // TODO: Better material handling
       return new UnlitMaterial(this.gpu, {
         label: material.name,
+        doubleSided: true, //material.doubleSided,
         baseColorFactor: material.pbrMetallicRoughness?.baseColorFactor as Vec4Like,
         baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture, this.gpu.whiteTexture),
       });

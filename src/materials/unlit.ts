@@ -8,6 +8,7 @@ import { MaterialBase } from "./material-base.ts";
 export interface UnlitMaterialDesc {
   label?: string;
   transparent?: boolean;
+  doubleSided?: boolean;
   baseColorFactor?: Vec4Like;
   baseColorTexture?: GPUTexture;
 }
@@ -20,6 +21,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 
   label?: string;
   transparent: boolean;
+  doubleSided: boolean;
   baseColorFactor: Vec4;
   baseColorTexture?: GPUTexture;
 
@@ -28,6 +30,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 
     this.label = desc?.label;
     this.transparent = desc?.transparent ?? false;
+    this.doubleSided = desc?.doubleSided ?? false;
     this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
     this.baseColorTexture = desc?.baseColorTexture ?? gpu.whiteTexture;
 
@@ -65,6 +68,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 
 interface UnlitPipelineArgs {
   transparent: boolean,
+  doubleSided: boolean,
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -139,10 +143,20 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             return VertexOut(pos, in.texcoord0);
           }
 
+          const GAMMA = 2.2f;
+          const INV_GAMMA = 1.0f / GAMMA;
+          fn linearTosRGB(linear : vec3f) -> vec3f {
+            return pow(linear, vec3(INV_GAMMA));
+          }
+
+          fn sRGBToLinear(srgb : vec3f) -> vec3f {
+            return pow(srgb, vec3(GAMMA));
+          }
+
           @fragment
           fn fragMain(in: VertexOut) -> @location(0) vec4f {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-            return vec4(baseColor.rgb, 1.0);
+            return vec4(linearTosRGB(baseColor.rgb), 1.0);
           }
         `,
       });
@@ -151,6 +165,10 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
         label: 'Unlit Material',
         layout: this.pipelineLayout,
         vertex: { module, buffers: geometryLayout.buffers },
+        primitive: {
+          topology: geometryLayout.topology,
+          cullMode: args.doubleSided ? 'none' : 'back',
+        },
         depthStencil: {
           format: attachmentLayout.depthStencilFormat!,
           depthWriteEnabled: true,
