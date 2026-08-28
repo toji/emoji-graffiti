@@ -222,9 +222,20 @@ export class WebGPURenderer {
       renderPass.setBindGroup(2, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
       for (let geometryInstances of materialGeometries.geometries.values()) {
-        const unlitPipeline = this.unlitPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, materialGeometries.material as UnlitMaterial);
-        unlitPipeline.use(renderPass);
-        geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+        if (geometryInstances.instances.length) {
+          const unlitPipeline = this.unlitPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout, this.attachmentLayout,
+            { ...materialGeometries.material as UnlitMaterial, mirrored: false });
+          unlitPipeline.use(renderPass);
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+        }
+        if (geometryInstances.mirroredInstances.length) {
+          const unlitPipeline = this.unlitPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout, this.attachmentLayout,
+            { ...materialGeometries.material as UnlitMaterial, mirrored: true });
+          unlitPipeline.use(renderPass);
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+        }
       }
     }
 

@@ -149,7 +149,7 @@ import { FlyingController } from './controllers/flying-controller.ts';
         //label: `Emoji '${emoji.unicode}'`,
         size: [emojiSize, emojiSize, 1],
         mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-        format: 'rgba8unorm',
+        format: 'rgba8unorm-srgb',
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
       });
 

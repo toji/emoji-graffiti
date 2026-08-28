@@ -11,18 +11,28 @@ function nextMultipleOf(multiple: number, value: number): number {
 export class GeometryInstances {
   geometry: Geometry;
   instances: Actor[] = [];
+  mirroredInstances: Actor[] = [];
   indexOffset: number = -1;
+  mirroredIndexOffset: number = -1;
 
   constructor(geometry: Geometry) {
     this.geometry = geometry;
   }
 
   addInstance(actor: Actor) {
-    this.instances.push(actor);
+    if (actor.worldTransform.mirrored) {
+      this.mirroredInstances.push(actor);
+    } else {
+      this.instances.push(actor);
+    }
   }
 
   get instanceCount() {
     return this.instances.length;
+  }
+
+  get mirroredInstanceCount() {
+    return this.mirroredInstances.length;
   }
 }
 
@@ -98,11 +108,21 @@ export class InstanceBuffers {
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of materials.values()) {
       for (let geometryInstances of materialGeometries.geometries.values()) {
-        geometryInstances.indexOffset = indexOffset;
-        for (let instance of geometryInstances.instances) {
-          this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-          this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
-          transformOffset += 16;
+        if (geometryInstances.instances.length) {
+          geometryInstances.indexOffset = indexOffset;
+          for (let instance of geometryInstances.instances) {
+            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
+            transformOffset += 16;
+          }
+        }
+        if (geometryInstances.mirroredInstances) {
+          geometryInstances.mirroredIndexOffset = indexOffset;
+          for (let instance of geometryInstances.mirroredInstances) {
+            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
+            transformOffset += 16;
+          }
         }
       }
     }

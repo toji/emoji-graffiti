@@ -124,6 +124,11 @@ export class Transform {
     return this.#normalMatrix!;
   }
 
+  get mirrored(): boolean {
+    this.#ensureMatrix();
+    return Mat4.determinant(this.#matrix!) < 0;
+  }
+
   #ensureDecomposed() {
     if (this.#trsRev != this.#revision) {
       if (!this.#translation) {

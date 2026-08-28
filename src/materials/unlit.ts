@@ -69,6 +69,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 interface UnlitPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
+  mirrored: boolean,
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -167,7 +168,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
         vertex: { module, buffers: geometryLayout.buffers },
         primitive: {
           topology: geometryLayout.topology,
-          cullMode: args.doubleSided ? 'none' : 'back',
+          cullMode: args.doubleSided ? 'none' : (args.mirrored ? 'front' : 'back'),
         },
         depthStencil: {
           format: attachmentLayout.depthStencilFormat!,
