@@ -496,6 +496,9 @@ export class GltfState {
         doubleSided: material.doubleSided,
         baseColorFactor: material.pbrMetallicRoughness?.baseColorFactor as Vec4Like,
         baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture, this.gpu.whiteTexture),
+
+        baseAlbedo: material.extras?.baseColor,
+        canDecal: material.extras?.canDecal,
       });
     }
 

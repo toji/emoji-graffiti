@@ -1,9 +1,10 @@
-import { Vec4, Vec4Like } from "gl-matrix";
+import { Vec3, Vec3Like, Vec4, Vec4Like } from "gl-matrix";
 import { RenderPipelineFactory } from "../renderer/pipeline-factory.ts";
 import { WebGPURenderer } from "../renderer/webgpu-renderer.ts";
 import { AttachmentLayout } from "../renderer/attachment-layout.ts";
 import { GeometryLayout } from "../geometry/geometry-layout.ts";
 import { MaterialBase } from "./material-base.ts";
+import { wgsl } from "../util/wgsl-preprocessor.ts";
 
 export interface UnlitMaterialDesc {
   label?: string;
@@ -11,6 +12,8 @@ export interface UnlitMaterialDesc {
   doubleSided?: boolean;
   baseColorFactor?: Vec4Like;
   baseColorTexture?: GPUTexture;
+  baseAlbedo?: Vec3Like;
+  canDecal?: boolean;
 }
 
 export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
@@ -24,6 +27,8 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
   doubleSided: boolean;
   baseColorFactor: Vec4;
   baseColorTexture?: GPUTexture;
+  baseAlbedo: Vec3;
+  canDecal: boolean;
 
   constructor(gpu: WebGPURenderer, desc?: UnlitMaterialDesc) {
     super();
@@ -34,9 +39,13 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
     this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
     this.baseColorTexture = desc?.baseColorTexture ?? gpu.whiteTexture;
 
+    // These only apply to this specific demo
+    this.baseAlbedo = new Vec3(desc?.baseAlbedo ?? [1, 1, 1]);
+    this.canDecal = desc?.canDecal ?? false;
+
     this.uniformBuffer = gpu.device.createBuffer({
       label: 'Unlit Material',
-      size: Vec4.BYTE_LENGTH,
+      size: Vec4.BYTE_LENGTH * 2,
       usage: GPUBufferUsage.UNIFORM,
       mappedAtCreation: true,
     });
@@ -58,6 +67,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 
     const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
     mapped.set(this.baseColorFactor, 0);
+    mapped.set(this.baseAlbedo, 4);
 
     this.uniformBuffer.unmap();
 
@@ -70,6 +80,7 @@ interface UnlitPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
   mirrored: boolean,
+  canDecal: boolean,
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -108,7 +119,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     args: UnlitPipelineArgs): GPURenderPipelineDescriptor {
       const module = this.device.createShaderModule({
         label: 'Unlit Material',
-        code: /* wgsl */`
+        code: wgsl`
           ${geometryLayout.getStandardVertexInStruct()}
 
           struct VertexOut {
@@ -138,6 +149,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
 
           struct Material {
             baseColorFactor: vec4f,
+            baseAlbedo: vec3f,
           };
 
           @group(3) @binding(0) var<uniform> material: Material;
@@ -174,6 +186,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           fn fragMain(in: VertexOut) -> @location(0) vec4f {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
 
+          #if ${args.canDecal}
             let decalProjCoord = projBias * decal.decalProj * in.worldPos;
             let decalUv = decalProjCoord.xyz / decalProjCoord.w;
             var decalColor = textureSample(decalTexture, decalSampler, decalUv.xy);
@@ -182,10 +195,12 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
               decalColor = vec4f(0);
             }
 
-            // Best guess for the base color of the lighter grey walls.
-            let estAlbedo = vec3f(0.6, 0.65, 0.65);
+            let estAlbedo = material.baseAlbedo;
             let lightEst = baseColor.rgb / estAlbedo;
             let color = (baseColor.rgb * (1.0 - decalColor.a)) + ((decalColor.rgb * (decalColor.a)) * lightEst);
+          #else
+            let color = baseColor.rgb;
+          #endif
             return vec4(linearTosRGB(color), baseColor.a);
           }
         `,
