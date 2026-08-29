@@ -128,7 +128,7 @@ export class StageData {
     // Ensure that non-shared components are only attached to one actor at a time.
     if ((componentType as any).SharedComponent !== true) {
       const oldActor = this.unsharedComponentActors.get(component);
-      if (oldActor) {
+      if (oldActor && oldActor != actor) {
         oldActor.remove(componentType);
       }
       this.unsharedComponentActors.set(component, actor);

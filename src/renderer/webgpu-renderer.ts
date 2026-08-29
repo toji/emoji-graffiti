@@ -220,13 +220,13 @@ export class WebGPURenderer {
   }
 
   gatherDecals(stage: Stage) {
-    const invProj = new Mat4();
+    const textureProj = new Mat4();
     stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
-      Mat4.invert(decal.projection, invProj);
-      
+      Mat4.invert(textureProj, actor.worldTransform.matrix);
+      Mat4.multiply(textureProj, decal.projection, textureProj);
+
       // Update camera uniforms
-      this.device.queue.writeBuffer(this.decalBuffer, 0, invProj);
-      this.device.queue.writeBuffer(this.decalBuffer, Mat4.BYTE_LENGTH, actor.worldTransform.matrix);
+      this.device.queue.writeBuffer(this.decalBuffer, 0, textureProj);
 
       this.decalBindGroup = this.device.createBindGroup({
         label: 'Decal',

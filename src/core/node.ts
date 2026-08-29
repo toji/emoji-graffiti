@@ -71,6 +71,17 @@ export class Node<T extends Node<T>> {
     return this.#transform;
   }
 
+  set transform(value: Readonly<Transform>) {
+    if (!this.#transform) {
+      this.#transform = new Transform({
+        matrix: value.matrix,
+        onChange: () => this.#markDirty()
+      });
+    } else {
+      this.#transform.matrix = value.matrix;
+    }
+  }
+
   get worldTransform(): Readonly<Transform> {
     if (this.#isDirty) {
       // Create a world transform if we don't have one yet.

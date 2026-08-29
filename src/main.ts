@@ -91,19 +91,34 @@ import { Decal } from './materials/decal.ts';
       }*/
 
       const controller = new FlyingController(gpu.canvas);
-      controller.speed = 0.0025;
+      controller.speed = 0.004;
       this.camera = new Actor(
-        new PerspectiveCamera(),
+        new PerspectiveCamera({zNear: 0.01}),
         controller,
       );
       this.camera.transform.translation = [0.2, 1.6, 2];
       this.stage.attachChild(this.camera);
 
       this.decal = new Actor(
-        new Decal(gpu.textureLoader.fromColor(0, 1, 0))
+        new Decal(gpu.textureLoader.fromColor(0, 1, 0)),
       );
-      this.decal.transform.translation = [0, 0, -2];
+      this.decal.transform.translation = [0, 0, 0];
       this.camera.attachChild(this.decal);
+
+      // Detach from the camera on right click
+      gpu.canvas.addEventListener('contextmenu', (ev) => {
+        ev.preventDefault();
+
+        if (this.decal.parent == this.camera) {
+          this.decal.transform = this.decal.worldTransform;
+          this.stage.attachChild(this.decal);
+        } else {
+          this.decal.transform.matrix.identity();
+          this.camera.attachChild(this.decal);
+        }
+
+        return false;
+      });
 
       this.emojiRenderer = new EmojiRenderer(gpu.textureLoader);
 
@@ -137,10 +152,10 @@ import { Decal } from './materials/decal.ts';
       });
 
       // TEMP: Attach the canvas from the EmojiRenderer to the DOM
-      this.emojiRenderer.canvas.style.position = 'absolute';
+      /*this.emojiRenderer.canvas.style.position = 'absolute';
       this.emojiRenderer.canvas.style.right = '0px';
       this.emojiRenderer.canvas.style.zIndex = '1';
-      document.body.insertBefore(this.emojiRenderer.canvas, gpu.canvas);
+      document.body.insertBefore(this.emojiRenderer.canvas, gpu.canvas);*/
 
       // Initialize WebGPU resources
       this.emojiSampler = gpu.device.createSampler({
@@ -151,10 +166,14 @@ import { Decal } from './materials/decal.ts';
         magFilter: 'linear',
         mipmapFilter: 'linear',
       });
+
+      this.onEmojiPicked(this.config.emoji);
     }
 
     async onEmojiPicked(emoji: any) {
       console.log(emoji);
+
+      this.config.emoji = emoji;
 
       const emojiSize = this.config.emojiTextureSize;
       const texture = this.gpu.device.createTexture({

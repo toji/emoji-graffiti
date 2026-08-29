@@ -114,6 +114,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           struct VertexOut {
             @builtin(position) pos: vec4f,
             @location(0) texCoord: vec2f,
+            @location(1) worldPos: vec4f,
           };
 
           struct Camera {
@@ -147,8 +148,9 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           fn vertMain(in: VertexIn, @builtin(instance_index) instance: u32) -> VertexOut {
             let transformIndex = transformIndices[instance];
             let modelMat = transforms[transformIndex];
-            let pos = camera.projection * camera.view * modelMat * in.position;
-            return VertexOut(pos, in.texcoord0);
+            let worldPos = modelMat * in.position;
+            let pos = camera.projection * camera.view * worldPos;
+            return VertexOut(pos, in.texcoord0, worldPos);
           }
 
           const GAMMA = 2.2f;
@@ -161,14 +163,30 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             return pow(srgb, vec3(GAMMA));
           }
 
+          const projBias = mat4x4f(
+            0.5, 0, 0, 0,
+            0, -0.5, 0, 0,
+            0, 0, 0.5, 0,
+            0.5, 0.5, 0.5, 1,
+          );
+
           @fragment
           fn fragMain(in: VertexOut) -> @location(0) vec4f {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-            let decalColor = textureSample(decalTexture, decalSampler, in.texCoord);
 
-            let lightEst = baseColor.rgb / vec3f(0.5);
-            let color = (baseColor.rgb * (1.0 - decalColor.a)) + ((decalColor.rgb * decalColor.a) * lightEst);
-            return vec4(color, baseColor.a);
+            let decalProjCoord = projBias * decal.decalProj * in.worldPos;
+            let decalUv = decalProjCoord.xyz / decalProjCoord.w;
+            var decalColor = textureSample(decalTexture, decalSampler, decalUv.xy);
+
+            if (any(decalUv < vec3f(0)) || any(decalUv > vec3f(1))) {
+              decalColor = vec4f(0);
+            }
+
+            // Best guess for the base color of the lighter grey walls.
+            let estAlbedo = vec3f(0.6, 0.65, 0.65);
+            let lightEst = baseColor.rgb / estAlbedo;
+            let color = (baseColor.rgb * (1.0 - decalColor.a)) + ((decalColor.rgb * (decalColor.a)) * lightEst);
+            return vec4(linearTosRGB(color), baseColor.a);
           }
         `,
       });
