@@ -1,8 +1,9 @@
 import { Mat4 } from "gl-matrix";
 import { Actor } from "../core/actor.ts";
 import { Geometry } from "../geometry/geometry.ts";
-import { MaterialBase } from "../materials/material-base.ts";
+import { ActorMaterial, MaterialBase } from "../materials/material-base.ts";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
+import { Stage } from "../core/stage.ts";
 
 function nextMultipleOf(multiple: number, value: number): number {
   return Math.ceil(value / multiple) * multiple;
@@ -143,12 +144,12 @@ export class InstanceManager {
     this.gpu = gpu;
   }
 
-  clear() {
+  #clear() {
     this.materials.clear();
     this.instanceCount = 0;
   }
 
-  addInstance(material: MaterialBase, geometry: Geometry, actor: Actor) {
+  #addInstance(material: MaterialBase, geometry: Geometry, actor: Actor) {
     let materialGeometries = this.materials.get(material);
     if (!materialGeometries) {
       materialGeometries = new MaterialGeometries(material);
@@ -158,7 +159,14 @@ export class InstanceManager {
     this.instanceCount++;
   }
 
-  updateBuffers() {
+  updateInstances(stage: Stage) {
+    this.#clear();
+    stage.query(Geometry, ActorMaterial).forEach((actor: Actor, geometry: Geometry, material: ActorMaterial) => {
+      // Build the buffers/bind groups neccessary for rendering any instances of the gemoetry/material combinations.
+      // TODO: This sucks but I'm forcing myself to ignore that until it actually becomes a problem for the sake of getting anything else done.
+      this.#addInstance(material.material, geometry, actor);
+    });
+
     if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
       this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf(128, this.instanceCount));
     }

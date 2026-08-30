@@ -109,13 +109,12 @@ import { Decal } from './materials/decal.ts';
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
 
-        if (this.decal.parent == this.camera) {
-          this.decal.transform = this.decal.worldTransform;
-          this.stage.attachChild(this.decal);
-        } else {
-          this.decal.transform.matrix.identity();
-          this.camera.attachChild(this.decal);
-        }
+        // Create a new decal instance
+        const placedDecal = new Actor(
+          this.decal.get(Decal),
+        );
+        placedDecal.transform = this.decal.worldTransform;
+        this.stage.attachChild(placedDecal);
 
         return false;
       });

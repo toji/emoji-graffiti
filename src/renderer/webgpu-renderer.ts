@@ -4,13 +4,15 @@ import { RenderConfig } from "./render-config.ts";
 import { Stage } from "../core/stage.ts";
 import { Actor } from "../core/actor.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
-import { UnlitMaterial, UnlitPipelineFactory } from "../materials/unlit.ts";
+import { UnlitMaterial } from "../materials/unlit.ts";
 import { Geometry } from "../geometry/geometry.ts";
 import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
 import { ActorMaterial } from "../materials/material-base.ts";
 import { Decal } from "../materials/decal.ts";
+import { UnlitPipelineFactory } from "./pipelines/unlit.ts";
+import { DecalManager } from "./decal-manager.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -43,15 +45,12 @@ export class WebGPURenderer {
   cameraBuffer: GPUBuffer;
   cameraBindGroup: GPUBindGroup;
 
-  decalBGL: GPUBindGroupLayout;
-  decalBuffer: GPUBuffer;
-  decalBindGroup?: GPUBindGroup;
-
   instanceBGL: GPUBindGroupLayout;
   instanceManager: InstanceManager;
 
+  decalManager: DecalManager;
+
   unlitPipelineFactory: UnlitPipelineFactory;
-  //unlitPipeline: RenderPipeline;
 
   defaultSampler: GPUSampler;
 
@@ -102,28 +101,7 @@ export class WebGPURenderer {
       }]
     });
 
-    this.decalBGL = device.createBindGroupLayout({
-      label: 'Decal',
-      entries: [{
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        buffer: {}
-      }, {
-        binding: 1,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        binding: 2,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        sampler: {}
-      }]
-    });
-
-    this.decalBuffer = device.createBuffer({
-      label: 'Decal',
-      size: Mat4.BYTE_LENGTH * 2,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-    });
+    this.decalManager = new DecalManager(this);
 
     this.defaultSampler = device.createSampler({
       label: 'Default',
@@ -209,47 +187,11 @@ export class WebGPURenderer {
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
   }
 
-  gatherInstances(stage: Stage) {
-    this.instanceManager.clear();
-    stage.query(Geometry, ActorMaterial).forEach((actor: Actor, geometry: Geometry, material: ActorMaterial) => {
-      // Build the buffers/bind groups neccessary for rendering any instances of the gemoetry/material combinations.
-      // TODO: This sucks but I'm forcing myself to ignore that until it actually becomes a problem for the sake of getting anything else done.
-      this.instanceManager.addInstance(material.material, geometry, actor);
-    });
-    this.instanceManager.updateBuffers();
-  }
-
-  gatherDecals(stage: Stage) {
-    const textureProj = new Mat4();
-    stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
-      Mat4.invert(textureProj, actor.worldTransform.matrix);
-      Mat4.multiply(textureProj, decal.projection, textureProj);
-
-      // Update camera uniforms
-      this.device.queue.writeBuffer(this.decalBuffer, 0, textureProj);
-
-      this.decalBindGroup = this.device.createBindGroup({
-        label: 'Decal',
-        layout: this.decalBGL,
-        entries: [{
-          binding: 0,
-          resource: this.decalBuffer,
-        }, {
-          binding: 1,
-          resource: decal.texture,
-        }, {
-          binding: 2,
-          resource: this.defaultSampler,
-        }]
-      })
-    });
-  }
-
   render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
     this.updateCamera(cameraActor);
 
-    this.gatherInstances(stage);
-    this.gatherDecals(stage);
+    this.instanceManager.updateInstances(stage);
+    this.decalManager.updateDecals(stage);
 
     const colorTexture = this.context.getCurrentTexture();
 
@@ -271,7 +213,7 @@ export class WebGPURenderer {
 
     renderPass.setBindGroup(0, this.cameraBindGroup);
     renderPass.setBindGroup(1, this.instanceManager.instanceBuffers!.instanceBindGroup);
-    renderPass.setBindGroup(2, this.decalBindGroup!);
+    renderPass.setBindGroup(2, this.decalManager.decalBindGroup!);
 
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of this.instanceManager.materials.values()) {
