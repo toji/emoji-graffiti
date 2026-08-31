@@ -138,7 +138,7 @@ export class WebGPUMipmapGenerator {
    *
    * @param texture - Texture to generate mipmaps for.
    */
-  generateMipmap(texture: GPUTexture) {
+  generateMipmap(texture: GPUTexture, layer?: number) {
     if (texture.dimension == '3d' || texture.dimension == '1d') {
       throw new Error('Generating mipmaps for non-2d textures is currently unsupported!');
     }
@@ -147,7 +147,8 @@ export class WebGPUMipmapGenerator {
     const { bindGroupLayout, sampler } = this.#ensureSharedResources();
 
     let mipTexture = texture;
-    const arrayLayerCount = texture.depthOrArrayLayers; // Only valid for 2D textures.
+    const baseArrayLayer = layer ?? 0;
+    const arrayLayerCount = layer !== undefined ? 1 : texture.depthOrArrayLayers; // Only valid for 2D textures.
 
     // If the texture was created with RENDER_ATTACHMENT usage we can render directly between mip levels.
     const renderToSource = texture.usage & GPUTextureUsage.RENDER_ATTACHMENT;
@@ -169,9 +170,11 @@ export class WebGPUMipmapGenerator {
 
     const commandEncoder = this.device.createCommandEncoder({});
 
+    
+
     // Loop through each layer and generate a mipchain for it separately.
     // TODO: This won't handle things like blending over cubemap edges.
-    for (let arrayLayer = 0; arrayLayer < arrayLayerCount; ++arrayLayer) {
+    for (let arrayLayer = baseArrayLayer; arrayLayer < baseArrayLayer+arrayLayerCount; ++arrayLayer) {
       let srcView = texture.createView({
         baseMipLevel: 0,
         mipLevelCount: 1,

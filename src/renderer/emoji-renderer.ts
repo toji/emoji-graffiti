@@ -49,6 +49,6 @@ export class EmojiRenderer {
       origin: [0, 0, layer],
       premultipliedAlpha: true,
     }, [texture.width, texture.height, 1]);
-    this.textureLoader.mipmapGenerator.generateMipmap(texture);
+    this.textureLoader.mipmapGenerator.generateMipmap(texture, layer);
   }
 }
