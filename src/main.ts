@@ -73,14 +73,6 @@ import { Decal } from './materials/decal.ts';
       this.emojiPicker.addEventListener('emoji-click', (event: Event) => {
         const emojiEvent = (event as CustomEvent);
         this.onEmojiPicked(emojiEvent.detail);
-
-        if (emojiEvent.detail.unicode) {
-          this.emojiButton.innerHTML = emojiEvent.detail.unicode;
-          this.emojiButton.style = '';
-        } else {
-          this.emojiButton.innerHTML = ' ';
-          this.emojiButton.style = `background-image: url("${emojiEvent.detail.emoji.url}")`;
-        }
       });
       fetch('./media/emoji/custom.json').then(async (result) => {
         // @ts-ignore
@@ -114,6 +106,16 @@ import { Decal } from './materials/decal.ts';
       console.log(emoji);
       this.config.emoji = emoji;
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
+
+      if (emoji.unicode) {
+        this.emojiButton.innerHTML = emoji.unicode;
+        this.emojiButton.style = '';
+      } else {
+        this.emojiButton.innerHTML = ' ';
+        this.emojiButton.style = `background-image: url("${emoji.emoji.url}")`;
+      }
+
+      this.emojiPicker.style.display = 'none';
     }
 
     onResize(gpu: WebGPURenderer, width: number, height: number): void {

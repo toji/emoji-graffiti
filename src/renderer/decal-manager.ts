@@ -123,7 +123,7 @@ export class DecalManager {
     stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
       // Check if the decal has been invalidated.
       if (decal.textureIndex == -1) {
-        //actor.remove(Decal);
+        actor.remove(Decal);
         return;
       }
 
