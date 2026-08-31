@@ -19,12 +19,14 @@
       }
       #emoji-picker-container {
         position: absolute;
+        box-sizing: border-box;
         top: 0;
         left: 0;
+        width: 100%;
         z-index: 2;
-        margin: 0.25em;
+        padding: 0.25em;
       }
-      #emoji-button {
+      #emoji-picker-container>button {
         font-size: 2em;
         width: 2em;
         height: 2em;
@@ -34,6 +36,14 @@
         background-repeat: no-repeat;
         background-size: 50%;
       }
+      #emoji-button {
+        z-index: 3;
+      }
+      #clean-button {
+        position: absolute;
+        top: 0.25em;
+        right: 0.25em;
+      }
     </style>
 
   </head>
@@ -41,6 +51,7 @@
     <script type='module' src='https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js'></script>
     <div id='emoji-picker-container'>
       <button id='emoji-button'>😀</button>
+      <button id='clean-button'>🧽</button>
       <emoji-picker style='display: none'></emoji-picker>
     </div>
 

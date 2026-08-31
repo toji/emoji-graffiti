@@ -70,6 +70,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
 
           struct Decal {
             textureIndex: u32,
+            opacity: f32,
             decalProj: mat4x4f,
           };
           struct SceneDecals {
@@ -130,7 +131,8 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
               var decalColor = textureSample(decalTexture, decalSampler, decalUv.xy, decals.decal[i].textureIndex);
 
               if (all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
-                decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalColor.a)) + (decalColor.rgb * decalColor.a), decalAccumColor.a + decalColor.a);
+                let decalAlpha = decals.decal[i].opacity * decalColor.a;
+                decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
                 decalAccumColor.a = min(decalAccumColor.a, 1);
               }
             }

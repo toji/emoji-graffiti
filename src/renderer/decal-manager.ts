@@ -1,10 +1,11 @@
 import { Mat4, Vec4 } from "gl-matrix";
-import { Actor } from "../core/actor.ts";
+import { Actor, Tag } from "../core/actor.ts";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
 import { Decal } from "../materials/decal.ts";
 import { Stage } from "../core/stage.ts";
 import { EmojiRenderer } from "./emoji-renderer.ts";
 import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
+import { Camera } from "../core/camera.ts";
 
 const MAX_DECALS = 1024;
 const MAX_DECAL_TEXTURES = 256;
@@ -127,10 +128,13 @@ export class DecalManager {
         return;
       }
 
+      const placing = actor.has(Tag('placing-decal'));
+
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
 
       this.decalUintArray[offset] = decal.textureIndex; // Texture index
+      this.decalFloatArray[offset+1] = placing ? 0.50 : 1.0; // Opacity
       this.decalFloatArray.set(textureProj, offset+4);
 
       offset += 20;

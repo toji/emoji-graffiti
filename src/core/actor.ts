@@ -3,6 +3,31 @@ import { Stage, StageData } from './stage.js';
 
 export type ComponentType<T extends {} = {}> = new (...args: any[]) => T;
 
+const tags = new Map();
+/**
+ * Tags are components with no properties. They exist simply to mark an object with the given
+ * behavior. For example: Tag('indestructable');
+ * All calls to Tag(name) will return the same type for any given name.
+ * @param name
+ * @returns
+ */
+export function Tag(name: string): ComponentType {
+  let tagInstance = tags.get(name);
+  if (!tagInstance) {
+    const className = `Tag__${name}__`;
+    const tagClass = {[className]: class {
+      static SharedComponent = true;
+
+      isTag = true;
+      name = name;
+    }}[className];
+    tagClass.constructor = tagClass;
+    tagInstance = tagClass;
+    tags.set(name, tagInstance);
+  }
+  return tagInstance;
+}
+
 /**
  * Actors function as nodes in the scene graph and containers of components.
  */

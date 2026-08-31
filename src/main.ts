@@ -1,5 +1,5 @@
 import { Stage } from './core/stage.ts';
-import { Actor } from './core/actor.ts';
+import { Actor, Tag } from './core/actor.ts';
 import { WebGPUApp, WebGPURenderer } from './renderer/webgpu-renderer.ts';
 import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
@@ -14,8 +14,8 @@ import { Decal } from './materials/decal.ts';
 
     emojiButton: HTMLButtonElement;
     emojiPicker: HTMLElement;
+    cleanButton: HTMLButtonElement;
 
-    emojiSampler: GPUSampler;
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
 
@@ -47,7 +47,8 @@ import { Decal } from './materials/decal.ts';
       this.stage.attachChild(this.camera);
 
       this.decal = new Actor(
-        new Decal(gpu.textureLoader.fromColor(0, 1, 0)),
+        new Decal({}, 0),
+        Tag('placing-decal')
       );
       this.decal.transform.translation = [0, 0, 0];
       this.camera.attachChild(this.decal);
@@ -58,11 +59,14 @@ import { Decal } from './materials/decal.ts';
 
         // Lock the current decal instance in place
         const curDecal = this.decal.get(Decal);
-        this.decal.transform = this.decal.worldTransform;
-        this.stage.attachChild(this.decal);
+        if (curDecal) {
+          this.decal.remove(Tag('placing-decal'));
+          this.decal.transform = this.decal.worldTransform;
+          this.stage.attachChild(this.decal);
+        }
 
         // Create a new one
-        this.decal = new Actor(curDecal);
+        this.decal = new Actor(curDecal, Tag('placing-decal'));
         this.camera.attachChild(this.decal);
 
         return false;
@@ -89,14 +93,14 @@ import { Decal } from './materials/decal.ts';
         }
       });
 
-      // Initialize WebGPU resources
-      this.emojiSampler = gpu.device.createSampler({
-        label: 'Emoji',
-        addressModeU: 'clamp-to-edge',
-        addressModeV: 'clamp-to-edge',
-        minFilter: 'linear',
-        magFilter: 'linear',
-        mipmapFilter: 'linear',
+      this.cleanButton = document.querySelector('#clean-button')!;
+      this.cleanButton.addEventListener('click', () => {
+        this.stage.query(Decal).forEach((actor: Actor) => {
+          // Don't remove the decal that we're using to place the next one.
+          if (!actor.has(Tag('placing-decal'))) {
+            actor.parent?.removeChild(actor);
+          }
+        });
       });
 
       this.onEmojiPicked(this.config.emoji);
