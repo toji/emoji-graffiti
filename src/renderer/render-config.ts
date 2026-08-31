@@ -9,6 +9,8 @@ export class RenderConfig extends Config {
   // (Canvas render target size will always be 1:1 to allow for better UI)
   outputScale = 1.0;
 
+  emojiTextureSize = 256;
+
   static SetDefaults(isMobile: boolean, device: GPUDevice): RenderConfig {
     const defaults: RenderConfig = isMobile ? new MobileRenderConfig() : new RenderConfig();
 
@@ -23,4 +25,6 @@ class MobileRenderConfig extends RenderConfig {
   depthStencilFormat: GPUTextureFormat = 'depth16unorm';
   sampleCount = 1;
   outputScale = 0.6;
+
+  emojiTextureSize = 128;
 }

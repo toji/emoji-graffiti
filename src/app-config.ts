@@ -1,7 +1,6 @@
 import { Config } from './util/config.ts'
 
 export class AppConfig extends Config {
-  emojiTextureSize = 256;
   emoji: any;
 
   static SetDefaults(isMobile: boolean): AppConfig {

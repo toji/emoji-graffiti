@@ -8,6 +8,6 @@ export class Decal {
 
   constructor(texture: GPUTexture) {
     this.texture = texture;
-    this.projection.perspectiveZO(Math.PI/4, 1, 0.1, 3);
+    this.projection.perspectiveZO(Math.PI/4, 1, 0.1, 4);
   }
 }

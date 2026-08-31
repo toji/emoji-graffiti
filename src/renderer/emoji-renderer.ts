@@ -1,4 +1,4 @@
-import { WebGpuTextureLoader } from "./loaders/texture/webgpu-texture-loader.ts";
+import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 
 export class EmojiRenderer {
   textureLoader: WebGpuTextureLoader;

@@ -1,19 +1,9 @@
-import { EmojiRenderer } from './emoji-renderer.ts';
-
 import { Stage } from './core/stage.ts';
 import { Actor } from './core/actor.ts';
-import { Geometry } from './geometry/geometry.ts';
-import { BoxGeometry } from './geometry/descriptors/box.ts';
-import { SphereGeometry } from './geometry/descriptors/sphere.ts';
-import { CylinderGeometry } from './geometry/descriptors/cylinder.ts';
-import { ConeGeometry } from './geometry/descriptors/cone.ts';
-import { WebGPUMipmapGenerator } from './loaders/texture/mipmap-generator.ts';
 import { WebGPUApp, WebGPURenderer } from './renderer/webgpu-renderer.ts';
-import { UnlitMaterial } from './materials/unlit.ts';
 import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
 import { PerspectiveCamera } from './core/camera.ts';
-import { OrbitController } from './controllers/orbit-controller.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
 import { FlyingController } from './controllers/flying-controller.ts';
 import { Decal } from './materials/decal.ts';
@@ -24,14 +14,12 @@ import { Decal } from './materials/decal.ts';
 
     emojiButton: HTMLButtonElement;
     emojiPicker: HTMLElement;
-    emojiRenderer: EmojiRenderer;
 
     emojiSampler: GPUSampler;
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
 
     stage: Stage = new Stage();
-    box: Actor;
     camera: Actor;
     decal: Actor;
 
@@ -48,47 +36,6 @@ import { Decal } from './materials/decal.ts';
       }).catch((err) => {
         console.error('Gltf failed to load.', err);
       });
-
-      const geometries = [
-        new Geometry(gpu.device, new BoxGeometry()),
-        new Geometry(gpu.device, new SphereGeometry()),
-        new Geometry(gpu.device, new CylinderGeometry()),
-        new Geometry(gpu.device, new ConeGeometry()),
-      ];
-
-      const materials = [
-        new UnlitMaterial(gpu, { baseColorFactor: [1, 0, 0, 1] }),
-        new UnlitMaterial(gpu, { baseColorFactor: [0, 1, 0, 1] }),
-        new UnlitMaterial(gpu, { baseColorFactor: [0, 0, 1, 1] }),
-        new UnlitMaterial(gpu, { baseColorFactor: [1, 1, 0, 1] }),
-        new UnlitMaterial(gpu, { baseColorFactor: [1, 0, 1, 1] }),
-        new UnlitMaterial(gpu, { baseColorFactor: [0, 1, 1, 1] }),
-      ];
-
-      this.box = new Actor(
-        geometries[0],
-        materials[0]
-      );
-      this.box.transform.translation = [4, 2, -2];
-      this.stage.attachChild(this.box);
-
-      /*for (let i = 0; i < 500; ++i) {
-        const actor = new Actor(
-          geometries[Math.floor(Math.random() * geometries.length)],
-          materials[Math.floor(Math.random() * materials.length)]
-        );
-
-        actor.transform.translation = [
-          Math.random() * 50 - 25,
-          Math.random() * 50 - 25,
-          Math.random() * 50 - 25
-        ];
-        actor.transform.scale = [Math.random() + 0.5, Math.random() + 0.5, Math.random() + 0.5];
-        actor.transform.rotationRef.rotateX(Math.random() * Math.PI);
-        actor.transform.rotationRef.rotateY(Math.random() * Math.PI);
-
-        this.stage.attachChild(actor);
-      }*/
 
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 0.004;
@@ -109,17 +56,17 @@ import { Decal } from './materials/decal.ts';
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
 
-        // Create a new decal instance
-        const placedDecal = new Actor(
-          this.decal.get(Decal),
-        );
-        placedDecal.transform = this.decal.worldTransform;
-        this.stage.attachChild(placedDecal);
+        // Lock the current decal instance in place
+        const curDecal = this.decal.get(Decal);
+        this.decal.transform = this.decal.worldTransform;
+        this.stage.attachChild(this.decal);
+
+        // Create a new one
+        this.decal = new Actor(curDecal);
+        this.camera.attachChild(this.decal);
 
         return false;
       });
-
-      this.emojiRenderer = new EmojiRenderer(gpu.textureLoader);
 
       // Initialize the Emoji picker control
       this.emojiPicker = document.querySelector('emoji-picker')!;
@@ -150,12 +97,6 @@ import { Decal } from './materials/decal.ts';
         }
       });
 
-      // TEMP: Attach the canvas from the EmojiRenderer to the DOM
-      /*this.emojiRenderer.canvas.style.position = 'absolute';
-      this.emojiRenderer.canvas.style.right = '0px';
-      this.emojiRenderer.canvas.style.zIndex = '1';
-      document.body.insertBefore(this.emojiRenderer.canvas, gpu.canvas);*/
-
       // Initialize WebGPU resources
       this.emojiSampler = gpu.device.createSampler({
         label: 'Emoji',
@@ -171,46 +112,8 @@ import { Decal } from './materials/decal.ts';
 
     async onEmojiPicked(emoji: any) {
       console.log(emoji);
-
       this.config.emoji = emoji;
-
-      const emojiSize = this.config.emojiTextureSize;
-      const texture = this.gpu.device.createTexture({
-        //label: `Emoji '${emoji.unicode}'`,
-        size: [emojiSize, emojiSize, 1],
-        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-        format: 'rgba8unorm-srgb',
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
-      });
-
-      await this.emojiRenderer.renderEmoji(emoji, texture);
-
-      if (this.currentEmojiTexture) {
-        this.currentEmojiTexture.destroy();
-      }
-
-      this.currentEmojiTexture = texture;
-
-      this.decal.get(Decal)!.texture = texture;
-
-      const emojiMaterial = new UnlitMaterial(this.gpu, {
-        baseColorTexture: this.currentEmojiTexture,
-      });
-      this.box.add(emojiMaterial);
-
-      this.currentEmojiBindGroup = this.gpu.device.createBindGroup({
-        layout: this.gpu.unlitPipelineFactory.materialBGL,
-        entries: [{
-          binding: 0,
-          resource: emojiMaterial.uniformBuffer,
-        }, {
-          binding: 1,
-          resource: this.currentEmojiTexture,
-        }, {
-          binding: 2,
-          resource: this.emojiSampler,
-        }]
-      });
+      this.decal.add(await this.gpu.decalManager.getDecal(emoji));
     }
 
     onResize(gpu: WebGPURenderer, width: number, height: number): void {
