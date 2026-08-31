@@ -7,7 +7,7 @@ import { EmojiRenderer } from "./emoji-renderer.ts";
 import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
 
 const MAX_DECALS = 1024;
-const MAX_DECAL_TEXTURES = 32;
+const MAX_DECAL_TEXTURES = 256;
 const DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH;
 
 export class DecalManager {
@@ -25,6 +25,9 @@ export class DecalManager {
   decalBuffer: GPUBuffer;
 
   nextTextureIndex: number = 0;
+
+  decalKeyMapping: Map<string, number> = new Map();
+  decalCache: Decal[] = [];
 
   constructor(gpu: WebGPURenderer) {
     this.gpu = gpu;
@@ -82,15 +85,35 @@ export class DecalManager {
     });
   }
 
-  async getDecal(emoji: any) {
-    // TODO: Lookup pre-existing texture uploads from cache.
+  #getEmojiKey(emoji: any) {
+    return emoji.unicode ?? emoji.emoji?.url;
+  }
 
-    const layer = this.nextTextureIndex;
+  async getDecal(emoji: any) {
+    const decalKey = this.#getEmojiKey(emoji);
+
+    let decalIndex = this.decalKeyMapping.get(decalKey);
+    if (decalIndex !== undefined) {
+      return this.decalCache[decalIndex];
+    }
+
+    decalIndex = this.nextTextureIndex;
     this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
 
-    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, layer);
+    // Remove any pre-existing Decals at that index
+    let decal = this.decalCache[decalIndex];
+    if (decal) {
+      decal.textureIndex = -1; // Flag that this decal is no longer valid.
+      this.decalKeyMapping.delete(this.#getEmojiKey(decal.emoji));
+    }
 
-    return new Decal(layer);
+    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, decalIndex);
+
+    decal = new Decal(emoji, decalIndex);
+    this.decalCache[decalIndex] = decal;
+    this.decalKeyMapping.set(decalKey, decalIndex);
+
+    return decal;
   }
 
   updateDecals(stage: Stage) {
@@ -98,6 +121,12 @@ export class DecalManager {
     let offset = 4;
     let decalCount = 0;
     stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
+      // Check if the decal has been invalidated.
+      if (decal.textureIndex == -1) {
+        //actor.remove(Decal);
+        return;
+      }
+
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
 
