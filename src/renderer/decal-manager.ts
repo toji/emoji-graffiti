@@ -1,16 +1,10 @@
 import { Mat4, Vec4 } from "gl-matrix";
 import { Actor } from "../core/actor.ts";
-import { Geometry } from "../geometry/geometry.ts";
-import { MaterialBase } from "../materials/material-base.ts";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
 import { Decal } from "../materials/decal.ts";
 import { Stage } from "../core/stage.ts";
 import { EmojiRenderer } from "./emoji-renderer.ts";
 import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
-
-function nextMultipleOf(multiple: number, value: number): number {
-  return Math.ceil(value / multiple) * multiple;
-}
 
 const MAX_DECALS = 1024;
 const MAX_DECAL_TEXTURES = 32;
@@ -30,6 +24,8 @@ export class DecalManager {
   decalFloatArray = new Float32Array(this.decalArray);
   decalBuffer: GPUBuffer;
 
+  nextTextureIndex: number = 0;
+
   constructor(gpu: WebGPURenderer) {
     this.gpu = gpu;
 
@@ -44,7 +40,7 @@ export class DecalManager {
       }, {
         binding: 1,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        texture: {}
+        texture: { viewDimension: '2d-array' }
       }, {
         binding: 2,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
@@ -58,59 +54,14 @@ export class DecalManager {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
     });
 
+    const emojiSize = this.gpu.config.emojiTextureSize;
     this.decalTextureArray = gpu.device.createTexture({
       label: 'Decal',
-      size: [256, 256, MAX_DECAL_TEXTURES], // Should be from config
-      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING,
-      format: 'rgba8unorm'
-    });
-  }
-
-  async getDecal(emoji: any) {
-    const emojiSize = this.gpu.config.emojiTextureSize;
-    const texture = this.gpu.device.createTexture({
-      //label: `Emoji '${emoji.unicode}'`,
-      size: [emojiSize, emojiSize, 1],
+      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES], 
       mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
       format: 'rgba8unorm-srgb',
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
     });
-
-    await this.emojiRenderer.renderEmoji(emoji, texture);
-
-    return new Decal(texture);
-  }
-
-  getDecalIndex(shortname: string): number {
-    return -1;
-  }
-
-  updateDecals(stage: Stage) {
-    const textureProj = new Mat4();
-    let texture: GPUTexture | undefined;
-    let offset = 4;
-    let decalCount = 0;
-    stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
-      Mat4.invert(textureProj, actor.worldTransform.matrix);
-      Mat4.multiply(textureProj, decal.projection, textureProj);
-
-      this.decalUintArray[offset] = 2; // Texture index
-      this.decalFloatArray.set(textureProj, offset+4);
-
-      texture = decal.texture;
-
-      offset += 20;
-      decalCount++;
-    });
-
-    if (!texture) {
-      return;
-    }
-
-    this.decalUintArray[0] = decalCount;
-
-    // Update camera uniforms
-    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * decalCount + Vec4.BYTE_LENGTH);
 
     this.decalBindGroup = this.gpu.device.createBindGroup({
       label: 'Decal',
@@ -120,11 +71,46 @@ export class DecalManager {
         resource: this.decalBuffer,
       }, {
         binding: 1,
-        resource: texture,
+        resource: this.decalTextureArray.createView({
+          label: 'Decal',
+          dimension: '2d-array'
+        }),
       }, {
         binding: 2,
         resource: this.gpu.defaultSampler,
       }]
-    })
+    });
+  }
+
+  async getDecal(emoji: any) {
+    // TODO: Lookup pre-existing texture uploads from cache.
+
+    const layer = this.nextTextureIndex;
+    this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
+
+    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, layer);
+
+    return new Decal(layer);
+  }
+
+  updateDecals(stage: Stage) {
+    const textureProj = new Mat4();
+    let offset = 4;
+    let decalCount = 0;
+    stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
+      Mat4.invert(textureProj, actor.worldTransform.matrix);
+      Mat4.multiply(textureProj, decal.projection, textureProj);
+
+      this.decalUintArray[offset] = decal.textureIndex; // Texture index
+      this.decalFloatArray.set(textureProj, offset+4);
+
+      offset += 20;
+      decalCount++;
+    });
+
+    this.decalUintArray[0] = decalCount;
+
+    // Update camera uniforms
+    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * decalCount + Vec4.BYTE_LENGTH);
   }
 }

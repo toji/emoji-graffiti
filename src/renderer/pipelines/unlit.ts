@@ -77,7 +77,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             decal: array<Decal>,
           };
           @group(2) @binding(0) var<storage> decals: SceneDecals;
-          @group(2) @binding(1) var decalTexture: texture_2d<f32>;
+          @group(2) @binding(1) var decalTexture: texture_2d_array<f32>;
           @group(2) @binding(2) var decalSampler: sampler;
 
           struct Material {
@@ -127,7 +127,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = textureSample(decalTexture, decalSampler, decalUv.xy);
+              var decalColor = textureSample(decalTexture, decalSampler, decalUv.xy, decals.decal[i].textureIndex);
 
               if (all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalColor.a)) + (decalColor.rgb * decalColor.a), decalAccumColor.a + decalColor.a);

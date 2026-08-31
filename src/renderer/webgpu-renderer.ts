@@ -101,8 +101,6 @@ export class WebGPURenderer {
       }]
     });
 
-    this.decalManager = new DecalManager(this);
-
     this.defaultSampler = device.createSampler({
       label: 'Default',
       addressModeU: 'clamp-to-edge',
@@ -111,6 +109,8 @@ export class WebGPURenderer {
       magFilter: 'linear',
       mipmapFilter: 'linear',
     });
+
+    this.decalManager = new DecalManager(this);
 
     this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
 
