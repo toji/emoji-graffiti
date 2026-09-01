@@ -90,7 +90,6 @@ enum InputMode {
         Tag('placing-decal')
       );
       this.decal.transform.translation = [0, 0, 0];
-      //this.camera.attachChild(this.decal);
 
       // Detach from the camera on right click
       gpu.canvas.addEventListener('contextmenu', (ev) => {
@@ -105,9 +104,14 @@ enum InputMode {
             this.stage.attachChild(this.decal);
           }
 
-          // Create a new one
-          this.decal = new Actor(curDecal, Tag('placing-decal'));
-          this.camera.attachChild(this.decal);
+          // Quick cooldown to prevent spamming decals
+          setTimeout(() => {
+            // Create a new one
+            this.decal = new Actor(curDecal, Tag('placing-decal'));
+            if (this.mode == InputMode.Paint) {
+              this.camera.attachChild(this.decal);
+            }
+          }, this.config.sprayCooldown);
         } else if (this.mode == InputMode.Erase) {
           // Erase the selected decal
           let decalIndex = 1;
@@ -115,6 +119,7 @@ enum InputMode {
             if (decalIndex == this.lastSelectedDecal) {
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
+              this.gpu.decalManager.selectedDecal = 0;
               return false;
             }
             decalIndex++;
@@ -141,12 +146,6 @@ enum InputMode {
 
       this.emojiButton.addEventListener('click', () => {
         this.#switchMode(InputMode.Paint);
-        // Toggle the emoji picker.
-        if (this.emojiPicker.style.display === 'none') {
-          this.emojiPicker.style.display = '';
-        } else {
-          this.emojiPicker.style.display = 'none';
-        }
       });
 
       this.eraseButton.addEventListener('click', () => {
@@ -171,6 +170,8 @@ enum InputMode {
             Math.floor(ev.clientY * devicePixelRatio));
         }
       });
+
+      this.#switchMode(InputMode.View);
     }
 
     #switchMode(mode: InputMode) {
@@ -178,20 +179,37 @@ enum InputMode {
       this.gpu.decalManager.selectedDecal = 0;
 
       switch(this.mode) {
-        case InputMode.View: 
+        case InputMode.View:
+          this.viewButton.classList.add('selected');
+          this.emojiButton.classList.remove('selected');
+          this.eraseButton.classList.remove('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
+          this.emojiPicker.style.display = 'none';
           break;
         case InputMode.Paint:
+          this.viewButton.classList.remove('selected');
+          this.emojiButton.classList.add('selected');
+          this.eraseButton.classList.remove('selected');
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
+          // Toggle the emoji picker.
+          if (this.emojiPicker.style.display === 'none') {
+            this.emojiPicker.style.display = '';
+          } else {
+            this.emojiPicker.style.display = 'none';
+          }
           break;
         case InputMode.Erase:
+          this.viewButton.classList.remove('selected');
+          this.emojiButton.classList.remove('selected');
+          this.eraseButton.classList.add('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
+          this.emojiPicker.style.display = 'none';
           break;
       }
     }
@@ -205,7 +223,7 @@ enum InputMode {
         this.emojiButton.innerHTML = emoji.unicode;
         this.emojiButton.style = '';
       } else {
-        this.emojiButton.innerHTML = ' ';
+        this.emojiButton.innerHTML = '&nbsp;';
         this.emojiButton.style = `background-image: url("${emoji.emoji.url}")`;
       }
 
