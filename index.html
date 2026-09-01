@@ -36,22 +36,16 @@
         background-repeat: no-repeat;
         background-size: 50%;
       }
-      #emoji-button {
-        z-index: 3;
-      }
-      #clean-button {
-        position: absolute;
-        top: 0.25em;
-        right: 0.25em;
-      }
     </style>
 
   </head>
   <body>
     <script type='module' src='https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js'></script>
     <div id='emoji-picker-container'>
+      <button id='view-button'>👀</button>
       <button id='emoji-button'>😀</button>
-      <button id='clean-button'>🧽</button>
+      <button id='erase-button'>🧽</button>
+      <button id='clear-button'>💣</button>
       <emoji-picker style='display: none'></emoji-picker>
     </div>
 

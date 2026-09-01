@@ -261,7 +261,7 @@ export class Geometry implements GeometryInit {
           slot: i,
           buffer: layout.buffer?.buffer ?? vertexBuffer,
           offset: layout.bufferOffset ?? 0,
-          size: layout.buffer.size,
+          size: layout.bufferSize,
         });
       }
 

@@ -8,13 +8,23 @@ import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
 import { FlyingController } from './controllers/flying-controller.ts';
 import { Decal } from './materials/decal.ts';
 
+enum InputMode {
+  View,
+  Paint,
+  Erase
+};
+
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     config: AppConfig;
 
-    emojiButton: HTMLButtonElement;
-    emojiPicker: HTMLElement;
-    cleanButton: HTMLButtonElement;
+    viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
+    emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
+    eraseButton: HTMLButtonElement = document.querySelector('#erase-button')!;
+    clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
+
+    emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
+    
 
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
@@ -22,8 +32,12 @@ import { Decal } from './materials/decal.ts';
     stage: Stage = new Stage();
     camera: Actor;
     decal: Actor;
+    spraycan: Actor;
+    sponge: Actor;
 
     gltfLoader: GltfLoader;
+
+    mode: InputMode = InputMode.View;
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
@@ -48,11 +62,25 @@ import { Decal } from './materials/decal.ts';
       this.stage.attachChild(this.camera);
 
       // Load a spraycan model
+      this.spraycan = new Actor();
+      this.spraycan.transform.translation = [0.15, -0.35, -0.25];
+      this.spraycan.transform.scale = [0.1, 0.1, 0.1];
+      this.spraycan.transform.rotationRef.rotateY(Math.PI);
+
       this.gltfLoader.loadFromUrl('./media/models/spraycan.glb').then((scene: Actor) => {
-        scene.transform.translation = [0.15, -0.35, -0.25];
-        scene.transform.scale = [0.1, 0.1, 0.1];
-        scene.transform.rotationRef.rotateY(Math.PI);
-        this.camera.attachChild(scene);
+        this.spraycan.attachChild(scene);
+      }).catch((err) => {
+        console.error('Gltf failed to load.', err);
+      });
+
+      // Load a sponge model
+      this.sponge = new Actor();
+      this.sponge.transform.translation = [0.75, -0.75, -0.5];
+      this.sponge.transform.scale = [0.75, 0.75, 0.75];
+      this.sponge.transform.rotationRef.rotateY(Math.PI);
+
+      this.gltfLoader.loadFromUrl('./media/models/sponge.glb').then((scene: Actor) => {
+        this.sponge.attachChild(scene);
       }).catch((err) => {
         console.error('Gltf failed to load.', err);
       });
@@ -62,23 +90,36 @@ import { Decal } from './materials/decal.ts';
         Tag('placing-decal')
       );
       this.decal.transform.translation = [0, 0, 0];
-      this.camera.attachChild(this.decal);
+      //this.camera.attachChild(this.decal);
 
       // Detach from the camera on right click
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
 
-        // Lock the current decal instance in place
-        const curDecal = this.decal.get(Decal);
-        if (curDecal) {
-          this.decal.remove(Tag('placing-decal'));
-          this.decal.transform = this.decal.worldTransform;
-          this.stage.attachChild(this.decal);
-        }
+        if (this.mode == InputMode.Paint) {
+          // Lock the current decal instance in place
+          const curDecal = this.decal.get(Decal);
+          if (curDecal) {
+            this.decal.remove(Tag('placing-decal'));
+            this.decal.transform = this.decal.worldTransform;
+            this.stage.attachChild(this.decal);
+          }
 
-        // Create a new one
-        this.decal = new Actor(curDecal, Tag('placing-decal'));
-        this.camera.attachChild(this.decal);
+          // Create a new one
+          this.decal = new Actor(curDecal, Tag('placing-decal'));
+          this.camera.attachChild(this.decal);
+        } else if (this.mode == InputMode.Erase) {
+          // Erase the selected decal
+          let decalIndex = 1;
+          this.stage.query(Decal).forEach((actor: Actor) => {
+            if (decalIndex == this.lastSelectedDecal) {
+              actor.parent?.removeChild(actor);
+              this.lastSelectedDecal = 0;
+              return false;
+            }
+            decalIndex++;
+          });
+        }
 
         return false;
       });
@@ -94,8 +135,12 @@ import { Decal } from './materials/decal.ts';
         this.emojiPicker.customEmoji = await result.json();
       });
 
-      this.emojiButton = document.querySelector('#emoji-button')!;
+      this.viewButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.View);
+      });
+
       this.emojiButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Paint);
         // Toggle the emoji picker.
         if (this.emojiPicker.style.display === 'none') {
           this.emojiPicker.style.display = '';
@@ -104,8 +149,11 @@ import { Decal } from './materials/decal.ts';
         }
       });
 
-      this.cleanButton = document.querySelector('#clean-button')!;
-      this.cleanButton.addEventListener('click', () => {
+      this.eraseButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Erase);
+      });
+
+      this.clearButton.addEventListener('click', () => {
         this.stage.query(Decal).forEach((actor: Actor) => {
           // Don't remove the decal that we're using to place the next one.
           if (!actor.has(Tag('placing-decal'))) {
@@ -116,11 +164,36 @@ import { Decal } from './materials/decal.ts';
 
       this.onEmojiPicked(this.config.emoji);
 
-      this.gpu.canvas.addEventListener('mousemove', (ev: MouseEvent) => {
-        this.getSelectedDecal(gpu,
-          Math.floor(ev.clientX * devicePixelRatio),
-          Math.floor(ev.clientY * devicePixelRatio));
+      this.gpu.canvas.addEventListener('mousemove', async (ev: MouseEvent) => {
+        if (this.mode == InputMode.Erase) {
+          this.getSelectedDecal(gpu,
+            Math.floor(ev.clientX * devicePixelRatio),
+            Math.floor(ev.clientY * devicePixelRatio));
+        }
       });
+    }
+
+    #switchMode(mode: InputMode) {
+      this.mode = mode;
+      this.gpu.decalManager.selectedDecal = 0;
+
+      switch(this.mode) {
+        case InputMode.View: 
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          break;
+        case InputMode.Paint:
+          this.camera.attachChild(this.decal);
+          this.camera.attachChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          break;
+        case InputMode.Erase:
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.attachChild(this.sponge);
+          break;
+      }
     }
 
     async onEmojiPicked(emoji: any) {
@@ -146,10 +219,11 @@ import { Decal } from './materials/decal.ts';
       const decalId = await gpu.selectionManager.getDecalIdAtPoint(x, y);
 
       if (decalId != this.lastSelectedDecal) {
-        console.log(`New Decal Picked at (${x}, ${y}): ${decalId}`);
         this.lastSelectedDecal = decalId;
         this.gpu.decalManager.selectedDecal = decalId;
       }
+
+      return decalId;
     }
 
     onResize(gpu: WebGPURenderer, width: number, height: number): void {
