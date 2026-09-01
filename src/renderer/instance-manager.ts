@@ -167,6 +167,10 @@ export class InstanceManager {
       this.#addInstance(material.material, geometry, actor);
     });
 
+    if (this.instanceCount == 0) {
+      return;
+    }
+
     if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
       this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf(128, this.instanceCount));
     }

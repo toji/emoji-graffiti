@@ -69,6 +69,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           @group(1) @binding(1) var<storage> transformIndices: array<u32>;
 
           struct Decal {
+            id: u32,
             textureIndex: u32,
             opacity: f32,
             decalProj: mat4x4f,
@@ -116,9 +117,16 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             0.5, 0.5, 0.5, 1,
           );
 
+          struct FragOut {
+            @location(0) color: vec4f,
+            @location(1) decalId: u32,
+          }
+
           @fragment
-          fn fragMain(in: VertexOut) -> @location(0) vec4f {
+          fn fragMain(in: VertexOut) -> FragOut {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+
+            var out: FragOut;
 
           #if ${args.canDecal}
             let estAlbedo = material.baseAlbedo;
@@ -134,6 +142,10 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
                 let decalAlpha = decals.decal[i].opacity * decalColor.a;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
                 decalAccumColor.a = min(decalAccumColor.a, 1);
+
+                if (decalAlpha > 0.2) {
+                  out.decalId = decals.decal[i].id;
+                }
               }
             }
 
@@ -141,7 +153,9 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           #else
             let color = baseColor.rgb;
           #endif
-            return vec4(linearTosRGB(color), baseColor.a);
+            out.color = vec4(linearTosRGB(color), baseColor.a);
+
+            return out;
           }
         `,
       });

@@ -11,6 +11,8 @@ export class RenderConfig extends Config {
 
   emojiTextureSize = 256;
 
+  selectionFormat: GPUTextureFormat = 'r32uint';
+
   static SetDefaults(isMobile: boolean, device: GPUDevice): RenderConfig {
     const defaults: RenderConfig = isMobile ? new MobileRenderConfig() : new RenderConfig();
 

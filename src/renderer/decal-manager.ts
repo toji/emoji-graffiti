@@ -128,13 +128,18 @@ export class DecalManager {
         return;
       }
 
+      if (decalCount >= MAX_DECALS) {
+        return;
+      }
+
       const placing = actor.has(Tag('placing-decal'));
 
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
 
-      this.decalUintArray[offset] = decal.textureIndex; // Texture index
-      this.decalFloatArray[offset+1] = placing ? 0.50 : 1.0; // Opacity
+      this.decalUintArray[offset] = decalCount + 1; // Actor ID?
+      this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
+      this.decalFloatArray[offset+2] = placing ? 0.50 : 1.0; // Opacity
       this.decalFloatArray.set(textureProj, offset+4);
 
       offset += 20;

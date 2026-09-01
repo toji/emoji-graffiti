@@ -31,6 +31,7 @@ import { Decal } from './materials/decal.ts';
 
       this.gltfLoader = new GltfLoader(gpu);
 
+      // Load the main scene.
       this.gltfLoader.loadFromUrl('./media/models/gallery.glb').then((scene: Actor) => {
         this.stage.attachChild(scene);
       }).catch((err) => {
@@ -45,6 +46,16 @@ import { Decal } from './materials/decal.ts';
       );
       this.camera.transform.translation = [0.2, 1.6, 2];
       this.stage.attachChild(this.camera);
+
+      // Load a spraycan model
+      this.gltfLoader.loadFromUrl('./media/models/spraycan.glb').then((scene: Actor) => {
+        scene.transform.translation = [0.15, -0.35, -0.25];
+        scene.transform.scale = [0.1, 0.1, 0.1];
+        scene.transform.rotationRef.rotateY(Math.PI);
+        this.camera.attachChild(scene);
+      }).catch((err) => {
+        console.error('Gltf failed to load.', err);
+      });
 
       this.decal = new Actor(
         new Decal({}, 0),
@@ -104,6 +115,12 @@ import { Decal } from './materials/decal.ts';
       });
 
       this.onEmojiPicked(this.config.emoji);
+
+      this.gpu.canvas.addEventListener('mousemove', (ev: MouseEvent) => {
+        this.getSelectedDecal(gpu,
+          Math.floor(ev.clientX * devicePixelRatio),
+          Math.floor(ev.clientY * devicePixelRatio));
+      });
     }
 
     async onEmojiPicked(emoji: any) {
@@ -122,7 +139,21 @@ import { Decal } from './materials/decal.ts';
       this.emojiPicker.style.display = 'none';
     }
 
+    lastSelectedDecal = 0;
+    centerX = 0;
+    centerY = 0;
+    async getSelectedDecal(gpu: WebGPURenderer, x: number, y: number) {
+      const decalId = await gpu.selectionManager.getDecalIdAtPoint(x, y);
+
+      if (decalId != this.lastSelectedDecal) {
+        console.log(`New Decal Picked at (${x}, ${y}): ${decalId}`);
+        this.lastSelectedDecal = decalId;
+      }
+    }
+
     onResize(gpu: WebGPURenderer, width: number, height: number): void {
+      this.centerX = Math.floor(width * 0.5);
+      this.centerY = Math.floor(height * 0.5);
       this.camera.get(PerspectiveCamera)!.aspect = width/height;
     }
 

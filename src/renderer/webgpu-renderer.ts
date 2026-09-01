@@ -5,14 +5,12 @@ import { Stage } from "../core/stage.ts";
 import { Actor } from "../core/actor.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
 import { UnlitMaterial } from "../materials/unlit.ts";
-import { Geometry } from "../geometry/geometry.ts";
 import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
-import { ActorMaterial } from "../materials/material-base.ts";
-import { Decal } from "../materials/decal.ts";
 import { UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
+import { SelectionManager } from "./selection-manager.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -49,6 +47,7 @@ export class WebGPURenderer {
   instanceManager: InstanceManager;
 
   decalManager: DecalManager;
+  selectionManager: SelectionManager;
 
   unlitPipelineFactory: UnlitPipelineFactory;
 
@@ -72,7 +71,7 @@ export class WebGPURenderer {
     this.textureLoader = new WebGpuTextureLoader(device);
 
     this.attachmentLayout = new AttachmentLayout(
-      [this.config.colorFormat],
+      [this.config.colorFormat, this.config.selectionFormat],
       this.config.depthStencilFormat,
       this.config.sampleCount
     );
@@ -111,6 +110,7 @@ export class WebGPURenderer {
     });
 
     this.decalManager = new DecalManager(this);
+    this.selectionManager = new SelectionManager(this);
 
     this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
 
@@ -169,6 +169,8 @@ export class WebGPURenderer {
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
     }
+
+    this.selectionManager.onResize(width, height);
   }
 
   updateCamera(cameraActor: Actor) {
@@ -193,6 +195,8 @@ export class WebGPURenderer {
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
 
+    if (this.instanceManager.instanceCount == 0) { return; }
+
     const colorTexture = this.context.getCurrentTexture();
 
     const commandEncoder = this.device.createCommandEncoder();
@@ -201,6 +205,11 @@ export class WebGPURenderer {
         view: colorTexture,
         loadOp: 'clear',
         clearValue: [0.1, 0.1, 0.2, 1],
+        storeOp: 'store',
+      }, {
+        view: this.selectionManager.selectionTexture!,
+        loadOp: 'clear',
+        clearValue: [0, 0, 0, 0],
         storeOp: 'store',
       }],
       depthStencilAttachment: {
@@ -236,16 +245,6 @@ export class WebGPURenderer {
         }
       }
     }
-
-    /*if (this.currentEmojiBindGroup) {
-      renderPass.setBindGroup(0, this.cameraBindGroup);
-      renderPass.setBindGroup(1, this.currentEmojiBindGroup);
-      this.unlitPipeline.use(renderPass);
-
-      const boxGeometry = this.box.get(Geometry)!;
-      boxGeometry.bindAndDraw(renderPass);
-      //renderPass.draw(6);
-    }*/
 
     renderPass.end();
     this.device.queue.submit([commandEncoder.finish()]);
