@@ -25,6 +25,10 @@ export class DecalManager {
   decalFloatArray = new Float32Array(this.decalArray);
   decalBuffer: GPUBuffer;
 
+  causticsTexture?: GPUTexture;
+
+  selectedDecal: number = 0;
+
   nextTextureIndex: number = 0;
 
   decalKeyMapping: Map<string, number> = new Map();
@@ -43,12 +47,16 @@ export class DecalManager {
         buffer: { type: 'read-only-storage' }
       }, {
         binding: 1,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        visibility: GPUShaderStage.FRAGMENT,
         texture: { viewDimension: '2d-array' }
       }, {
         binding: 2,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        visibility: GPUShaderStage.FRAGMENT,
         sampler: {}
+      }, {
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
       }]
     });
 
@@ -67,6 +75,15 @@ export class DecalManager {
       format: 'rgba8unorm-srgb',
     });
 
+    this.#rebuildBindGroup();
+
+    gpu.textureLoader.fromUrl('./media/textures/caustics.jpg').then((texture: GPUTexture) => {
+      this.causticsTexture = texture;
+      this.#rebuildBindGroup();
+    });
+  }
+
+  #rebuildBindGroup() {
     this.decalBindGroup = this.gpu.device.createBindGroup({
       label: 'Decal',
       layout: this.decalBGL,
@@ -82,6 +99,9 @@ export class DecalManager {
       }, {
         binding: 2,
         resource: this.gpu.defaultSampler,
+      }, {
+        binding: 3,
+        resource: this.causticsTexture ?? this.gpu.whiteTexture,
       }]
     });
   }
@@ -133,13 +153,15 @@ export class DecalManager {
       }
 
       const placing = actor.has(Tag('placing-decal'));
+      const selected = (decalCount + 1 == this.selectedDecal);
 
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
 
       this.decalUintArray[offset] = decalCount + 1; // Actor ID?
       this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
-      this.decalFloatArray[offset+2] = placing ? 0.50 : 1.0; // Opacity
+      this.decalFloatArray[offset+2] = placing ? 0.75 : 1.0; // Opacity
+      this.decalUintArray[offset+3] = placing || selected ? 1 : 0; // Highlight
       this.decalFloatArray.set(textureProj, offset+4);
 
       offset += 20;

@@ -148,6 +148,7 @@ import { Decal } from './materials/decal.ts';
       if (decalId != this.lastSelectedDecal) {
         console.log(`New Decal Picked at (${x}, ${y}): ${decalId}`);
         this.lastSelectedDecal = decalId;
+        this.gpu.decalManager.selectedDecal = decalId;
       }
     }
 

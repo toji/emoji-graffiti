@@ -61,6 +61,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             invProjection: mat4x4f,
             view: mat4x4f,
             viewPos: vec3f,
+            time: f32,
           };
 
           @group(0) @binding(0) var<uniform> camera: Camera;
@@ -72,6 +73,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             id: u32,
             textureIndex: u32,
             opacity: f32,
+            highlight: u32,
             decalProj: mat4x4f,
           };
           struct SceneDecals {
@@ -81,6 +83,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           @group(2) @binding(0) var<storage> decals: SceneDecals;
           @group(2) @binding(1) var decalTexture: texture_2d_array<f32>;
           @group(2) @binding(2) var decalSampler: sampler;
+          @group(2) @binding(3) var causticsTexture: texture_2d<f32>;
 
           struct Material {
             baseColorFactor: vec4f,
@@ -132,6 +135,12 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             let estAlbedo = material.baseAlbedo;
             let lightEst = baseColor.rgb / estAlbedo;
 
+            let causticsUv = (in.pos.xy / vec2f(textureDimensions(causticsTexture)));
+
+            let causticsA = textureSample(causticsTexture, decalSampler, causticsUv + vec2(camera.time * 0.25, 0));
+            let causticsB = textureSample(causticsTexture, decalSampler, -causticsUv - vec2(0, camera.time * 0.1));
+            let caustics = (causticsA + causticsB) * 0.5;
+
             var decalAccumColor = vec4f(0);
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
@@ -141,12 +150,19 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
               if (all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
                 let decalAlpha = decals.decal[i].opacity * decalColor.a;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
+                
+                if (decals.decal[i].highlight == 1) {
+                  decalAccumColor += caustics * decalAlpha;
+                }
+
                 decalAccumColor.a = min(decalAccumColor.a, 1);
 
                 if (decalAlpha > 0.2) {
                   out.decalId = decals.decal[i].id;
                 }
               }
+
+              //decalAccumColor = causticsA;
             }
 
             let color = (baseColor.rgb * (1.0 - decalAccumColor.a)) + ((decalAccumColor.rgb * lightEst) * decalAccumColor.a);

@@ -69,6 +69,7 @@ export class WebGPURenderer {
     });
 
     this.textureLoader = new WebGpuTextureLoader(device);
+    this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
 
     this.attachmentLayout = new AttachmentLayout(
       [this.config.colorFormat, this.config.selectionFormat],
@@ -102,8 +103,8 @@ export class WebGPURenderer {
 
     this.defaultSampler = device.createSampler({
       label: 'Default',
-      addressModeU: 'clamp-to-edge',
-      addressModeV: 'clamp-to-edge',
+      addressModeU: 'repeat',
+      addressModeV: 'repeat',
       minFilter: 'linear',
       magFilter: 'linear',
       mipmapFilter: 'linear',
@@ -111,8 +112,6 @@ export class WebGPURenderer {
 
     this.decalManager = new DecalManager(this);
     this.selectionManager = new SelectionManager(this);
-
-    this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
 
     this.instanceBGL = device.createBindGroupLayout({
       label: 'Instance',
@@ -173,7 +172,7 @@ export class WebGPURenderer {
     this.selectionManager.onResize(width, height);
   }
 
-  updateCamera(cameraActor: Actor) {
+  updateCamera(cameraActor: Actor, timestamp: number) {
     const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
     if (!camera) {
       throw new Error('cameraActor passed to WebGPURenderer.render() must have a camera component');
@@ -184,13 +183,14 @@ export class WebGPURenderer {
     Mat4.invert(this.#inverseProjMat, this.#projMat);
     Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
     this.#viewPos.set(cameraActor.worldTransform.translation);
+    this.#cameraArray[51] = timestamp / 1000;
 
     // Update camera uniforms
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
   }
 
   render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
-    this.updateCamera(cameraActor);
+    this.updateCamera(cameraActor, timestamp);
 
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
