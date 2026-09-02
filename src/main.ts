@@ -48,6 +48,13 @@ enum InputMode {
       ['./media/sounds/spray.mp3', 4, 0.5],
     ];
 
+    eraseClips = [
+      ['./media/sounds/erase.mp3', 0.5, 0.5],
+      ['./media/sounds/erase.mp3', 1.75, 0.5],
+      ['./media/sounds/erase.mp3', 2.9, 0.5],
+      ['./media/sounds/erase.mp3', 4.2, 0.5],
+    ];
+
     constructor(gpu: WebGPURenderer) {
       super(gpu);
       this.config = Config.Create(AppConfig);
@@ -139,6 +146,10 @@ enum InputMode {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor: Actor) => {
             if (decalIndex == this.lastSelectedDecal) {
+              const eraseClip = this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)];
+              // @ts-expect-error
+              this.audioPlayer.play(...eraseClip);
+
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
               this.gpu.decalManager.selectedDecal = 0;
