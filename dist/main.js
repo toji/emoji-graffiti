@@ -12062,6 +12062,28 @@ var FlyingController = class extends ControllerInput {
   }
 };
 
+// src/audio-player.ts
+var AudioPlayer = class {
+  static {
+    __name(this, "AudioPlayer");
+  }
+  context = new AudioContext();
+  bufferSources = /* @__PURE__ */ new Map();
+  constructor() {
+  }
+  async play(url, offset, duration) {
+    let buffer = this.bufferSources.get(url);
+    if (!buffer) {
+      const buffer2 = fetch(url).then((res) => res.arrayBuffer()).then((ArrayBuffer2) => this.context.decodeAudioData(ArrayBuffer2));
+      this.bufferSources.set(url, buffer2);
+    }
+    const source = this.context.createBufferSource();
+    source.buffer = await buffer;
+    source.connect(this.context.destination);
+    source.start(0, offset, duration);
+  }
+};
+
 // src/main.ts
 (/* @__PURE__ */ __name((function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -12071,6 +12093,8 @@ var FlyingController = class extends ControllerInput {
     eraseButton = document.querySelector("#erase-button");
     clearButton = document.querySelector("#clear-button");
     emojiPicker = document.querySelector("emoji-picker");
+    decalRotationInput = document.querySelector("#decalRotation");
+    decalRotation = 0;
     currentEmojiTexture;
     currentEmojiBindGroup;
     stage = new Stage();
@@ -12080,6 +12104,18 @@ var FlyingController = class extends ControllerInput {
     sponge;
     gltfLoader;
     mode = 0 /* View */;
+    audioPlayer = new AudioPlayer();
+    sprayClips = [
+      ["./media/sounds/spray.mp3", 0.2, 0.5],
+      ["./media/sounds/spray.mp3", 1.6, 0.8],
+      ["./media/sounds/spray.mp3", 4, 0.5]
+    ];
+    eraseClips = [
+      ["./media/sounds/erase.mp3", 0.5, 0.5],
+      ["./media/sounds/erase.mp3", 1.75, 0.5],
+      ["./media/sounds/erase.mp3", 2.9, 0.5],
+      ["./media/sounds/erase.mp3", 4.2, 0.5]
+    ];
     constructor(gpu) {
       super(gpu);
       this.config = Config.Create(AppConfig);
@@ -12118,17 +12154,25 @@ var FlyingController = class extends ControllerInput {
         Tag("placing-decal")
       );
       this.decal.transform.translation = [0, 0, 0];
+      this.decalRotationInput.addEventListener("input", (ev) => {
+        this.decalRotation = this.decalRotationInput.value * (Math.PI / 180);
+        this.decal.transform.rotationRef.identity();
+        this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+      });
       gpu.canvas.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         if (this.mode == 1 /* Paint */) {
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
+            const sprayClip = this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)];
+            this.audioPlayer.play(...sprayClip);
             this.decal.remove(Tag("placing-decal"));
             this.decal.transform = this.decal.worldTransform;
             this.stage.attachChild(this.decal);
           }
+          this.decal = new Actor(curDecal, Tag("placing-decal"));
+          this.decal.transform.rotationRef.rotateZ(this.decalRotation);
           setTimeout(() => {
-            this.decal = new Actor(curDecal, Tag("placing-decal"));
             if (this.mode == 1 /* Paint */) {
               this.camera.attachChild(this.decal);
             }
@@ -12137,6 +12181,8 @@ var FlyingController = class extends ControllerInput {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor) => {
             if (decalIndex == this.lastSelectedDecal) {
+              const eraseClip = this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)];
+              this.audioPlayer.play(...eraseClip);
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
               this.gpu.decalManager.selectedDecal = 0;

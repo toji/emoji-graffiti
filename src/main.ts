@@ -7,6 +7,7 @@ import { PerspectiveCamera } from './core/camera.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
 import { FlyingController } from './controllers/flying-controller.ts';
 import { Decal } from './materials/decal.ts';
+import { AudioPlayer } from './audio-player.ts';
 
 enum InputMode {
   View,
@@ -24,7 +25,8 @@ enum InputMode {
     clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
 
     emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
-
+    decalRotationInput: HTMLInputElement = document.querySelector('#decalRotation')!;
+    decalRotation: number = 0;
 
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
@@ -38,6 +40,20 @@ enum InputMode {
     gltfLoader: GltfLoader;
 
     mode: InputMode = InputMode.View;
+
+    audioPlayer: AudioPlayer = new AudioPlayer();
+    sprayClips = [
+      ['./media/sounds/spray.mp3', 0.2, 0.5],
+      ['./media/sounds/spray.mp3', 1.6, 0.8],
+      ['./media/sounds/spray.mp3', 4, 0.5],
+    ];
+
+    eraseClips = [
+      ['./media/sounds/erase.mp3', 0.5, 0.5],
+      ['./media/sounds/erase.mp3', 1.75, 0.5],
+      ['./media/sounds/erase.mp3', 2.9, 0.5],
+      ['./media/sounds/erase.mp3', 4.2, 0.5],
+    ];
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
@@ -91,6 +107,13 @@ enum InputMode {
       );
       this.decal.transform.translation = [0, 0, 0];
 
+      this.decalRotationInput.addEventListener('input', (ev) => {
+        // @ts-expect-error
+        this.decalRotation = this.decalRotationInput.value * (Math.PI / 180);
+        this.decal.transform.rotationRef.identity();
+        this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+      });
+
       // Detach from the camera on right click
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
@@ -99,15 +122,21 @@ enum InputMode {
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
+            const sprayClip = this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)];
+            // @ts-expect-error
+            this.audioPlayer.play(...sprayClip);
+
             this.decal.remove(Tag('placing-decal'));
             this.decal.transform = this.decal.worldTransform;
             this.stage.attachChild(this.decal);
           }
 
+          // Create a new one decal
+          this.decal = new Actor(curDecal, Tag('placing-decal'));
+          this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+
           // Quick cooldown to prevent spamming decals
           setTimeout(() => {
-            // Create a new one
-            this.decal = new Actor(curDecal, Tag('placing-decal'));
             if (this.mode == InputMode.Paint) {
               this.camera.attachChild(this.decal);
             }
@@ -117,6 +146,10 @@ enum InputMode {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor: Actor) => {
             if (decalIndex == this.lastSelectedDecal) {
+              const eraseClip = this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)];
+              // @ts-expect-error
+              this.audioPlayer.play(...eraseClip);
+
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
               this.gpu.decalManager.selectedDecal = 0;
