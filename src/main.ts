@@ -24,7 +24,8 @@ enum InputMode {
     clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
 
     emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
-
+    decalRotationInput: HTMLInputElement = document.querySelector('#decalRotation')!;
+    decalRotation: number = 0;
 
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
@@ -91,6 +92,13 @@ enum InputMode {
       );
       this.decal.transform.translation = [0, 0, 0];
 
+      this.decalRotationInput.addEventListener('input', (ev) => {
+        // @ts-expect-error
+        this.decalRotation = this.decalRotationInput.value * (Math.PI / 180);
+        this.decal.transform.rotationRef.identity();
+        this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+      });
+
       // Detach from the camera on right click
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
@@ -104,10 +112,12 @@ enum InputMode {
             this.stage.attachChild(this.decal);
           }
 
+          // Create a new one decal
+          this.decal = new Actor(curDecal, Tag('placing-decal'));
+          this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+
           // Quick cooldown to prevent spamming decals
           setTimeout(() => {
-            // Create a new one
-            this.decal = new Actor(curDecal, Tag('placing-decal'));
             if (this.mode == InputMode.Paint) {
               this.camera.attachChild(this.decal);
             }
