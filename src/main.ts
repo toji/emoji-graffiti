@@ -7,6 +7,7 @@ import { PerspectiveCamera } from './core/camera.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
 import { FlyingController } from './controllers/flying-controller.ts';
 import { Decal } from './materials/decal.ts';
+import { AudioPlayer } from './audio-player.ts';
 
 enum InputMode {
   View,
@@ -39,6 +40,13 @@ enum InputMode {
     gltfLoader: GltfLoader;
 
     mode: InputMode = InputMode.View;
+
+    audioPlayer: AudioPlayer = new AudioPlayer();
+    sprayClips = [
+      ['./media/sounds/spray.mp3', 0.2, 0.5],
+      ['./media/sounds/spray.mp3', 1.6, 0.8],
+      ['./media/sounds/spray.mp3', 4, 0.5],
+    ];
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
@@ -107,6 +115,10 @@ enum InputMode {
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
+            const sprayClip = this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)];
+            // @ts-expect-error
+            this.audioPlayer.play(...sprayClip);
+
             this.decal.remove(Tag('placing-decal'));
             this.decal.transform = this.decal.worldTransform;
             this.stage.attachChild(this.decal);
