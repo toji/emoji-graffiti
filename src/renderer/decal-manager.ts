@@ -9,7 +9,7 @@ import { Camera } from "../core/camera.ts";
 
 const MAX_DECALS = 1024;
 const MAX_DECAL_TEXTURES = 256;
-const DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH;
+const DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH + Vec4.BYTE_LENGTH;
 
 export class DecalManager {
   gpu: WebGPURenderer;
@@ -69,7 +69,7 @@ export class DecalManager {
     const emojiSize = this.gpu.config.emojiTextureSize;
     this.decalTextureArray = gpu.device.createTexture({
       label: 'Decal',
-      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES], 
+      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
       mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
       usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
       format: 'rgba8unorm-srgb',
@@ -162,9 +162,10 @@ export class DecalManager {
       this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
       this.decalFloatArray[offset+2] = placing ? 0.75 : 1.0; // Opacity
       this.decalUintArray[offset+3] = placing || selected ? 1 : 0; // Highlight
-      this.decalFloatArray.set(textureProj, offset+4);
+      this.decalFloatArray.set(actor.worldTransform.translation, offset+4); // Origin
+      this.decalFloatArray.set(textureProj, offset+8); // Projection
 
-      offset += 20;
+      offset += 24;
       decalCount++;
     });
 

@@ -1,4 +1,4 @@
-import { Mat4 } from "gl-matrix";
+import { Mat3, Mat4 } from "gl-matrix";
 import { Actor } from "../core/actor.ts";
 import { Geometry } from "../geometry/geometry.ts";
 import { ActorMaterial, MaterialBase } from "../materials/material-base.ts";
@@ -74,7 +74,7 @@ export class InstanceBuffers {
     this.gpu = gpu;
     this.maxInstanceCount = maxInstanceCount;
 
-    this.instanceTransformArray = new Float32Array(maxInstanceCount * 16);
+    this.instanceTransformArray = new Float32Array(maxInstanceCount * 28); // Mat4 + (Mat3 with 4th padding element per row).
     this.instanceIndexArray = new Uint32Array(maxInstanceCount);
 
     this.instanceTransformBuffer = gpu.device.createBuffer({
@@ -106,6 +106,20 @@ export class InstanceBuffers {
     let transformOffset = 0;
     let indexOffset = 0;
 
+    const setNormalMat = (normal: Mat3, offset: number) => {
+      this.instanceTransformArray[offset+0] = normal[0];
+      this.instanceTransformArray[offset+1] = normal[1];
+      this.instanceTransformArray[offset+2] = normal[2];
+
+      this.instanceTransformArray[offset+4] = normal[3];
+      this.instanceTransformArray[offset+5] = normal[4];
+      this.instanceTransformArray[offset+6] = normal[5];
+
+      this.instanceTransformArray[offset+8] = normal[6];
+      this.instanceTransformArray[offset+9] = normal[7];
+      this.instanceTransformArray[offset+10] = normal[8];
+    }
+
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of materials.values()) {
       for (let geometryInstances of materialGeometries.geometries.values()) {
@@ -113,16 +127,18 @@ export class InstanceBuffers {
           geometryInstances.indexOffset = indexOffset;
           for (let instance of geometryInstances.instances) {
             this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
             this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
-            transformOffset += 16;
+            transformOffset += 28;
           }
         }
         if (geometryInstances.mirroredInstances) {
           geometryInstances.mirroredIndexOffset = indexOffset;
           for (let instance of geometryInstances.mirroredInstances) {
             this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
             this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
-            transformOffset += 16;
+            transformOffset += 28;
           }
         }
       }

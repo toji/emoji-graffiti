@@ -53,7 +53,8 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           struct VertexOut {
             @builtin(position) pos: vec4f,
             @location(0) texCoord: vec2f,
-            @location(1) worldPos: vec4f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
           };
 
           struct Camera {
@@ -66,14 +67,19 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
 
           @group(0) @binding(0) var<uniform> camera: Camera;
 
-          @group(1) @binding(0) var<storage> transforms: array<mat4x4f>;
-          @group(1) @binding(1) var<storage> transformIndices: array<u32>;
+          struct Instance {
+            model: mat4x4f,
+            normal: mat3x3f,
+          }
+          @group(1) @binding(0) var<storage> instances: array<Instance>;
+          @group(1) @binding(1) var<storage> instanceIndices: array<u32>;
 
           struct Decal {
             id: u32,
             textureIndex: u32,
             opacity: f32,
             highlight: u32,
+            origin: vec3f,
             decalProj: mat4x4f,
           };
           struct SceneDecals {
@@ -95,12 +101,13 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           @group(3) @binding(2) var texSampler: sampler;
 
           @vertex
-          fn vertMain(in: VertexIn, @builtin(instance_index) instance: u32) -> VertexOut {
-            let transformIndex = transformIndices[instance];
-            let modelMat = transforms[transformIndex];
-            let worldPos = modelMat * in.position;
+          fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
+            let instanceId = instanceIndices[instanceIdx];
+            let instance = instances[instanceId];
+            let worldPos = instance.model * in.position;
             let pos = camera.projection * camera.view * worldPos;
-            return VertexOut(pos, in.texcoord0, worldPos);
+            let n = normalize(instance.normal * in.normal);
+            return VertexOut(pos, in.texcoord0, n, worldPos);
           }
 
           const GAMMA = 2.2f;
@@ -147,10 +154,14 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
               var decalColor = textureSample(decalTexture, decalSampler, decalUv.xy, decals.decal[i].textureIndex);
 
-              if (all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
+              // TODO: Check to ensure in.normal is facing towards the decal.
+              let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
+              let nDotO = dot(in.normal, originToPoint);
+
+              if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
                 let decalAlpha = decals.decal[i].opacity * decalColor.a;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
-                
+
                 if (decals.decal[i].highlight == 1) {
                   decalAccumColor += caustics * decalAlpha;
                 }
@@ -161,8 +172,6 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
                   out.decalId = decals.decal[i].id;
                 }
               }
-
-              //decalAccumColor = causticsA;
             }
 
             let color = (baseColor.rgb * (1.0 - decalAccumColor.a)) + ((decalAccumColor.rgb * lightEst) * decalAccumColor.a);

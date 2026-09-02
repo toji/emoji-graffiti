@@ -115,7 +115,7 @@ export class Transform {
   // Cannot be set directly. Never initialized unless requested.
   get normalMatrix(): Readonly<Mat3> {
     if (this.#normalMatrixRev != this.#revision) {
-      if (!this.normalMatrix) {
+      if (!this.#normalMatrix) {
         this.#normalMatrix = new Mat3();
       }
       Mat3.normalFromMat4(this.#normalMatrix!, this.matrix);

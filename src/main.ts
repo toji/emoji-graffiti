@@ -24,7 +24,7 @@ enum InputMode {
     clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
 
     emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
-    
+
 
     currentEmojiTexture?: GPUTexture;
     currentEmojiBindGroup?: GPUBindGroup;
@@ -63,8 +63,8 @@ enum InputMode {
 
       // Load a spraycan model
       this.spraycan = new Actor();
-      this.spraycan.transform.translation = [0.15, -0.35, -0.25];
-      this.spraycan.transform.scale = [0.1, 0.1, 0.1];
+      this.spraycan.transform.translation = [0.25, -0.75, -0.5];
+      //this.spraycan.transform.scale = [0.1, 0.1, 0.1];
       this.spraycan.transform.rotationRef.rotateY(Math.PI);
 
       this.gltfLoader.loadFromUrl('./media/models/spraycan.glb').then((scene: Actor) => {
@@ -75,9 +75,9 @@ enum InputMode {
 
       // Load a sponge model
       this.sponge = new Actor();
-      this.sponge.transform.translation = [0.75, -0.75, -0.5];
-      this.sponge.transform.scale = [0.75, 0.75, 0.75];
-      this.sponge.transform.rotationRef.rotateY(Math.PI);
+      this.sponge.transform.translation = [0.25, -0.75, -0.5]; //[0.75, -0.75, -0.5];
+      //this.sponge.transform.scale = [0.75, 0.75, 0.75];
+      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
 
       this.gltfLoader.loadFromUrl('./media/models/sponge.glb').then((scene: Actor) => {
         this.sponge.attachChild(scene);
@@ -127,6 +127,10 @@ enum InputMode {
         }
 
         return false;
+      });
+
+      gpu.canvas.addEventListener('click', (ev) => {
+        this.emojiPicker.style.display = 'none';
       });
 
       // Initialize the Emoji picker control
