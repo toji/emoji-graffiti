@@ -1,0 +1,264 @@
+import { Stage } from './core/stage.ts';
+import { Actor, Tag } from './core/actor.ts';
+import { WebGPUApp, WebGPURenderer } from './renderer/webgpu-renderer.ts';
+import { AppConfig } from './app-config.ts';
+import { Config } from './util/config.ts';
+import { PerspectiveCamera } from './core/camera.ts';
+import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
+import { FlyingController } from './controllers/flying-controller.ts';
+import { Decal } from './materials/decal.ts';
+
+enum InputMode {
+  View,
+  Paint,
+  Erase
+};
+
+(function main() {
+  WebGPUApp.Begin(class extends WebGPUApp {
+    config: AppConfig;
+
+    viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
+    emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
+    eraseButton: HTMLButtonElement = document.querySelector('#erase-button')!;
+    clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
+
+    emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
+
+
+    currentEmojiTexture?: GPUTexture;
+    currentEmojiBindGroup?: GPUBindGroup;
+
+    stage: Stage = new Stage();
+    camera: Actor;
+    decal: Actor;
+    spraycan: Actor;
+    sponge: Actor;
+
+    gltfLoader: GltfLoader;
+
+    mode: InputMode = InputMode.View;
+
+    constructor(gpu: WebGPURenderer) {
+      super(gpu);
+      this.config = Config.Create(AppConfig);
+
+      this.gltfLoader = new GltfLoader(gpu);
+
+      // Load the main scene.
+      this.gltfLoader.loadFromUrl('./media/models/gallery.glb').then((scene: Actor) => {
+        this.stage.attachChild(scene);
+      }).catch((err) => {
+        console.error('Gltf failed to load.', err);
+      });
+
+      const controller = new FlyingController(gpu.canvas);
+      controller.speed = 0.004;
+      this.camera = new Actor(
+        new PerspectiveCamera({zNear: 0.01}),
+        controller,
+      );
+      this.camera.transform.translation = [0.2, 1.6, 2];
+      this.stage.attachChild(this.camera);
+
+      // Load a spraycan model
+      this.spraycan = new Actor();
+      this.spraycan.transform.translation = [0.25, -0.75, -0.5];
+      //this.spraycan.transform.scale = [0.1, 0.1, 0.1];
+      this.spraycan.transform.rotationRef.rotateY(Math.PI);
+
+      this.gltfLoader.loadFromUrl('./media/models/spraycan.glb').then((scene: Actor) => {
+        this.spraycan.attachChild(scene);
+      }).catch((err) => {
+        console.error('Gltf failed to load.', err);
+      });
+
+      // Load a sponge model
+      this.sponge = new Actor();
+      this.sponge.transform.translation = [0.25, -0.75, -0.5]; //[0.75, -0.75, -0.5];
+      //this.sponge.transform.scale = [0.75, 0.75, 0.75];
+      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
+
+      this.gltfLoader.loadFromUrl('./media/models/sponge.glb').then((scene: Actor) => {
+        this.sponge.attachChild(scene);
+      }).catch((err) => {
+        console.error('Gltf failed to load.', err);
+      });
+
+      this.decal = new Actor(
+        new Decal({}, 0),
+        Tag('placing-decal')
+      );
+      this.decal.transform.translation = [0, 0, 0];
+
+      // Detach from the camera on right click
+      gpu.canvas.addEventListener('contextmenu', (ev) => {
+        ev.preventDefault();
+
+        if (this.mode == InputMode.Paint) {
+          // Lock the current decal instance in place
+          const curDecal = this.decal.get(Decal);
+          if (curDecal) {
+            this.decal.remove(Tag('placing-decal'));
+            this.decal.transform = this.decal.worldTransform;
+            this.stage.attachChild(this.decal);
+          }
+
+          // Quick cooldown to prevent spamming decals
+          setTimeout(() => {
+            // Create a new one
+            this.decal = new Actor(curDecal, Tag('placing-decal'));
+            if (this.mode == InputMode.Paint) {
+              this.camera.attachChild(this.decal);
+            }
+          }, this.config.sprayCooldown);
+        } else if (this.mode == InputMode.Erase) {
+          // Erase the selected decal
+          let decalIndex = 1;
+          this.stage.query(Decal).forEach((actor: Actor) => {
+            if (decalIndex == this.lastSelectedDecal) {
+              actor.parent?.removeChild(actor);
+              this.lastSelectedDecal = 0;
+              this.gpu.decalManager.selectedDecal = 0;
+              return false;
+            }
+            decalIndex++;
+          });
+        }
+
+        return false;
+      });
+
+      gpu.canvas.addEventListener('click', (ev) => {
+        this.emojiPicker.style.display = 'none';
+      });
+
+      // Initialize the Emoji picker control
+      this.emojiPicker = document.querySelector('emoji-picker')!;
+      this.emojiPicker.addEventListener('emoji-click', (event: Event) => {
+        const emojiEvent = (event as CustomEvent);
+        this.onEmojiPicked(emojiEvent.detail);
+      });
+      fetch('./media/emoji/custom.json').then(async (result) => {
+        // @ts-ignore
+        this.emojiPicker.customEmoji = await result.json();
+      });
+
+      this.viewButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.View);
+      });
+
+      this.emojiButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Paint);
+      });
+
+      this.eraseButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Erase);
+      });
+
+      this.clearButton.addEventListener('click', () => {
+        this.stage.query(Decal).forEach((actor: Actor) => {
+          // Don't remove the decal that we're using to place the next one.
+          if (!actor.has(Tag('placing-decal'))) {
+            actor.parent?.removeChild(actor);
+          }
+        });
+      });
+
+      this.onEmojiPicked(this.config.emoji);
+
+      this.gpu.canvas.addEventListener('mousemove', async (ev: MouseEvent) => {
+        if (this.mode == InputMode.Erase) {
+          this.getSelectedDecal(gpu,
+            Math.floor(ev.clientX * devicePixelRatio),
+            Math.floor(ev.clientY * devicePixelRatio));
+        }
+      });
+
+      this.#switchMode(InputMode.View);
+    }
+
+    #switchMode(mode: InputMode) {
+      this.mode = mode;
+      this.gpu.decalManager.selectedDecal = 0;
+
+      switch(this.mode) {
+        case InputMode.View:
+          this.viewButton.classList.add('selected');
+          this.emojiButton.classList.remove('selected');
+          this.eraseButton.classList.remove('selected');
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          this.emojiPicker.style.display = 'none';
+          break;
+        case InputMode.Paint:
+          this.viewButton.classList.remove('selected');
+          this.emojiButton.classList.add('selected');
+          this.eraseButton.classList.remove('selected');
+          this.camera.attachChild(this.decal);
+          this.camera.attachChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          // Toggle the emoji picker.
+          if (this.emojiPicker.style.display === 'none') {
+            this.emojiPicker.style.display = '';
+          } else {
+            this.emojiPicker.style.display = 'none';
+          }
+          break;
+        case InputMode.Erase:
+          this.viewButton.classList.remove('selected');
+          this.emojiButton.classList.remove('selected');
+          this.eraseButton.classList.add('selected');
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.attachChild(this.sponge);
+          this.emojiPicker.style.display = 'none';
+          break;
+      }
+    }
+
+    async onEmojiPicked(emoji: any) {
+      console.log(emoji);
+      this.config.emoji = emoji;
+      this.decal.add(await this.gpu.decalManager.getDecal(emoji));
+
+      if (emoji.unicode) {
+        this.emojiButton.innerHTML = emoji.unicode;
+        this.emojiButton.style = '';
+      } else {
+        this.emojiButton.innerHTML = '&nbsp;';
+        this.emojiButton.style = `background-image: url("${emoji.emoji.url}")`;
+      }
+
+      this.emojiPicker.style.display = 'none';
+    }
+
+    lastSelectedDecal = 0;
+    centerX = 0;
+    centerY = 0;
+    async getSelectedDecal(gpu: WebGPURenderer, x: number, y: number) {
+      const decalId = await gpu.selectionManager.getDecalIdAtPoint(x, y);
+
+      if (decalId != this.lastSelectedDecal) {
+        this.lastSelectedDecal = decalId;
+        this.gpu.decalManager.selectedDecal = decalId;
+      }
+
+      return decalId;
+    }
+
+    onResize(gpu: WebGPURenderer, width: number, height: number): void {
+      this.centerX = Math.floor(width * 0.5);
+      this.centerY = Math.floor(height * 0.5);
+      this.camera.get(PerspectiveCamera)!.aspect = width/height;
+    }
+
+    onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
+      this.stage.tick(timestamp);
+      gpu.render(this.stage, this.camera, timestamp);
+    }
+  }, {
+    canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement
+  });
+})();

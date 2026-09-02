@@ -1,0 +1,22 @@
+{
+  "name": "emoji-graffiti",
+  "version": "0.0.1",
+  "description": "A WebGPU sample demonstrating bindless textures",
+  "license": "MIT",
+  "author": "Brandon Jones",
+  "type": "module",
+  "main": "src/main.ts",
+  "scripts": {
+    "check": "tsc",
+    "build": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names",
+    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names --watch"
+  },
+  "devDependencies": {
+    "@types/web": "^0.0.352",
+    "esbuild": "0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "gl-matrix": "^4.0.0-beta.2"
+  }
+}

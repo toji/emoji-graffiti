@@ -1,0 +1,52 @@
+[
+  {
+    "name": "WebGPU Logo",
+    "shortcodes": ["webgpu"],
+    "url": "./media/emoji/webgpu.svg"
+  },
+  {
+    "name": "Chrome Logo",
+    "shortcodes": ["chrome"],
+    "url": "./media/emoji/chrome.svg"
+  },
+  {
+    "name": "Firefox Logo",
+    "shortcodes": ["firefox"],
+    "url": "./media/emoji/firefox.svg"
+  },
+  {
+    "name": "Safari Logo",
+    "shortcodes": ["safari"],
+    "url": "./media/emoji/safari.svg"
+  },
+  {
+    "name": "HTML 5 Logo",
+    "shortcodes": ["html5"],
+    "url": "./media/emoji/html5.svg"
+  },
+  {
+    "name": "JavaScript Logo",
+    "shortcodes": ["javascript"],
+    "url": "./media/emoji/javascript.svg"
+  },
+  {
+    "name": "CSS 3 Logo",
+    "shortcodes": ["css3"],
+    "url": "./media/emoji/css3.svg"
+  },
+  {
+    "name": "Web Assembly Logo",
+    "shortcodes": ["wasm"],
+    "url": "./media/emoji/wasm.svg"
+  },
+  {
+    "name": "CSS 3 Logo",
+    "shortcodes": ["css3"],
+    "url": "./media/emoji/css3.svg"
+  },
+  {
+    "name": "WebXR Logo",
+    "shortcodes": ["webxr"],
+    "url": "./media/emoji/webxr.svg"
+  }
+]
