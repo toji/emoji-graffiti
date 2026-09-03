@@ -9,6 +9,8 @@ import { FlyingController } from './controllers/flying-controller.ts';
 import { Decal } from './materials/decal.ts';
 import { AudioPlayer } from './audio-player.ts';
 
+import { Pane } from 'tweakpane';
+
 enum InputMode {
   View,
   Paint,
@@ -19,6 +21,8 @@ enum InputMode {
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     config: AppConfig;
+
+    pane: Pane;
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
@@ -60,6 +64,11 @@ enum InputMode {
     constructor(gpu: WebGPURenderer) {
       super(gpu);
       this.config = Config.Create(AppConfig);
+
+      this.pane = new Pane({
+        title: document.title.split('-')[0],
+      });
+      
 
       this.gltfLoader = new GltfLoader(gpu);
       const actorFromGltf = (url: string): Actor => {

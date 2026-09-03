@@ -28,6 +28,7 @@
         text-align: center;
       }
       #emoji-picker-container>button {
+        font-family: "Noto Color Emoji", sans-serif;
         font-size: 2em;
         width: 2em;
         height: 2em;
@@ -47,8 +48,14 @@
       }
       emoji-picker {
         margin: auto;
+        --emoji-font-family: "Noto Color Emoji", sans-serif
       }
     </style>
+
+    <!-- Enables consistent looking emoji across platforms -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
   </head>
   <body>
@@ -58,7 +65,7 @@
       <button id='emoji-button'>😀</button>
       <button id='erase-button'>🧽</button>
       <button id='clear-button'>💣</button>
-      <emoji-picker style='display: none'></emoji-picker>
+      <emoji-picker emoji-version='18.0' style='display: none'></emoji-picker>
       <div>
         <input type="range" id="decalRotation" name="decalRotation" min="-180" max="180" step="15" value="0"/>
         <label for="decalRotation">Decal Rotation</label>
