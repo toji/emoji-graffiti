@@ -170,8 +170,6 @@ export class WebGPUMipmapGenerator {
 
     const commandEncoder = this.device.createCommandEncoder({});
 
-    
-
     // Loop through each layer and generate a mipchain for it separately.
     // TODO: This won't handle things like blending over cubemap edges.
     for (let arrayLayer = baseArrayLayer; arrayLayer < baseArrayLayer+arrayLayerCount; ++arrayLayer) {

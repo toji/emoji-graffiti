@@ -8722,10 +8722,10 @@ var Geometry = class _Geometry {
         }
       }
       const vertexBindings = [];
-      for (let i = 0; i < geometryInit.bufferLayouts.length; ++i) {
-        const layout = geometryInit.bufferLayouts[i];
+      for (let slot = 0; slot < geometryInit.bufferLayouts.length; ++slot) {
+        const layout = geometryInit.bufferLayouts[slot];
         vertexBindings.push({
-          slot: i,
+          slot,
           buffer: layout.buffer?.buffer ?? vertexBuffer,
           offset: layout.bufferOffset ?? 0,
           size: layout.bufferSize
@@ -11673,18 +11673,6 @@ var GltfState = class {
       let x = count > 1 ? `x${count}` : "";
       switch (accessor.componentType) {
         case GL.BYTE:
-        case GL.UNSIGNED_BYTE:
-        case GL.SHORT:
-        case GL.UNSIGNED_SHORT:
-          if (count == 1) {
-            x = "x2";
-          } else if (count == 3) {
-            x = "x4";
-          }
-          break;
-      }
-      switch (accessor.componentType) {
-        case GL.BYTE:
           return `s${norm}8${x}`;
         case GL.UNSIGNED_BYTE:
           return `u${norm}8${x}`;
@@ -11697,12 +11685,13 @@ var GltfState = class {
         case GL.FLOAT:
           return `float32${x}`;
         default:
-          throw new Error(`Unsupported vertex format`);
+          throw new Error(`Unsupported vertex format: ${accessor.componentType}`);
       }
     }
     __name(gpuFormatForAccessor, "gpuFormatForAccessor");
     function gpuPrimitiveTopologyForMode(mode) {
       switch (mode) {
+        case void 0:
         case GL.TRIANGLES:
           return "triangle-list";
         case GL.TRIANGLE_STRIP:
@@ -11714,7 +11703,7 @@ var GltfState = class {
         case GL.POINTS:
           return "point-list";
         default:
-          return "triangle-list";
+          throw new Error(`Unsupported Primitive Topology: ${mode}`);
       }
     }
     __name(gpuPrimitiveTopologyForMode, "gpuPrimitiveTopologyForMode");
@@ -11764,17 +11753,21 @@ var GltfState = class {
       if (primitive.indices !== void 0) {
         const accessor = gltf.accessors[primitive.indices];
         const indexBytes = await this.getBufferViewByteArray(accessor.bufferView);
+        const byteOffset = (accessor.byteOffset ?? 0) + indexBytes.byteOffset;
+        let indexCount = accessor.count;
         switch (accessor.componentType) {
           case GL.UNSIGNED_SHORT:
-            descriptor.indices = new Uint16Array(indexBytes.buffer, indexBytes.byteOffset, indexBytes.byteLength / 2);
+            indexCount = Math.min(indexBytes.byteLength / 2, indexCount);
+            descriptor.indices = new Uint16Array(indexBytes.buffer, byteOffset, indexCount);
             break;
           case GL.UNSIGNED_INT:
-            descriptor.indices = new Uint32Array(indexBytes.buffer, indexBytes.byteOffset, indexBytes.byteLength / 4);
+            indexCount = Math.min(indexBytes.byteLength / 4, indexCount);
+            descriptor.indices = new Uint32Array(indexBytes.buffer, byteOffset, indexCount);
             break;
           default:
             throw new Error(`Unsupported index format ${accessor.componentType}`);
         }
-        descriptor.drawCount = accessor.count;
+        descriptor.drawCount = indexCount;
       }
       return descriptor;
     }, "buildGeometryDescriptor");
@@ -11898,12 +11891,14 @@ var GltfLoader = class {
     const actor = new Actor();
     if (node.mesh !== void 0) {
       const mesh = await state.getMesh(node.mesh);
-      if (mesh.primitives.length == 1) {
-        actor.add(mesh.primitives[0].geometry);
-        actor.add(mesh.primitives[0].material);
-      } else {
-        for (const primitive of mesh.primitives) {
-          actor.attachChild(new Actor(primitive.geometry, primitive.material));
+      if (mesh !== void 0) {
+        if (mesh.primitives.length == 1) {
+          actor.add(mesh.primitives[0].geometry);
+          actor.add(mesh.primitives[0].material);
+        } else {
+          for (const primitive of mesh.primitives) {
+            actor.attachChild(new Actor(primitive.geometry, primitive.material));
+          }
         }
       }
     }

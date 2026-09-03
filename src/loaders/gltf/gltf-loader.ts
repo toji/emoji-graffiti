@@ -123,14 +123,16 @@ export class GltfLoader {
     if (node.mesh !== undefined) {
       const mesh = await state.getMesh(node.mesh);
 
-      if (mesh.primitives.length == 1) {
-        actor.add(mesh.primitives[0].geometry);
-        actor.add(mesh.primitives[0].material);
-      } else {
-        // If there's more than one primitive we need to break it up into child
-        // actors, because each actor can only have one geometry.
-        for (const primitive of mesh.primitives) {
-          actor.attachChild(new Actor(primitive.geometry, primitive.material));
+      if (mesh !== undefined) {
+        if (mesh.primitives.length == 1) {
+          actor.add(mesh.primitives[0].geometry);
+          actor.add(mesh.primitives[0].material);
+        } else {
+          // If there's more than one primitive we need to break it up into child
+          // actors, because each actor can only have one geometry.
+          for (const primitive of mesh.primitives) {
+            actor.attachChild(new Actor(primitive.geometry, primitive.material));
+          }
         }
       }
     }

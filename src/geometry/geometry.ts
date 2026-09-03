@@ -255,10 +255,10 @@ export class Geometry implements GeometryInit {
       }
 
       const vertexBindings: GeometryVertexBinding[] = [];
-      for (let i = 0; i < geometryInit.bufferLayouts.length; ++i) {
-        const layout = geometryInit.bufferLayouts[i];
+      for (let slot = 0; slot < geometryInit.bufferLayouts.length; ++slot) {
+        const layout = geometryInit.bufferLayouts[slot];
         vertexBindings.push({
-          slot: i,
+          slot,
           buffer: layout.buffer?.buffer ?? vertexBuffer,
           offset: layout.bufferOffset ?? 0,
           size: layout.bufferSize,
