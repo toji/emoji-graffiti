@@ -519,7 +519,7 @@ export class GltfState {
 
       // TODO: Dumb workaround to fix meshopt_compression support;
       // I don't think this is always going to be correct.
-      switch (accessor.componentType) {
+      /*switch (accessor.componentType) {
         case GL.BYTE:
         case GL.UNSIGNED_BYTE:
         case GL.SHORT:
@@ -530,7 +530,7 @@ export class GltfState {
             x = 'x4';
           }
           break;
-      }
+      }*/
 
       switch (accessor.componentType) {
         case GL.BYTE: return `s${norm}8${x}` as GPUVertexFormat;
@@ -539,18 +539,19 @@ export class GltfState {
         case GL.UNSIGNED_SHORT: return `u${norm}16${x}` as GPUVertexFormat;
         case GL.UNSIGNED_INT: return `u${norm}32${x}` as GPUVertexFormat;
         case GL.FLOAT: return `float32${x}` as GPUVertexFormat;
-        default: throw new Error(`Unsupported vertex format`);
+        default: throw new Error(`Unsupported vertex format: ${accessor.componentType}`);
       }
     }
 
     function gpuPrimitiveTopologyForMode(mode?: GLenum): GPUPrimitiveTopology {
       switch (mode) {
+        case undefined:
         case GL.TRIANGLES: return 'triangle-list';
         case GL.TRIANGLE_STRIP: return 'triangle-strip';
         case GL.LINES: return 'line-list';
         case GL.LINE_STRIP: return 'line-strip';
         case GL.POINTS: return 'point-list';
-        default: return 'triangle-list';
+        default: throw new Error(`Unsupported Primitive Topology: ${mode}`);
       }
     }
 
@@ -591,18 +592,21 @@ export class GltfState {
         const accessor = gltf.accessors![primitive.indices];
 
         const indexBytes = await this.getBufferViewByteArray(accessor.bufferView!);
+        let indexCount = accessor.count;
         switch (accessor.componentType) {
           case GL.UNSIGNED_SHORT:
-            descriptor.indices = new Uint16Array(indexBytes.buffer, indexBytes.byteOffset, indexBytes.byteLength / 2);
+            indexCount = Math.min(indexBytes.byteLength / 2, indexCount);
+            descriptor.indices = new Uint16Array(indexBytes.buffer, indexBytes.byteOffset, indexCount);
             break;
           case GL.UNSIGNED_INT:
-            descriptor.indices = new Uint32Array(indexBytes.buffer, indexBytes.byteOffset, indexBytes.byteLength / 4);
+            indexCount = Math.min(indexBytes.byteLength / 4, indexCount);
+            descriptor.indices = new Uint32Array(indexBytes.buffer, indexBytes.byteOffset, indexCount);
             break;
           default:
             throw new Error(`Unsupported index format ${accessor.componentType}`);
         }
 
-        descriptor.drawCount = accessor.count;
+        descriptor.drawCount = indexCount;
       }
 
       return descriptor;

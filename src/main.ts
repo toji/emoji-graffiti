@@ -73,7 +73,7 @@ enum InputMode {
       }
 
       // Load the main scene.
-      this.stage.attachChild(actorFromGltf('./media/models/gallery.glb'));
+      /*this.stage.attachChild(actorFromGltf('./media/models/gallery.glb'));
 
       this.spraycan = actorFromGltf('./media/models/spraycan.glb');
       this.spraycan.transform.translation = [0.25, -0.75, -0.5];
@@ -81,10 +81,10 @@ enum InputMode {
 
       this.sponge = actorFromGltf('./media/models/sponge.glb');
       this.sponge.transform.translation = [0.25, -0.75, -0.5];
-      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
+      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);*/
 
       this.paintballGun = actorFromGltf('./media/models/paintball_gun.glb');
-      this.paintballGun.transform.translation = [0.3, -0.6, -0.5];
+      this.paintballGun.transform.translation = [0, 0, -1];//[0.3, -0.6, -0.5];
       this.paintballGun.transform.rotationRef.rotateY(Math.PI);
 
       const controller = new FlyingController(gpu.canvas);
@@ -214,7 +214,7 @@ enum InputMode {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
-          this.camera.removeChild(this.paintballGun);
+          this.camera.attachChild(this.paintballGun);
           this.emojiPicker.style.display = 'none';
           break;
         case InputMode.Paint:
@@ -293,6 +293,7 @@ enum InputMode {
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
       this.stage.tick(timestamp);
+      this.paintballGun.transform.rotationRef.rotateY(0.01);
       gpu.render(this.stage, this.camera, timestamp);
     }
   }, {
