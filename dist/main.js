@@ -12063,24 +12063,42 @@ var FlyingController = class extends ControllerInput {
 };
 
 // src/audio-player.ts
+var AudioClip = class _AudioClip {
+  static {
+    __name(this, "AudioClip");
+  }
+  bufferPromise;
+  offset = 0;
+  duration;
+  constructor(bufferPromise, offset, duration) {
+    this.bufferPromise = bufferPromise;
+    this.offset = offset ?? 0;
+    this.duration = duration;
+  }
+  subClips(clips) {
+    const audioClips = [];
+    for (const clip of clips) {
+      audioClips.push(new _AudioClip(this.bufferPromise, this.offset + clip.offset, clip.duration));
+    }
+    return audioClips;
+  }
+};
 var AudioPlayer = class {
   static {
     __name(this, "AudioPlayer");
   }
-  context = new AudioContext();
-  bufferSources = /* @__PURE__ */ new Map();
+  #context = new AudioContext();
   constructor() {
   }
-  async play(url, offset, duration) {
-    let buffer = this.bufferSources.get(url);
-    if (!buffer) {
-      const buffer2 = fetch(url).then((res) => res.arrayBuffer()).then((ArrayBuffer2) => this.context.decodeAudioData(ArrayBuffer2));
-      this.bufferSources.set(url, buffer2);
-    }
-    const source = this.context.createBufferSource();
-    source.buffer = await buffer;
-    source.connect(this.context.destination);
-    source.start(0, offset, duration);
+  loadClip(url) {
+    const buffer = fetch(url).then((res) => res.arrayBuffer()).then((ArrayBuffer2) => this.#context.decodeAudioData(ArrayBuffer2));
+    return new AudioClip(buffer);
+  }
+  async play(clip) {
+    const source = this.#context.createBufferSource();
+    source.buffer = await clip.bufferPromise;
+    source.connect(this.#context.destination);
+    source.start(0, clip.offset, clip.duration);
   }
 };
 
@@ -12102,29 +12120,44 @@ var AudioPlayer = class {
     decal;
     spraycan;
     sponge;
+    paintballGun;
     gltfLoader;
     mode = 0 /* View */;
     audioPlayer = new AudioPlayer();
-    sprayClips = [
-      ["./media/sounds/spray.mp3", 0.2, 0.5],
-      ["./media/sounds/spray.mp3", 1.6, 0.8],
-      ["./media/sounds/spray.mp3", 4, 0.5]
-    ];
-    eraseClips = [
-      ["./media/sounds/erase.mp3", 0.5, 0.5],
-      ["./media/sounds/erase.mp3", 1.75, 0.5],
-      ["./media/sounds/erase.mp3", 2.9, 0.5],
-      ["./media/sounds/erase.mp3", 4.2, 0.5]
-    ];
+    sprayClips = this.audioPlayer.loadClip("./media/sounds/spray.mp3").subClips([
+      { offset: 0.2, duration: 0.5 },
+      { offset: 1.6, duration: 0.8 },
+      { offset: 4, duration: 0.5 }
+    ]);
+    eraseClips = this.audioPlayer.loadClip("./media/sounds/erase.mp3").subClips([
+      { offset: 0.5, duration: 0.5 },
+      { offset: 1.75, duration: 0.5 },
+      { offset: 2.9, duration: 0.5 },
+      { offset: 4.2, duration: 0.5 }
+    ]);
     constructor(gpu) {
       super(gpu);
       this.config = Config.Create(AppConfig);
       this.gltfLoader = new GltfLoader(gpu);
-      this.gltfLoader.loadFromUrl("./media/models/gallery.glb").then((scene) => {
-        this.stage.attachChild(scene);
-      }).catch((err) => {
-        console.error("Gltf failed to load.", err);
-      });
+      const actorFromGltf = /* @__PURE__ */ __name((url) => {
+        const actor = new Actor();
+        this.gltfLoader.loadFromUrl(url).then((scene) => {
+          actor.attachChild(scene);
+        }).catch((err) => {
+          console.error("Gltf failed to load.", err);
+        });
+        return actor;
+      }, "actorFromGltf");
+      this.stage.attachChild(actorFromGltf("./media/models/gallery.glb"));
+      this.spraycan = actorFromGltf("./media/models/spraycan.glb");
+      this.spraycan.transform.translation = [0.25, -0.75, -0.5];
+      this.spraycan.transform.rotationRef.rotateY(Math.PI);
+      this.sponge = actorFromGltf("./media/models/sponge.glb");
+      this.sponge.transform.translation = [0.25, -0.75, -0.5];
+      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
+      this.paintballGun = actorFromGltf("./media/models/paintball_gun.glb");
+      this.paintballGun.transform.translation = [0.3, -0.6, -0.5];
+      this.paintballGun.transform.rotationRef.rotateY(Math.PI);
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 4e-3;
       this.camera = new Actor(
@@ -12133,22 +12166,6 @@ var AudioPlayer = class {
       );
       this.camera.transform.translation = [0.2, 1.6, 2];
       this.stage.attachChild(this.camera);
-      this.spraycan = new Actor();
-      this.spraycan.transform.translation = [0.25, -0.75, -0.5];
-      this.spraycan.transform.rotationRef.rotateY(Math.PI);
-      this.gltfLoader.loadFromUrl("./media/models/spraycan.glb").then((scene) => {
-        this.spraycan.attachChild(scene);
-      }).catch((err) => {
-        console.error("Gltf failed to load.", err);
-      });
-      this.sponge = new Actor();
-      this.sponge.transform.translation = [0.25, -0.75, -0.5];
-      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
-      this.gltfLoader.loadFromUrl("./media/models/sponge.glb").then((scene) => {
-        this.sponge.attachChild(scene);
-      }).catch((err) => {
-        console.error("Gltf failed to load.", err);
-      });
       this.decal = new Actor(
         new Decal({}, 0),
         Tag("placing-decal")
@@ -12164,8 +12181,7 @@ var AudioPlayer = class {
         if (this.mode == 1 /* Paint */) {
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
-            const sprayClip = this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)];
-            this.audioPlayer.play(...sprayClip);
+            this.audioPlayer.play(this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)]);
             this.decal.remove(Tag("placing-decal"));
             this.decal.transform = this.decal.worldTransform;
             this.stage.attachChild(this.decal);
@@ -12181,8 +12197,7 @@ var AudioPlayer = class {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor) => {
             if (decalIndex == this.lastSelectedDecal) {
-              const eraseClip = this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)];
-              this.audioPlayer.play(...eraseClip);
+              this.audioPlayer.play(this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)]);
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
               this.gpu.decalManager.selectedDecal = 0;
@@ -12243,6 +12258,7 @@ var AudioPlayer = class {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
+          this.camera.removeChild(this.paintballGun);
           this.emojiPicker.style.display = "none";
           break;
         case 1 /* Paint */:
@@ -12252,6 +12268,7 @@ var AudioPlayer = class {
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
+          this.camera.removeChild(this.paintballGun);
           if (this.emojiPicker.style.display === "none") {
             this.emojiPicker.style.display = "";
           } else {
@@ -12265,6 +12282,17 @@ var AudioPlayer = class {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
+          this.camera.removeChild(this.paintballGun);
+          this.emojiPicker.style.display = "none";
+          break;
+        case 3 /* Shoot */:
+          this.viewButton.classList.remove("selected");
+          this.emojiButton.classList.remove("selected");
+          this.eraseButton.classList.add("selected");
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          this.camera.attachChild(this.paintballGun);
           this.emojiPicker.style.display = "none";
           break;
       }

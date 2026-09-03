@@ -12,7 +12,8 @@ import { AudioPlayer } from './audio-player.ts';
 enum InputMode {
   View,
   Paint,
-  Erase
+  Erase,
+  Shoot,
 };
 
 (function main() {
@@ -36,37 +37,55 @@ enum InputMode {
     decal: Actor;
     spraycan: Actor;
     sponge: Actor;
+    paintballGun: Actor;
 
     gltfLoader: GltfLoader;
 
     mode: InputMode = InputMode.View;
 
     audioPlayer: AudioPlayer = new AudioPlayer();
-    sprayClips = [
-      ['./media/sounds/spray.mp3', 0.2, 0.5],
-      ['./media/sounds/spray.mp3', 1.6, 0.8],
-      ['./media/sounds/spray.mp3', 4, 0.5],
-    ];
+    sprayClips = this.audioPlayer.loadClip('./media/sounds/spray.mp3').subClips([
+      { offset: 0.2, duration: 0.5},
+      { offset: 1.6, duration: 0.8},
+      { offset: 4, duration: 0.5},
+    ]);
 
-    eraseClips = [
-      ['./media/sounds/erase.mp3', 0.5, 0.5],
-      ['./media/sounds/erase.mp3', 1.75, 0.5],
-      ['./media/sounds/erase.mp3', 2.9, 0.5],
-      ['./media/sounds/erase.mp3', 4.2, 0.5],
-    ];
+    eraseClips = this.audioPlayer.loadClip('./media/sounds/erase.mp3').subClips([
+      { offset: 0.5, duration: 0.5},
+      { offset: 1.75, duration: 0.5},
+      { offset: 2.9, duration: 0.5},
+      { offset: 4.2, duration: 0.5},
+    ]);
 
     constructor(gpu: WebGPURenderer) {
       super(gpu);
       this.config = Config.Create(AppConfig);
 
       this.gltfLoader = new GltfLoader(gpu);
+      const actorFromGltf = (url: string): Actor => {
+        const actor: Actor = new Actor();
+          this.gltfLoader.loadFromUrl(url).then((scene: Actor) => {
+            actor.attachChild(scene);
+          }).catch((err) => {
+            console.error('Gltf failed to load.', err);
+          });
+        return actor;
+      }
 
       // Load the main scene.
-      this.gltfLoader.loadFromUrl('./media/models/gallery.glb').then((scene: Actor) => {
-        this.stage.attachChild(scene);
-      }).catch((err) => {
-        console.error('Gltf failed to load.', err);
-      });
+      this.stage.attachChild(actorFromGltf('./media/models/gallery.glb'));
+
+      this.spraycan = actorFromGltf('./media/models/spraycan.glb');
+      this.spraycan.transform.translation = [0.25, -0.75, -0.5];
+      this.spraycan.transform.rotationRef.rotateY(Math.PI);
+
+      this.sponge = actorFromGltf('./media/models/sponge.glb');
+      this.sponge.transform.translation = [0.25, -0.75, -0.5];
+      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
+
+      this.paintballGun = actorFromGltf('./media/models/paintball_gun.glb');
+      this.paintballGun.transform.translation = [0.3, -0.6, -0.5];
+      this.paintballGun.transform.rotationRef.rotateY(Math.PI);
 
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 0.004;
@@ -76,30 +95,6 @@ enum InputMode {
       );
       this.camera.transform.translation = [0.2, 1.6, 2];
       this.stage.attachChild(this.camera);
-
-      // Load a spraycan model
-      this.spraycan = new Actor();
-      this.spraycan.transform.translation = [0.25, -0.75, -0.5];
-      //this.spraycan.transform.scale = [0.1, 0.1, 0.1];
-      this.spraycan.transform.rotationRef.rotateY(Math.PI);
-
-      this.gltfLoader.loadFromUrl('./media/models/spraycan.glb').then((scene: Actor) => {
-        this.spraycan.attachChild(scene);
-      }).catch((err) => {
-        console.error('Gltf failed to load.', err);
-      });
-
-      // Load a sponge model
-      this.sponge = new Actor();
-      this.sponge.transform.translation = [0.25, -0.75, -0.5]; //[0.75, -0.75, -0.5];
-      //this.sponge.transform.scale = [0.75, 0.75, 0.75];
-      this.sponge.transform.rotationRef.rotateY(Math.PI * -0.33);
-
-      this.gltfLoader.loadFromUrl('./media/models/sponge.glb').then((scene: Actor) => {
-        this.sponge.attachChild(scene);
-      }).catch((err) => {
-        console.error('Gltf failed to load.', err);
-      });
 
       this.decal = new Actor(
         new Decal({}, 0),
@@ -122,9 +117,7 @@ enum InputMode {
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
-            const sprayClip = this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)];
-            // @ts-expect-error
-            this.audioPlayer.play(...sprayClip);
+            this.audioPlayer.play(this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)]);
 
             this.decal.remove(Tag('placing-decal'));
             this.decal.transform = this.decal.worldTransform;
@@ -146,9 +139,7 @@ enum InputMode {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor: Actor) => {
             if (decalIndex == this.lastSelectedDecal) {
-              const eraseClip = this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)];
-              // @ts-expect-error
-              this.audioPlayer.play(...eraseClip);
+              this.audioPlayer.play(this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)]);
 
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
@@ -223,6 +214,7 @@ enum InputMode {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
+          this.camera.removeChild(this.paintballGun);
           this.emojiPicker.style.display = 'none';
           break;
         case InputMode.Paint:
@@ -232,6 +224,7 @@ enum InputMode {
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
+          this.camera.removeChild(this.paintballGun);
           // Toggle the emoji picker.
           if (this.emojiPicker.style.display === 'none') {
             this.emojiPicker.style.display = '';
@@ -246,6 +239,17 @@ enum InputMode {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
+          this.camera.removeChild(this.paintballGun);
+          this.emojiPicker.style.display = 'none';
+          break;
+        case InputMode.Shoot:
+          this.viewButton.classList.remove('selected');
+          this.emojiButton.classList.remove('selected');
+          this.eraseButton.classList.add('selected');
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          this.camera.attachChild(this.paintballGun);
           this.emojiPicker.style.display = 'none';
           break;
       }
