@@ -1,0 +1,12 @@
+@use '../tp';
+
+.#{tp.$prefix}-btnv {
+	&_b {
+		@extend %tp-button;
+
+		width: 100%;
+	}
+	&_t {
+		text-align: center;
+	}
+}

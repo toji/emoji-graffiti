@@ -4,11 +4,14 @@ export class EmojiRenderer {
   textureLoader: WebGpuTextureLoader;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
+  fontLoaded: Promise<FontFace[]>;
 
   constructor(textureLoader: WebGpuTextureLoader) {
     this.textureLoader = textureLoader;
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d')!;
+
+    this.fontLoaded = document.fonts.load('200px "Noto Color Emoji", sans-serif');
   }
 
   loadCustomEmojiImage(url: string): Promise<HTMLImageElement> {
@@ -28,9 +31,10 @@ export class EmojiRenderer {
 
     // Blit the emoji to the 2D canvas
     if (emoji.unicode) {
+      await this.fontLoaded;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.font = `${width * 0.75}px sans-serif`;
+      this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
       this.ctx.fillText(emoji.unicode, width * 0.5, height * 0.55, width);
     } else if (emoji.emoji.url) {
       const img = await this.loadCustomEmojiImage(emoji.emoji.url);

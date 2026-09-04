@@ -9,14 +9,16 @@
   "scripts": {
     "check": "tsc",
     "build": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names",
-    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names --watch"
+    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names --watch --serve=8081 --servedir=."
   },
   "devDependencies": {
+    "@tweakpane/core": "^2.0.5",
     "@types/web": "^0.0.352",
     "esbuild": "0.28.2",
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "gl-matrix": "^4.0.0-beta.2"
+    "gl-matrix": "^4.0.0-beta.2",
+    "tweakpane": "^4.0.5"
   }
 }

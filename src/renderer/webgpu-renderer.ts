@@ -11,6 +11,7 @@ import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
 import { UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
 import { SelectionManager } from "./selection-manager.ts";
+import { PBRPipelineFactory } from "./pipelines/pbr.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -39,21 +40,25 @@ export class WebGPURenderer {
   #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
   #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
 
-  cameraBGL: GPUBindGroupLayout;
+  frameBGL: GPUBindGroupLayout;
+  frameBindGroup?: GPUBindGroup;
   cameraBuffer: GPUBuffer;
-  cameraBindGroup: GPUBindGroup;
 
-  instanceBGL: GPUBindGroupLayout;
   instanceManager: InstanceManager;
 
   decalManager: DecalManager;
   selectionManager: SelectionManager;
 
   unlitPipelineFactory: UnlitPipelineFactory;
+  pbrPipelineFactory: PBRPipelineFactory;
 
   defaultSampler: GPUSampler;
 
   whiteTexture: GPUTexture;
+  blackTexture: GPUTexture;
+  normalTexture: GPUTexture;
+
+  causticsTexture?: GPUTexture;
 
   constructor(device: GPUDevice, options: WebGPURendererOptions) {
     this.device = device;
@@ -70,6 +75,13 @@ export class WebGPURenderer {
 
     this.textureLoader = new WebGpuTextureLoader(device);
     this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
+    this.blackTexture = this.textureLoader.fromColor(0, 0, 0, 0);
+    this.normalTexture = this.textureLoader.fromColor(0.5, 0.5, 1, 1);
+
+    this.textureLoader.fromUrl('./media/textures/caustics.jpg').then((texture: GPUTexture) => {
+      this.causticsTexture = texture;
+      this.frameBindingsDirty();
+    });
 
     this.attachmentLayout = new AttachmentLayout(
       [this.config.colorFormat, this.config.selectionFormat],
@@ -83,21 +95,43 @@ export class WebGPURenderer {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });
 
-    this.cameraBGL = device.createBindGroupLayout({
-      label: 'Camera',
+    this.frameBGL = device.createBindGroupLayout({
+      label: 'Frame',
       entries: [{
+        // Camera Uniforms
         binding: 0,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: {}
-      }]
-    });
-
-    this.cameraBindGroup = device.createBindGroup({
-      label: 'Camera',
-      layout: this.cameraBGL,
-      entries: [{
-        binding: 0,
-        resource: this.cameraBuffer,
+      }, {
+        // Instance Data
+        binding: 1,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: { type: 'read-only-storage' }
+      }, {
+        // Instance Index
+        binding: 2,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: { type: 'read-only-storage' }
+      }, {
+        // Default Sampler
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        sampler: {}
+      }, {
+        // Decal Data
+        binding: 4,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: { type: 'read-only-storage' }
+      }, {
+        // Decal Array Texture
+        binding: 5,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: { viewDimension: '2d-array' }
+      }, {
+        // Caustics Texture
+        binding: 6,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
       }]
     });
 
@@ -113,24 +147,10 @@ export class WebGPURenderer {
     this.decalManager = new DecalManager(this);
     this.selectionManager = new SelectionManager(this);
 
-    this.instanceBGL = device.createBindGroupLayout({
-      label: 'Instance',
-      entries: [{
-        // Instance Transforms
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: { type: 'read-only-storage' }
-      }, {
-        // Instance Index
-        binding: 1,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: { type: 'read-only-storage' }
-      }]
-    });
-
     this.instanceManager = new InstanceManager(this);
 
     this.unlitPipelineFactory = new UnlitPipelineFactory(this);
+    this.pbrPipelineFactory = new PBRPipelineFactory(this);
   }
 
   onResize(width: number, height: number) {
@@ -172,6 +192,47 @@ export class WebGPURenderer {
     this.selectionManager.onResize(width, height);
   }
 
+  #rebuildFrameBindings = true;
+  frameBindingsDirty() {
+    this.#rebuildFrameBindings = true;
+  }
+  ensureFrameBindings(): GPUBindGroup {
+    if (this.#rebuildFrameBindings) {
+      this.#rebuildFrameBindings = false;
+
+      this.frameBindGroup = this.device.createBindGroup({
+        label: 'Frame',
+        layout: this.frameBGL,
+        entries: [{
+          binding: 0,
+          resource: this.cameraBuffer,
+        }, {
+          binding: 1,
+          resource: this.instanceManager.instanceBuffers!.instanceTransformBuffer,
+        }, {
+          binding: 2,
+          resource: this.instanceManager.instanceBuffers!.instanceIndexBuffer,
+        }, {
+          binding: 3,
+          resource: this.defaultSampler,
+        }, {
+          binding: 4,
+          resource: this.decalManager.decalBuffer,
+        }, {
+          binding: 5,
+          resource: this.decalManager.decalTextureArray.createView({
+            label: 'Decal',
+            dimension: '2d-array'
+          }),
+        }, {
+          binding: 6,
+          resource: this.causticsTexture ?? this.whiteTexture,
+        }]
+      });
+    }
+    return this.frameBindGroup!;
+  }
+
   updateCamera(cameraActor: Actor, timestamp: number) {
     const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
     if (!camera) {
@@ -191,7 +252,6 @@ export class WebGPURenderer {
 
   render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
     this.updateCamera(cameraActor, timestamp);
-
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
 
@@ -220,13 +280,11 @@ export class WebGPURenderer {
       }
     });
 
-    renderPass.setBindGroup(0, this.cameraBindGroup);
-    renderPass.setBindGroup(1, this.instanceManager.instanceBuffers!.instanceBindGroup);
-    renderPass.setBindGroup(2, this.decalManager.decalBindGroup!);
+    renderPass.setBindGroup(0, this.ensureFrameBindings());
 
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of this.instanceManager.materials.values()) {
-      renderPass.setBindGroup(3, (materialGeometries.material as UnlitMaterial).materialBindGroup);
+      renderPass.setBindGroup(1, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
       for (let geometryInstances of materialGeometries.geometries.values()) {
         if (geometryInstances.instances.length) {
