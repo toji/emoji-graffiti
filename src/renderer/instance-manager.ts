@@ -68,8 +68,6 @@ export class InstanceBuffers {
   instanceTransformBuffer: GPUBuffer;
   instanceIndexBuffer: GPUBuffer;
 
-  instanceBindGroup: GPUBindGroup;
-
   constructor(gpu: WebGPURenderer, maxInstanceCount: number) {
     this.gpu = gpu;
     this.maxInstanceCount = maxInstanceCount;
@@ -87,18 +85,6 @@ export class InstanceBuffers {
       label: 'Instance Index Buffer',
       size: this.instanceIndexArray.byteLength,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
-    });
-
-    this.instanceBindGroup = gpu.device.createBindGroup({
-      label: 'Instance',
-      layout: gpu.instanceBGL,
-      entries: [{
-        binding: 0,
-        resource: this.instanceTransformBuffer,
-      }, {
-        binding: 1,
-        resource: this.instanceIndexBuffer
-      }]
     });
   }
 
@@ -183,12 +169,10 @@ export class InstanceManager {
       this.#addInstance(material.material, geometry, actor);
     });
 
-    if (this.instanceCount == 0) {
-      return;
-    }
-
+    let buffersUpdated = false;
     if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
       this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf(128, this.instanceCount));
+      this.gpu.frameBindingsDirty();
     }
     this.instanceBuffers.update(this.materials);
   }

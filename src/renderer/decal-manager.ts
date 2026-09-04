@@ -5,7 +5,6 @@ import { Decal } from "../materials/decal.ts";
 import { Stage } from "../core/stage.ts";
 import { EmojiRenderer } from "./emoji-renderer.ts";
 import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
-import { Camera } from "../core/camera.ts";
 
 const MAX_DECALS = 1024;
 const MAX_DECAL_TEXTURES = 256;
@@ -16,16 +15,12 @@ export class DecalManager {
 
   emojiRenderer: EmojiRenderer;
 
-  decalBGL: GPUBindGroupLayout;
   decalTextureArray: GPUTexture;
-  decalBindGroup?: GPUBindGroup;
 
   decalArray = new ArrayBuffer(DECAL_BYTE_SIZE * MAX_DECALS + Vec4.BYTE_LENGTH);
   decalUintArray = new Uint32Array(this.decalArray);
   decalFloatArray = new Float32Array(this.decalArray);
   decalBuffer: GPUBuffer;
-
-  causticsTexture?: GPUTexture;
 
   selectedDecal: number = 0;
 
@@ -38,27 +33,6 @@ export class DecalManager {
     this.gpu = gpu;
 
     this.emojiRenderer = new EmojiRenderer(this.gpu.textureLoader);
-
-    this.decalBGL = gpu.device.createBindGroupLayout({
-      label: 'Decal',
-      entries: [{
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        buffer: { type: 'read-only-storage' }
-      }, {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: { viewDimension: '2d-array' }
-      }, {
-        binding: 2,
-        visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
-      }, {
-        binding: 3,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }]
-    });
 
     this.decalBuffer = gpu.device.createBuffer({
       label: 'Decal',
@@ -73,36 +47,6 @@ export class DecalManager {
       mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
       usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
       format: 'rgba8unorm-srgb',
-    });
-
-    this.#rebuildBindGroup();
-
-    gpu.textureLoader.fromUrl('./media/textures/caustics.jpg').then((texture: GPUTexture) => {
-      this.causticsTexture = texture;
-      this.#rebuildBindGroup();
-    });
-  }
-
-  #rebuildBindGroup() {
-    this.decalBindGroup = this.gpu.device.createBindGroup({
-      label: 'Decal',
-      layout: this.decalBGL,
-      entries: [{
-        binding: 0,
-        resource: this.decalBuffer,
-      }, {
-        binding: 1,
-        resource: this.decalTextureArray.createView({
-          label: 'Decal',
-          dimension: '2d-array'
-        }),
-      }, {
-        binding: 2,
-        resource: this.gpu.defaultSampler,
-      }, {
-        binding: 3,
-        resource: this.causticsTexture ?? this.gpu.whiteTexture,
-      }]
     });
   }
 

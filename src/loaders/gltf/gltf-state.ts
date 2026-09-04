@@ -490,7 +490,7 @@ export class GltfState {
 
       // TODO: Handle samplers.
 
-       // TODO: Better material handling
+      // TODO: Better material handling
       return new UnlitMaterial(this.gpu, {
         label: material.name,
         doubleSided: material.doubleSided,

@@ -9,7 +9,7 @@
   "scripts": {
     "check": "tsc",
     "build": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names",
-    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names --watch"
+    "watch": "esbuild src/main.ts --format=esm --bundle --sourcemap --outdir=dist --keep-names --watch --serve=8081 --servedir=."
   },
   "devDependencies": {
     "@tweakpane/core": "^2.0.5",
