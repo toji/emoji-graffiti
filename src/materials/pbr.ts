@@ -54,7 +54,7 @@ export class PBRMaterial extends MaterialBase implements PBRMaterialDesc {
 
     this.uniformBuffer = gpu.device.createBuffer({
       label: 'PBR Material',
-      size: Vec4.BYTE_LENGTH * 2,
+      size: Vec4.BYTE_LENGTH * 4,
       usage: GPUBufferUsage.UNIFORM,
       mappedAtCreation: true,
     });

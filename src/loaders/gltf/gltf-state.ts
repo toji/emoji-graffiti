@@ -1,11 +1,12 @@
-import { Accessor, GlTf, Material, Mesh, MeshPrimitive, TextureInfo } from './gltf-interfaces.ts';
+import { Accessor, GlTf, Material, MaterialNormalTextureInfo, Mesh, MeshPrimitive, TextureInfo } from './gltf-interfaces.ts';
 import { WebGPURenderer } from '../../renderer/webgpu-renderer.ts';
 import { Actor } from '../../core/actor.ts';
 import { WebTextureOptions } from '../texture/texture-loader-base.ts';
 import { AttributeDescriptor, Geometry, GeometryDescriptor } from '../../geometry/geometry.ts';
 import { MaterialBase } from '../../materials/material-base.ts';
 import { UnlitMaterial } from '../../materials/unlit.ts';
-import { Vec4Like } from 'gl-matrix';
+import { Vec3Like, Vec4Like } from 'gl-matrix';
+import { PBRMaterial } from '../../materials/pbr.ts';
 
 // To make it easier to reference the WebGL enums that glTF uses.
 const GL = WebGLRenderingContext;
@@ -475,8 +476,8 @@ export class GltfState {
 
     const buildMaterial = async (material: Material): Promise<MaterialBase> => {
 
-      const getTexture = async (textureInfo: TextureInfo | undefined, defaultTexture: GPUTexture): Promise<GPUTexture | undefined> => {
-        if (textureInfo === undefined) { return defaultTexture; }
+      const getTexture = async (textureInfo: TextureInfo | MaterialNormalTextureInfo | undefined): Promise<GPUTexture | undefined> => {
+        if (textureInfo === undefined) { return undefined; }
 
         const texture = gltf.textures![textureInfo.index];
 
@@ -488,18 +489,33 @@ export class GltfState {
         return this.getImageTexture(imageIndex!);
       }
 
-      // TODO: Handle samplers.
+      // TODO: Handle samplers, handle transparency, etc.
 
-      // TODO: Better material handling
-      return new UnlitMaterial(this.gpu, {
+      //if (material.extensions?.KHR_materials_unlit !== undefined) {
+        return new UnlitMaterial(this.gpu, {
+          label: material.name,
+          doubleSided: material.doubleSided,
+          baseColorFactor: material.pbrMetallicRoughness?.baseColorFactor as Vec4Like,
+          baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture),
+
+          baseAlbedo: material.extras?.baseColor,
+          canDecal: material.extras?.canDecal,
+        });
+      /*}
+
+      return new PBRMaterial(this.gpu, {
         label: material.name,
         doubleSided: material.doubleSided,
         baseColorFactor: material.pbrMetallicRoughness?.baseColorFactor as Vec4Like,
-        baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture, this.gpu.whiteTexture),
-
-        baseAlbedo: material.extras?.baseColor,
-        canDecal: material.extras?.canDecal,
-      });
+        baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture),
+        normalTexture: await getTexture(material.normalTexture),
+        metallicFactor: material.pbrMetallicRoughness?.metallicFactor,
+        roughnessFactor: material.pbrMetallicRoughness?.roughnessFactor,
+        metallicRoughnessTexture: await getTexture(material.pbrMetallicRoughness?.metallicRoughnessTexture),
+        emissiveFactor: material.emissiveFactor as Vec3Like,
+        emissiveTexture: await getTexture(material.emissiveTexture),
+        occlusionTexture: await getTexture(material.occlusionTexture),
+      });*/
     }
 
     for (const [index, material] of gltf.materials.entries()) {
