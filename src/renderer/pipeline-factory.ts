@@ -128,7 +128,8 @@ function getDefaultRenderPipeline(device: GPUDevice, attachmentLayout: Attachmen
   if (!pipeline) {
     let outStruct = 'struct OutColors { ';
     for (let i = 0; i < attachmentLayout.colorFormats.length; ++i) {
-      outStruct += `@location(${i}) color_${i}: vec4f, `;
+      const outType = attachmentLayout.colorFormats[i];
+      outStruct += `@location(${i}) color_${i}: ${AttachmentLayout.DefaultOutputType(outType)}, `;
     }
     outStruct += '}';
 
