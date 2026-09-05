@@ -8,7 +8,6 @@ interface PBRPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
   mirrored: boolean,
-  canDecal: boolean,
 }
 
 export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
@@ -20,19 +19,35 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
     super(gpu.device, config);
 
     this.materialBGL = gpu.device.createBindGroupLayout({
-      label: 'Unlit Material',
+      label: 'PBR Material',
       entries: [{
         binding: 0,
         visibility: GPUShaderStage.FRAGMENT,
         buffer: {}
-      }, {
+      },  {
         binding: 1,
         visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
+        sampler: {}
       }, {
         binding: 2,
         visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
+        texture: {}
+      }, {
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 5,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 6,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
       }]
     });
 
@@ -71,8 +86,10 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
             model: mat4x4f,
             normal: mat3x3f,
           }
-          @group(1) @binding(0) var<storage> instances: array<Instance>;
-          @group(1) @binding(1) var<storage> instanceIndices: array<u32>;
+          @group(0) @binding(1) var<storage> instances: array<Instance>;
+          @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
+
+          @group(0) @binding(3) var defaultSampler: sampler;
 
           const GAMMA = 2.2f;
           const INV_GAMMA = 1.0f / GAMMA;
@@ -90,13 +107,13 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
             emissiveFactor: vec4f,
           };
 
-          @group(2) @binding(0) var<uniform> material: Material;
-          @group(2) @binding(1) var texSampler: sampler;
-          @group(2) @binding(2) var baseColorTexture: texture_2d<f32>;
-          @group(2) @binding(3) var normalTexture: texture_2d<f32>;
-          @group(2) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
-          @group(2) @binding(5) var occlusionTexture: texture_2d<f32>;
-          @group(2) @binding(6) var emissiveTexture: texture_2d<f32>;
+          @group(1) @binding(0) var<uniform> material: Material;
+          @group(1) @binding(1) var texSampler: sampler;
+          @group(1) @binding(2) var baseColorTexture: texture_2d<f32>;
+          @group(1) @binding(3) var normalTexture: texture_2d<f32>;
+          @group(1) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
+          @group(1) @binding(5) var occlusionTexture: texture_2d<f32>;
+          @group(1) @binding(6) var emissiveTexture: texture_2d<f32>;
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {

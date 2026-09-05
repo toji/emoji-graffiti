@@ -12,6 +12,7 @@ import { UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
 import { SelectionManager } from "./selection-manager.ts";
 import { PBRPipelineFactory } from "./pipelines/pbr.ts";
+import { PBRMaterial } from "../materials/pbr.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -282,24 +283,46 @@ export class WebGPURenderer {
 
     renderPass.setBindGroup(0, this.ensureFrameBindings());
 
-    // Build up the arrays that will populate the instance buffers
+    // Loop through the gathered instances and render
+    // TODO: Materials and Pipelines need to be handled way better here.
     for (let materialGeometries of this.instanceManager.materials.values()) {
-      renderPass.setBindGroup(1, (materialGeometries.material as UnlitMaterial).materialBindGroup);
+      if (materialGeometries.material instanceof UnlitMaterial) {
+        renderPass.setBindGroup(1, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
-      for (let geometryInstances of materialGeometries.geometries.values()) {
-        if (geometryInstances.instances.length) {
-          const unlitPipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout, this.attachmentLayout,
-            { ...materialGeometries.material as UnlitMaterial, mirrored: false });
-          unlitPipeline.use(renderPass);
-          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+        for (let geometryInstances of materialGeometries.geometries.values()) {
+          if (geometryInstances.instances.length) {
+            const pipeline = this.unlitPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout, this.attachmentLayout,
+              { ...materialGeometries.material as UnlitMaterial, mirrored: false });
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+          }
+          if (geometryInstances.mirroredInstances.length) {
+            const pipeline = this.unlitPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout, this.attachmentLayout,
+              { ...materialGeometries.material as UnlitMaterial, mirrored: true });
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+          }
         }
-        if (geometryInstances.mirroredInstances.length) {
-          const unlitPipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout, this.attachmentLayout,
-            { ...materialGeometries.material as UnlitMaterial, mirrored: true });
-          unlitPipeline.use(renderPass);
-          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+      } else if (materialGeometries.material instanceof PBRMaterial) {
+        renderPass.setBindGroup(1, (materialGeometries.material as PBRMaterial).materialBindGroup);
+
+        for (let geometryInstances of materialGeometries.geometries.values()) {
+          if (geometryInstances.instances.length) {
+            const pipeline = this.pbrPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout, this.attachmentLayout,
+              { ...materialGeometries.material as PBRMaterial, mirrored: false });
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+          }
+          if (geometryInstances.mirroredInstances.length) {
+            const pipeline = this.pbrPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout, this.attachmentLayout,
+              { ...materialGeometries.material as PBRMaterial, mirrored: true });
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+          }
         }
       }
     }
