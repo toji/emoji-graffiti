@@ -68,7 +68,7 @@ enum InputMode {
       this.pane = new Pane({
         title: document.title.split('-')[0],
       });
-      
+
 
       this.gltfLoader = new GltfLoader(gpu);
       const actorFromGltf = (url: string): Actor => {
@@ -223,7 +223,7 @@ enum InputMode {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
-          this.camera.removeChild(this.paintballGun);
+          this.camera.attachChild(this.paintballGun);
           this.emojiPicker.style.display = 'none';
           break;
         case InputMode.Paint:
