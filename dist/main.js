@@ -8155,6 +8155,48 @@ var AttachmentLayout = class _AttachmentLayout {
     }
     return new _AttachmentLayout(colorFormats, depthStencilFormat, sampleCount);
   }
+  static DefaultOutputType(format) {
+    switch (format) {
+      case "r8unorm":
+      case "rg8unorm":
+      case "rgba8unorm":
+      case "rgba8unorm-srgb":
+      case "bgra8unorm":
+      case "bgra8unorm-srgb":
+      case "r16float":
+      case "rg16float":
+      case "rgba16float":
+      case "r32float":
+      case "rg32float":
+      case "rgba32float":
+      case "rgb10a2unorm":
+      case "rg11b10ufloat":
+        return "vec4f";
+      case "r8uint":
+      case "rg8uint":
+      case "rgba8uint":
+      case "r16uint":
+      case "rg16uint":
+      case "rgba16uint":
+      case "r32uint":
+      case "rg32uint":
+      case "rgba32uint":
+      case "rgb10a2uint":
+        return "vec4u";
+      case "r8sint":
+      case "rg8sint":
+      case "rgba8sint":
+      case "r16sint":
+      case "rg16sint":
+      case "rgba16sint":
+      case "r32sint":
+      case "rg32sint":
+      case "rgba32sint":
+        return "vec4i";
+      default:
+        throw new Error(`Unsupported Renderable Format ${format}`);
+    }
+  }
   // Layout
   id;
   colorFormats;
@@ -10219,7 +10261,8 @@ function getDefaultRenderPipeline(device, attachmentLayout) {
   if (!pipeline) {
     let outStruct = "struct OutColors { ";
     for (let i = 0; i < attachmentLayout.colorFormats.length; ++i) {
-      outStruct += `@location(${i}) color_${i}: vec4f, `;
+      const outType = attachmentLayout.colorFormats[i];
+      outStruct += `@location(${i}) color_${i}: ${AttachmentLayout.DefaultOutputType(outType)}, `;
     }
     outStruct += "}";
     const module = device.createShaderModule({
