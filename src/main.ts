@@ -223,7 +223,7 @@ enum InputMode {
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
-          this.camera.attachChild(this.paintballGun);
+          this.camera.removeChild(this.paintballGun);
           this.emojiPicker.style.display = 'none';
           break;
         case InputMode.Paint:

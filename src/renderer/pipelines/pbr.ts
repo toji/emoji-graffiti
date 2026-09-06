@@ -5,6 +5,7 @@ import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
 import { FrameBindings, SRGBConversions } from "./common.ts";
+import { PBRFunctions, SurfaceInfoStruct } from "./pbr-common.ts";
 
 interface PBRPipelineArgs {
   transparent: boolean,
@@ -121,6 +122,10 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
 
           ${SRGBConversions}
 
+          ${SurfaceInfoStruct}
+
+          ${PBRFunctions}
+
           struct FragOut {
             @location(0) color: vec4f,
             @location(1) decalId: u32,
@@ -129,25 +134,48 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
           @fragment
           fn fragMain(in: VertexOut) -> FragOut {
 
+            var surface: SurfaceInfo;
+            surface.worldPos = in.worldPos.xyz;
+            surface.fragPos = in.pos.xy;
+            surface.V = normalize(camera.viewPos - surface.worldPos);
+
           #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
             let tbn = mat3x3f(in.tangent, in.bitangent, in.normal);
             let texNormal = textureSample(normalTexture, materialSampler, in.texCoord).rgb;
-            let normal = normalize(tbn * (texNormal * 2 - 1));
+            surface.N = normalize(tbn * (texNormal * 2 - 1));
           #else
-            let normal = normalize(in.normal);
+            surface.N = normalize(in.normal);
           #endif
 
-            let environment = textureSample(environmentTexture, materialSampler, normal);
+            let environment = textureSample(environmentTexture, materialSampler, surface.N);
 
-            let baseColor = in.color * material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
+            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
+            surface.alpha = baseColor.a;
+            let color = in.color.rgb * baseColor.rgb;
+
             let metalRough = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, materialSampler, in.texCoord).bg;
+            surface.metal = metalRough.r;
+            surface.rough = clamp(metalRough.g, MIN_ROUGHNESS, 1.0);
+
+            surface.diffuseColor = color * (1 - surface.metal);
+            surface.specularColor = color * surface.metal;
+
+            let dielectricSpec = vec3f(0.04);
+            surface.f0 = mix(dielectricSpec, color.rgb, vec3f(surface.metal));
+
+            surface.ao = textureSample(occlusionTexture, materialSampler, in.texCoord).r;
+
+            let emmisive = material.emissiveFactor.rgb * textureSample(emissiveTexture, materialSampler, in.texCoord).rgb;
+
+            var Lo = pbrSurfaceColorIbl(surface);
+
+            // Punctual lights would go here.
+
+            Lo += (surface.diffuseColor * surface.ao) + emmisive;
 
             var out: FragOut;
             out.decalId = 0;
-
-            let color = baseColor.rgb + (environment.rgb * metalRough.r);
-            out.color = vec4(linearTosRGB(color), baseColor.a);
-
+            out.color = vec4(linearTosRGB(Lo), surface.alpha);
             return out;
           }
         `,
