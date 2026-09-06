@@ -10695,7 +10695,7 @@ var Decal = class {
   constructor(emoji, textureIndex) {
     this.emoji = emoji;
     this.textureIndex = textureIndex;
-    this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 10);
+    this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 4);
   }
 };
 
@@ -20732,7 +20732,7 @@ var VERSION = new Semver("4.0.5");
         return actor;
       }, "actorFromGltf");
       this.stage.attachChild(actorFromGltf("./media/models/gallery.glb"));
-      this.spraycan = actorFromGltf("./media/models/spraycan.glb");
+      this.spraycan = actorFromGltf("./media/models/spraypaint_can.glb");
       this.spraycan.transform.translation = [0.25, -0.75, -0.5];
       this.spraycan.transform.rotationRef.rotateY(Math.PI);
       this.sponge = actorFromGltf("./media/models/sponge.glb");
