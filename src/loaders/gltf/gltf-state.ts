@@ -491,7 +491,7 @@ export class GltfState {
 
       // TODO: Handle samplers, handle transparency, etc.
 
-      //if (material.extensions?.KHR_materials_unlit !== undefined) {
+      if (material.extensions?.KHR_materials_unlit !== undefined) {
         return new UnlitMaterial(this.gpu, {
           label: material.name,
           doubleSided: material.doubleSided,
@@ -501,7 +501,7 @@ export class GltfState {
           baseAlbedo: material.extras?.baseColor,
           canDecal: material.extras?.canDecal,
         });
-      /*}
+      }
 
       return new PBRMaterial(this.gpu, {
         label: material.name,
@@ -515,7 +515,7 @@ export class GltfState {
         emissiveFactor: material.emissiveFactor as Vec3Like,
         emissiveTexture: await getTexture(material.emissiveTexture),
         occlusionTexture: await getTexture(material.occlusionTexture),
-      });*/
+      });
     }
 
     for (const [index, material] of gltf.materials.entries()) {

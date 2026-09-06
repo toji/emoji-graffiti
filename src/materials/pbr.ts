@@ -60,7 +60,7 @@ export class PBRMaterial extends MaterialBase implements PBRMaterialDesc {
     });
 
     this.materialBindGroup = gpu.device.createBindGroup({
-      label: 'Unlit Material',
+      label: 'PBR Material',
       layout: gpu.pbrPipelineFactory.materialBGL,
       entries: [{
         binding: 0,

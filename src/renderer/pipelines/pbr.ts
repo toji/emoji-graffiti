@@ -3,12 +3,14 @@ import { RenderPipelineFactory } from "../pipeline-factory.ts";
 import { AttachmentLayout } from "../attachment-layout.ts";
 import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
+import { AttribLocation } from "../../geometry/geometry.ts";
+import { FrameBindings, SRGBConversions } from "./common.ts";
+import { PBRFunctions, SurfaceInfoStruct } from "./pbr-common.ts";
 
 interface PBRPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
   mirrored: boolean,
-  canDecal: boolean,
 }
 
 export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
@@ -20,19 +22,35 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
     super(gpu.device, config);
 
     this.materialBGL = gpu.device.createBindGroupLayout({
-      label: 'Unlit Material',
+      label: 'PBR Material',
       entries: [{
         binding: 0,
         visibility: GPUShaderStage.FRAGMENT,
         buffer: {}
-      }, {
+      },  {
         binding: 1,
         visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
+        sampler: {}
       }, {
         binding: 2,
         visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
+        texture: {}
+      }, {
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 5,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 6,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
       }]
     });
 
@@ -48,41 +66,7 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
       const module = this.device.createShaderModule({
         label: 'PBR Material',
         code: wgsl`
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-          };
-
-          struct Camera {
-            projection: mat4x4f,
-            invProjection: mat4x4f,
-            view: mat4x4f,
-            viewPos: vec3f,
-            time: f32,
-          };
-
-          @group(0) @binding(0) var<uniform> camera: Camera;
-
-          struct Instance {
-            model: mat4x4f,
-            normal: mat3x3f,
-          }
-          @group(1) @binding(0) var<storage> instances: array<Instance>;
-          @group(1) @binding(1) var<storage> instanceIndices: array<u32>;
-
-          const GAMMA = 2.2f;
-          const INV_GAMMA = 1.0f / GAMMA;
-          fn linearTosRGB(linear : vec3f) -> vec3f {
-            return pow(linear, vec3(INV_GAMMA));
-          }
-
-          fn sRGBToLinear(srgb : vec3f) -> vec3f {
-            return pow(srgb, vec3(GAMMA));
-          }
+          ${FrameBindings}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -90,23 +74,57 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
             emissiveFactor: vec4f,
           };
 
-          @group(2) @binding(0) var<uniform> material: Material;
-          @group(2) @binding(1) var texSampler: sampler;
-          @group(2) @binding(2) var baseColorTexture: texture_2d<f32>;
-          @group(2) @binding(3) var normalTexture: texture_2d<f32>;
-          @group(2) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
-          @group(2) @binding(5) var occlusionTexture: texture_2d<f32>;
-          @group(2) @binding(6) var emissiveTexture: texture_2d<f32>;
+          @group(1) @binding(0) var<uniform> material: Material;
+          @group(1) @binding(1) var materialSampler: sampler;
+          @group(1) @binding(2) var baseColorTexture: texture_2d<f32>;
+          @group(1) @binding(3) var normalTexture: texture_2d<f32>;
+          @group(1) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
+          @group(1) @binding(5) var occlusionTexture: texture_2d<f32>;
+          @group(1) @binding(6) var emissiveTexture: texture_2d<f32>;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+            @location(3) color: vec4f,
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            @location(4) tangent: vec3f,
+            @location(5) bitangent: vec3f,
+          #endif
+          };
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
             let instanceId = instanceIndices[instanceIdx];
             let instance = instances[instanceId];
-            let worldPos = instance.model * in.position;
-            let pos = camera.projection * camera.view * worldPos;
-            let n = normalize(instance.normal * in.normal);
-            return VertexOut(pos, in.texcoord0, n, worldPos);
+
+            var out: VertexOut;
+
+            out.worldPos = instance.model * in.position;
+            out.pos = camera.projection * camera.view * out.worldPos;
+            out.texCoord = in.texcoord0;
+            out.normal = normalize(instance.normal * in.normal);
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.color)}
+            out.color = in.color;
+          #else
+            out.color = vec4f(1);
+          #endif
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            out.tangent = normalize(instance.normal * in.tangent.xyz);
+            out.bitangent = cross(out.normal, out.tangent) * in.tangent.w;
+          #endif
+
+            return out;
           }
+
+          ${SRGBConversions}
+
+          ${SurfaceInfoStruct}
+
+          ${PBRFunctions}
 
           struct FragOut {
             @location(0) color: vec4f,
@@ -115,16 +133,49 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
 
           @fragment
           fn fragMain(in: VertexOut) -> FragOut {
-            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-            let metallicRoughness = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, texSampler, in.texCoord).bg;
+
+            var surface: SurfaceInfo;
+            surface.worldPos = in.worldPos.xyz;
+            surface.fragPos = in.pos.xy;
+            surface.V = normalize(camera.viewPos - surface.worldPos);
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            let tbn = mat3x3f(in.tangent, in.bitangent, in.normal);
+            let texNormal = textureSample(normalTexture, materialSampler, in.texCoord).rgb;
+            surface.N = normalize(tbn * (texNormal * 2 - 1));
+          #else
+            surface.N = normalize(in.normal);
+          #endif
+
+            let environment = textureSample(environmentTexture, materialSampler, surface.N);
+
+            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
+            surface.alpha = baseColor.a;
+            let color = in.color.rgb * baseColor.rgb;
+
+            let metalRough = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, materialSampler, in.texCoord).bg;
+            surface.metal = metalRough.r;
+            surface.rough = clamp(metalRough.g, MIN_ROUGHNESS, 1.0);
+
+            surface.diffuseColor = color * (1 - surface.metal);
+            surface.specularColor = color * surface.metal;
+
+            let dielectricSpec = vec3f(0.04);
+            surface.f0 = mix(dielectricSpec, color.rgb, vec3f(surface.metal));
+
+            surface.ao = textureSample(occlusionTexture, materialSampler, in.texCoord).r;
+
+            let emmisive = material.emissiveFactor.rgb * textureSample(emissiveTexture, materialSampler, in.texCoord).rgb;
+
+            var Lo = pbrSurfaceColorIbl(surface);
+
+            // Punctual lights would go here.
+
+            Lo += (surface.diffuseColor * surface.ao) + emmisive;
 
             var out: FragOut;
             out.decalId = 0;
-
-            let color = baseColor.rgb * vec3f(metallicRoughness, 1);
-
-            out.color = vec4(linearTosRGB(color), baseColor.a);
-
+            out.color = vec4(linearTosRGB(Lo), surface.alpha);
             return out;
           }
         `,

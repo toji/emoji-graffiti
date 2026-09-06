@@ -258,6 +258,23 @@ export interface WebTextureOptions {
   colorSpace?: WebTextureColorSpace;
 }
 
+function resolveMimeType(filename?: string, mimeType?: string): string | undefined {
+  if (mimeType && mimeType != 'application/octet-stream') {
+    return mimeType;
+  }
+
+  if (filename) {
+    const extIndex = filename.lastIndexOf('.');
+    const extension = extIndex > -1 ? filename.substring(extIndex+1).toLowerCase() : 'none';
+    mimeType = EXTENSION_MIME_TYPES[extension];
+    if (!mimeType) {
+      throw new Error(`Could not predict MIME type from filename "${filename}" with extension of "${extension}".`);
+    }
+  }
+
+  return mimeType;
+}
+
 function getMimeTypeLoader(handlers: any, mimeType?: string) {
   if (!mimeType) {
     throw new Error('A valid MIME type must be specified.');
@@ -413,8 +430,10 @@ export class TextureLoaderBase {
 
     // Image not in cache, load it normally. Always load URLs as Blobs.
     textureOptions.cacheUrl = TMP_ANCHOR.href;
+    textureOptions.filename = TMP_ANCHOR.href;
     const response = await fetch(TMP_ANCHOR.href);
-    return this.fromBlob(await response.blob(), textureOptions);
+    const blob = await response.blob();
+    return this.fromBlob(blob, textureOptions);
   }
 
   /** Loads a texture from the given blob
@@ -430,7 +449,8 @@ export class TextureLoaderBase {
 
     const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
 
-    const loader = getMimeTypeLoader(this.#handlers, blob.type);
+    const mimeType = resolveMimeType(options.filename, options.mimeType ?? blob.type);
+    const loader = getMimeTypeLoader(this.#handlers, mimeType);
     return loader.fromBlob(this.#client, blob, options);
   }
 
@@ -447,16 +467,8 @@ export class TextureLoaderBase {
 
     const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
 
-    if (!options.mimeType && options.filename) {
-      const extIndex = options.filename.lastIndexOf('.');
-      const extension = extIndex > -1 ? options.filename.substring(extIndex+1).toLowerCase() : 'none';
-      options.mimeType = EXTENSION_MIME_TYPES[extension];
-      if (!options.mimeType) {
-        throw new Error(`Could not predict MIME type from filename "${options.filename}" with extension of "${extension}".`);
-      }
-    }
-
-    const loader = getMimeTypeLoader(this.#handlers, options.mimeType);
+    const mimeType = resolveMimeType(options.filename, options.mimeType);
+    const loader = getMimeTypeLoader(this.#handlers, mimeType);
     return loader.fromBuffer(this.#client, buffer, options);
   }
 

@@ -8264,6 +8264,86 @@ var AttachmentLayout = class _AttachmentLayout {
   }
 };
 
+// src/materials/material-base.ts
+var ActorMaterial = class {
+  static {
+    __name(this, "ActorMaterial");
+  }
+  material;
+  materialType;
+  constructor(material) {
+    this.materialType = Stage.getComponentType(material);
+    this.material = material;
+  }
+};
+var MaterialBase = class {
+  static {
+    __name(this, "MaterialBase");
+  }
+  addToActor(actor) {
+    let actorMaterial = actor.get(ActorMaterial);
+    if (actorMaterial) {
+      actor.remove(actorMaterial.materialType);
+    }
+    actor.add(new ActorMaterial(this));
+  }
+  removedFromActor(actor) {
+    actor.remove(ActorMaterial);
+  }
+};
+
+// src/materials/unlit.ts
+var UnlitMaterial = class extends MaterialBase {
+  static {
+    __name(this, "UnlitMaterial");
+  }
+  static SharedComponent = true;
+  uniformBuffer;
+  materialBindGroup;
+  label;
+  transparent;
+  doubleSided;
+  baseColorFactor;
+  baseColorTexture;
+  baseAlbedo;
+  canDecal;
+  constructor(gpu, desc) {
+    super();
+    this.label = desc?.label;
+    this.transparent = desc?.transparent ?? false;
+    this.doubleSided = desc?.doubleSided ?? false;
+    this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
+    this.baseColorTexture = desc?.baseColorTexture ?? gpu.whiteTexture;
+    this.baseAlbedo = new Vec3(desc?.baseAlbedo ?? [1, 1, 1]);
+    this.canDecal = desc?.canDecal ?? false;
+    this.uniformBuffer = gpu.device.createBuffer({
+      label: "Unlit Material",
+      size: Vec4.BYTE_LENGTH * 2,
+      usage: GPUBufferUsage.UNIFORM,
+      mappedAtCreation: true
+    });
+    this.materialBindGroup = gpu.device.createBindGroup({
+      label: "Unlit Material",
+      layout: gpu.unlitPipelineFactory.materialBGL,
+      entries: [{
+        binding: 0,
+        resource: this.uniformBuffer
+      }, {
+        binding: 1,
+        resource: this.baseColorTexture
+      }, {
+        binding: 2,
+        resource: gpu.defaultSampler
+      }]
+    });
+    const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
+    mapped.set(this.baseColorFactor, 0);
+    mapped.set(this.baseAlbedo, 4);
+    this.uniformBuffer.unmap();
+    Object.freeze(this);
+  }
+};
+
 // src/util/wgsl-preprocessor.ts
 var preprocessorSymbols = /#([^\s]*)(\s*)/gm;
 var ConditionalState = class {
@@ -9055,34 +9135,6 @@ function NormalizeBufferLayout(bufferLayouts) {
 }
 __name(NormalizeBufferLayout, "NormalizeBufferLayout");
 
-// src/materials/material-base.ts
-var ActorMaterial = class {
-  static {
-    __name(this, "ActorMaterial");
-  }
-  material;
-  materialType;
-  constructor(material) {
-    this.materialType = Stage.getComponentType(material);
-    this.material = material;
-  }
-};
-var MaterialBase = class {
-  static {
-    __name(this, "MaterialBase");
-  }
-  addToActor(actor) {
-    let actorMaterial = actor.get(ActorMaterial);
-    if (actorMaterial) {
-      actor.remove(actorMaterial.materialType);
-    }
-    actor.add(new ActorMaterial(this));
-  }
-  removedFromActor(actor) {
-    actor.remove(ActorMaterial);
-  }
-};
-
 // src/renderer/instance-manager.ts
 function nextMultipleOf2(multiple, value) {
   return Math.ceil(value / multiple) * multiple;
@@ -9717,6 +9769,21 @@ var DEFAULT_URL_OPTIONS = {
   mipmaps: true,
   colorSpace: "linear"
 };
+function resolveMimeType(filename, mimeType) {
+  if (mimeType && mimeType != "application/octet-stream") {
+    return mimeType;
+  }
+  if (filename) {
+    const extIndex = filename.lastIndexOf(".");
+    const extension = extIndex > -1 ? filename.substring(extIndex + 1).toLowerCase() : "none";
+    mimeType = EXTENSION_MIME_TYPES[extension];
+    if (!mimeType) {
+      throw new Error(`Could not predict MIME type from filename "${filename}" with extension of "${extension}".`);
+    }
+  }
+  return mimeType;
+}
+__name(resolveMimeType, "resolveMimeType");
 function getMimeTypeLoader(handlers, mimeType) {
   if (!mimeType) {
     throw new Error("A valid MIME type must be specified.");
@@ -9841,8 +9908,10 @@ var TextureLoaderBase = class {
       }
     }
     textureOptions.cacheUrl = TMP_ANCHOR.href;
+    textureOptions.filename = TMP_ANCHOR.href;
     const response = await fetch(TMP_ANCHOR.href);
-    return this.fromBlob(await response.blob(), textureOptions);
+    const blob = await response.blob();
+    return this.fromBlob(blob, textureOptions);
   }
   /** Loads a texture from the given blob
    *
@@ -9855,7 +9924,8 @@ var TextureLoaderBase = class {
       throw new Error("Cannot create new textures after object has been destroyed.");
     }
     const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
-    const loader = getMimeTypeLoader(this.#handlers, blob.type);
+    const mimeType = resolveMimeType(options.filename, options.mimeType ?? blob.type);
+    const loader = getMimeTypeLoader(this.#handlers, mimeType);
     return loader.fromBlob(this.#client, blob, options);
   }
   /** Loads a texture from the given blob
@@ -9869,15 +9939,8 @@ var TextureLoaderBase = class {
       throw new Error("Cannot create new textures after object has been destroyed.");
     }
     const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
-    if (!options.mimeType && options.filename) {
-      const extIndex = options.filename.lastIndexOf(".");
-      const extension = extIndex > -1 ? options.filename.substring(extIndex + 1).toLowerCase() : "none";
-      options.mimeType = EXTENSION_MIME_TYPES[extension];
-      if (!options.mimeType) {
-        throw new Error(`Could not predict MIME type from filename "${options.filename}" with extension of "${extension}".`);
-      }
-    }
-    const loader = getMimeTypeLoader(this.#handlers, options.mimeType);
+    const mimeType = resolveMimeType(options.filename, options.mimeType);
+    const loader = getMimeTypeLoader(this.#handlers, mimeType);
     return loader.fromBuffer(this.#client, buffer, options);
   }
   /**
@@ -10386,6 +10449,68 @@ var RenderPipelineFactory = class {
   }
 };
 
+// src/renderer/pipelines/common.ts
+var FrameBindings = (
+  /* wgsl */
+  `
+  struct Camera {
+    projection: mat4x4f,
+    invProjection: mat4x4f,
+    view: mat4x4f,
+    viewPos: vec3f,
+    time: f32,
+  };
+
+  @group(0) @binding(0) var<uniform> camera: Camera;
+
+  struct Instance {
+    model: mat4x4f,
+    normal: mat3x3f,
+  }
+  @group(0) @binding(1) var<storage> instances: array<Instance>;
+  @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
+
+  @group(0) @binding(3) var defaultSampler: sampler;
+  @group(0) @binding(4) var environmentTexture: texture_cube<f32>;
+`
+);
+var DecalFrameBindings = (
+  /* wgsl */
+  `
+  ${FrameBindings}
+
+  struct Decal {
+    id: u32,
+    textureIndex: u32,
+    opacity: f32,
+    highlight: u32,
+    origin: vec3f,
+    decalProj: mat4x4f,
+  };
+  struct SceneDecals {
+    decalCount: u32,
+    decal: array<Decal>,
+  };
+  @group(0) @binding(5) var<storage> decals: SceneDecals;
+  @group(0) @binding(6) var decalTexture: texture_2d_array<f32>;
+  @group(0) @binding(7) var causticsTexture: texture_2d<f32>;
+`
+);
+var SRGBConversions = (
+  /* wgsl */
+  `
+  const GAMMA = 2.2f;
+  fn sRGBToLinear(srgb : vec3f) -> vec3f {
+    return pow(srgb, vec3(GAMMA));
+  }
+
+  const INV_GAMMA = 1.0f / GAMMA;
+  fn linearTosRGB(linear : vec3f) -> vec3f {
+    return pow(linear, vec3(INV_GAMMA));
+  }
+`
+);
+
 // src/renderer/pipelines/unlit.ts
 var UnlitPipelineFactory = class extends RenderPipelineFactory {
   static {
@@ -10420,49 +10545,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
     const module = this.device.createShaderModule({
       label: "Unlit Material",
       code: wgsl`
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-          };
-
-          struct Camera {
-            projection: mat4x4f,
-            invProjection: mat4x4f,
-            view: mat4x4f,
-            viewPos: vec3f,
-            time: f32,
-          };
-
-          @group(0) @binding(0) var<uniform> camera: Camera;
-
-          struct Instance {
-            model: mat4x4f,
-            normal: mat3x3f,
-          }
-          @group(0) @binding(1) var<storage> instances: array<Instance>;
-          @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
-
-          @group(0) @binding(3) var defaultSampler: sampler;
-
-          struct Decal {
-            id: u32,
-            textureIndex: u32,
-            opacity: f32,
-            highlight: u32,
-            origin: vec3f,
-            decalProj: mat4x4f,
-          };
-          struct SceneDecals {
-            decalCount: u32,
-            decal: array<Decal>,
-          };
-          @group(0) @binding(4) var<storage> decals: SceneDecals;
-          @group(0) @binding(5) var decalTexture: texture_2d_array<f32>;
-          @group(0) @binding(6) var causticsTexture: texture_2d<f32>;
+          ${DecalFrameBindings}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -10472,6 +10555,15 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
           @group(1) @binding(0) var<uniform> material: Material;
           @group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
           @group(1) @binding(2) var texSampler: sampler;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+          };
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
@@ -10483,15 +10575,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             return VertexOut(pos, in.texcoord0, n, worldPos);
           }
 
-          const GAMMA = 2.2f;
-          const INV_GAMMA = 1.0f / GAMMA;
-          fn linearTosRGB(linear : vec3f) -> vec3f {
-            return pow(linear, vec3(INV_GAMMA));
-          }
-
-          fn sRGBToLinear(srgb : vec3f) -> vec3f {
-            return pow(srgb, vec3(GAMMA));
-          }
+          ${SRGBConversions}
 
           const projBias = mat4x4f(
             0.5, 0, 0, 0,
@@ -10611,7 +10695,7 @@ var Decal = class {
   constructor(emoji, textureIndex) {
     this.emoji = emoji;
     this.textureIndex = textureIndex;
-    this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 4);
+    this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 10);
   }
 };
 
@@ -10876,6 +10960,73 @@ var SelectionManager = class {
   }
 };
 
+// src/renderer/pipelines/pbr-common.ts
+var SurfaceInfoStruct = `
+  struct SurfaceInfo {
+    worldPos: vec3f,
+    fragPos: vec2f,
+    V: vec3f, // normalized vector from the shading location to the eye
+    N: vec3f, // surface normal in the world space
+    specularColor: vec3f,
+    diffuseColor: vec3f,
+    metal: f32,
+    rough: f32,
+    f0: vec3f,
+    ao: f32,
+    alpha: f32,
+  };
+`;
+var PBRFunctions = (
+  /* wgsl */
+  `
+  const PI = ${Math.PI};
+  const MIN_ROUGHNESS = 0.045;
+
+  fn getSpecularLightColor(R: vec3f, roughness: f32) -> vec3f {
+    let envLevels = f32(textureNumLevels(environmentTexture));
+
+    let rough = envLevels * roughness * (2.0 - roughness);
+
+    return textureSampleLevel(environmentTexture, defaultSampler, R, rough).rgb;
+  }
+
+  fn getDiffuseLightColor(N: vec3f) -> vec3f {
+    let diffuseLevel = f32(textureNumLevels(environmentTexture) - 1);
+    return textureSampleLevel(environmentTexture, defaultSampler, N, diffuseLevel).rgb;
+  }
+
+  fn FresnelSchlickRoughness(cosTheta: f32, F0: vec3f, roughness: f32) -> vec3f {
+    return F0 + (max(vec3f(1 - roughness), F0) - F0) * pow(clamp(1 - cosTheta, 0, 1), 5);
+  }
+
+  // From https://www.unrealengine.com/en-US/blog/physically-based-shading-on-mobile
+  fn envBRDFApprox(roughness: f32, NdotV: f32) -> vec2f {
+    let c0 = vec4f(-1, -0.0275, -0.572, 0.022);
+    let c1 = vec4f(1, 0.0425, 1.04, -0.04);
+    let r = roughness * c0 + c1;
+    let a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    return vec2f(-1.04, 1.04) * a004 + r.zw;
+  }
+
+  fn pbrSurfaceColorIbl(surface: SurfaceInfo) -> vec3f {
+    let NdotV = max(dot(surface.N, surface.V), 0);
+    let R = reflect(-surface.V, surface.N);
+
+    let kS = FresnelSchlickRoughness(NdotV, surface.f0, surface.rough);
+    let kD = (1 - kS) * (1 - surface.metal);
+    let irradiance = getDiffuseLightColor(surface.N);
+    let diffuse    = vec3f(0); //irradiance * surface.diffuseColor;
+
+    let prefilteredColor = getSpecularLightColor(R, surface.rough);
+    let envBrdf = envBRDFApprox(surface.rough, NdotV);
+    let specular = prefilteredColor * (surface.specularColor * envBrdf.x + envBrdf.y);
+
+    let ambient    = (kD * diffuse + specular) * surface.ao;
+    return ambient;
+  }
+`
+);
+
 // src/renderer/pipelines/pbr.ts
 var PBRPipelineFactory = class extends RenderPipelineFactory {
   static {
@@ -10887,7 +11038,7 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
     const config = gpu.config.watch();
     super(gpu.device, config);
     this.materialBGL = gpu.device.createBindGroupLayout({
-      label: "Unlit Material",
+      label: "PBR Material",
       entries: [{
         binding: 0,
         visibility: GPUShaderStage.FRAGMENT,
@@ -10895,11 +11046,27 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
       }, {
         binding: 1,
         visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
+        sampler: {}
       }, {
         binding: 2,
         visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
+        texture: {}
+      }, {
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 5,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 6,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
       }]
     });
     this.pipelineLayout = gpu.device.createPipelineLayout({
@@ -10910,41 +11077,7 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
     const module = this.device.createShaderModule({
       label: "PBR Material",
       code: wgsl`
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-          };
-
-          struct Camera {
-            projection: mat4x4f,
-            invProjection: mat4x4f,
-            view: mat4x4f,
-            viewPos: vec3f,
-            time: f32,
-          };
-
-          @group(0) @binding(0) var<uniform> camera: Camera;
-
-          struct Instance {
-            model: mat4x4f,
-            normal: mat3x3f,
-          }
-          @group(1) @binding(0) var<storage> instances: array<Instance>;
-          @group(1) @binding(1) var<storage> instanceIndices: array<u32>;
-
-          const GAMMA = 2.2f;
-          const INV_GAMMA = 1.0f / GAMMA;
-          fn linearTosRGB(linear : vec3f) -> vec3f {
-            return pow(linear, vec3(INV_GAMMA));
-          }
-
-          fn sRGBToLinear(srgb : vec3f) -> vec3f {
-            return pow(srgb, vec3(GAMMA));
-          }
+          ${FrameBindings}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -10952,23 +11085,57 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
             emissiveFactor: vec4f,
           };
 
-          @group(2) @binding(0) var<uniform> material: Material;
-          @group(2) @binding(1) var texSampler: sampler;
-          @group(2) @binding(2) var baseColorTexture: texture_2d<f32>;
-          @group(2) @binding(3) var normalTexture: texture_2d<f32>;
-          @group(2) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
-          @group(2) @binding(5) var occlusionTexture: texture_2d<f32>;
-          @group(2) @binding(6) var emissiveTexture: texture_2d<f32>;
+          @group(1) @binding(0) var<uniform> material: Material;
+          @group(1) @binding(1) var materialSampler: sampler;
+          @group(1) @binding(2) var baseColorTexture: texture_2d<f32>;
+          @group(1) @binding(3) var normalTexture: texture_2d<f32>;
+          @group(1) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
+          @group(1) @binding(5) var occlusionTexture: texture_2d<f32>;
+          @group(1) @binding(6) var emissiveTexture: texture_2d<f32>;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+            @location(3) color: vec4f,
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            @location(4) tangent: vec3f,
+            @location(5) bitangent: vec3f,
+          #endif
+          };
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
             let instanceId = instanceIndices[instanceIdx];
             let instance = instances[instanceId];
-            let worldPos = instance.model * in.position;
-            let pos = camera.projection * camera.view * worldPos;
-            let n = normalize(instance.normal * in.normal);
-            return VertexOut(pos, in.texcoord0, n, worldPos);
+
+            var out: VertexOut;
+
+            out.worldPos = instance.model * in.position;
+            out.pos = camera.projection * camera.view * out.worldPos;
+            out.texCoord = in.texcoord0;
+            out.normal = normalize(instance.normal * in.normal);
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.color)}
+            out.color = in.color;
+          #else
+            out.color = vec4f(1);
+          #endif
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            out.tangent = normalize(instance.normal * in.tangent.xyz);
+            out.bitangent = cross(out.normal, out.tangent) * in.tangent.w;
+          #endif
+
+            return out;
           }
+
+          ${SRGBConversions}
+
+          ${SurfaceInfoStruct}
+
+          ${PBRFunctions}
 
           struct FragOut {
             @location(0) color: vec4f,
@@ -10977,16 +11144,49 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
 
           @fragment
           fn fragMain(in: VertexOut) -> FragOut {
-            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-            let metallicRoughness = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, texSampler, in.texCoord).bg;
+
+            var surface: SurfaceInfo;
+            surface.worldPos = in.worldPos.xyz;
+            surface.fragPos = in.pos.xy;
+            surface.V = normalize(camera.viewPos - surface.worldPos);
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            let tbn = mat3x3f(in.tangent, in.bitangent, in.normal);
+            let texNormal = textureSample(normalTexture, materialSampler, in.texCoord).rgb;
+            surface.N = normalize(tbn * (texNormal * 2 - 1));
+          #else
+            surface.N = normalize(in.normal);
+          #endif
+
+            let environment = textureSample(environmentTexture, materialSampler, surface.N);
+
+            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
+            surface.alpha = baseColor.a;
+            let color = in.color.rgb * baseColor.rgb;
+
+            let metalRough = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, materialSampler, in.texCoord).bg;
+            surface.metal = metalRough.r;
+            surface.rough = clamp(metalRough.g, MIN_ROUGHNESS, 1.0);
+
+            surface.diffuseColor = color * (1 - surface.metal);
+            surface.specularColor = color * surface.metal;
+
+            let dielectricSpec = vec3f(0.04);
+            surface.f0 = mix(dielectricSpec, color.rgb, vec3f(surface.metal));
+
+            surface.ao = textureSample(occlusionTexture, materialSampler, in.texCoord).r;
+
+            let emmisive = material.emissiveFactor.rgb * textureSample(emissiveTexture, materialSampler, in.texCoord).rgb;
+
+            var Lo = pbrSurfaceColorIbl(surface);
+
+            // Punctual lights would go here.
+
+            Lo += (surface.diffuseColor * surface.ao) + emmisive;
 
             var out: FragOut;
             out.decalId = 0;
-
-            let color = baseColor.rgb * vec3f(metallicRoughness, 1);
-
-            out.color = vec4(linearTosRGB(color), baseColor.a);
-
+            out.color = vec4(linearTosRGB(Lo), surface.alpha);
             return out;
           }
         `
@@ -11033,6 +11233,83 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
   }
 };
 
+// src/materials/pbr.ts
+var PBRMaterial = class extends MaterialBase {
+  static {
+    __name(this, "PBRMaterial");
+  }
+  static SharedComponent = true;
+  uniformBuffer;
+  materialBindGroup;
+  label;
+  transparent;
+  doubleSided;
+  baseColorFactor;
+  baseColorTexture;
+  normalTexture;
+  metallicFactor;
+  roughnessFactor;
+  metallicRoughnessTexture;
+  occlusionTexture;
+  emissiveFactor;
+  emissiveTexture;
+  constructor(gpu, desc) {
+    super();
+    this.label = desc?.label;
+    this.transparent = desc?.transparent ?? false;
+    this.doubleSided = desc?.doubleSided ?? false;
+    this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
+    this.baseColorTexture = desc?.baseColorTexture ?? gpu.whiteTexture;
+    this.normalTexture = desc?.normalTexture ?? gpu.normalTexture;
+    this.metallicFactor = desc?.metallicFactor ?? 0;
+    this.roughnessFactor = desc?.roughnessFactor ?? 1;
+    this.metallicRoughnessTexture = desc?.metallicRoughnessTexture ?? gpu.whiteTexture;
+    this.occlusionTexture = desc?.occlusionTexture ?? gpu.whiteTexture;
+    ;
+    this.emissiveFactor = new Vec3(desc?.emissiveFactor ?? [1, 1, 1]);
+    this.emissiveTexture = desc?.emissiveTexture ?? gpu.blackTexture;
+    this.uniformBuffer = gpu.device.createBuffer({
+      label: "PBR Material",
+      size: Vec4.BYTE_LENGTH * 4,
+      usage: GPUBufferUsage.UNIFORM,
+      mappedAtCreation: true
+    });
+    this.materialBindGroup = gpu.device.createBindGroup({
+      label: "PBR Material",
+      layout: gpu.pbrPipelineFactory.materialBGL,
+      entries: [{
+        binding: 0,
+        resource: this.uniformBuffer
+      }, {
+        binding: 1,
+        resource: gpu.defaultSampler
+      }, {
+        binding: 2,
+        resource: this.baseColorTexture
+      }, {
+        binding: 3,
+        resource: this.normalTexture
+      }, {
+        binding: 4,
+        resource: this.metallicRoughnessTexture
+      }, {
+        binding: 5,
+        resource: this.occlusionTexture
+      }, {
+        binding: 6,
+        resource: this.emissiveTexture
+      }]
+    });
+    const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
+    mapped.set(this.baseColorFactor, 0);
+    mapped[4] = this.metallicFactor;
+    mapped[5] = this.roughnessFactor;
+    mapped.set(this.emissiveFactor, 8);
+    this.uniformBuffer.unmap();
+    Object.freeze(this);
+  }
+};
+
 // src/renderer/webgpu-renderer.ts
 var WebGPURenderer = class {
   static {
@@ -11063,6 +11340,7 @@ var WebGPURenderer = class {
   whiteTexture;
   blackTexture;
   normalTexture;
+  environmentTexture;
   causticsTexture;
   constructor(device, options) {
     this.device = device;
@@ -11079,6 +11357,16 @@ var WebGPURenderer = class {
     this.normalTexture = this.textureLoader.fromColor(0.5, 0.5, 1, 1);
     this.textureLoader.fromUrl("./media/textures/caustics.jpg").then((texture) => {
       this.causticsTexture = texture;
+      this.frameBindingsDirty();
+    });
+    this.environmentTexture = this.device.createTexture({
+      label: "Temp Environment",
+      size: [1, 1, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING
+    });
+    this.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
+      this.environmentTexture = texture;
       this.frameBindingsDirty();
     });
     this.attachmentLayout = new AttachmentLayout(
@@ -11114,18 +11402,23 @@ var WebGPURenderer = class {
         visibility: GPUShaderStage.FRAGMENT,
         sampler: {}
       }, {
-        // Decal Data
+        // Environment Texture
         binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: { viewDimension: "cube" }
+      }, {
+        // Decal Data
+        binding: 5,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: { type: "read-only-storage" }
       }, {
         // Decal Array Texture
-        binding: 5,
+        binding: 6,
         visibility: GPUShaderStage.FRAGMENT,
         texture: { viewDimension: "2d-array" }
       }, {
         // Caustics Texture
-        binding: 6,
+        binding: 7,
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
       }]
@@ -11197,15 +11490,18 @@ var WebGPURenderer = class {
           resource: this.defaultSampler
         }, {
           binding: 4,
-          resource: this.decalManager.decalBuffer
+          resource: this.environmentTexture.createView({ dimension: "cube" })
         }, {
           binding: 5,
+          resource: this.decalManager.decalBuffer
+        }, {
+          binding: 6,
           resource: this.decalManager.decalTextureArray.createView({
             label: "Decal",
             dimension: "2d-array"
           })
         }, {
-          binding: 6,
+          binding: 7,
           resource: this.causticsTexture ?? this.whiteTexture
         }]
       });
@@ -11254,25 +11550,49 @@ var WebGPURenderer = class {
     });
     renderPass.setBindGroup(0, this.ensureFrameBindings());
     for (let materialGeometries of this.instanceManager.materials.values()) {
-      renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
-      for (let geometryInstances of materialGeometries.geometries.values()) {
-        if (geometryInstances.instances.length) {
-          const unlitPipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout,
-            this.attachmentLayout,
-            { ...materialGeometries.material, mirrored: false }
-          );
-          unlitPipeline.use(renderPass);
-          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+      if (materialGeometries.material instanceof UnlitMaterial) {
+        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
+        for (let geometryInstances of materialGeometries.geometries.values()) {
+          if (geometryInstances.instances.length) {
+            const pipeline = this.unlitPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              { ...materialGeometries.material, mirrored: false }
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+          }
+          if (geometryInstances.mirroredInstances.length) {
+            const pipeline = this.unlitPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              { ...materialGeometries.material, mirrored: true }
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+          }
         }
-        if (geometryInstances.mirroredInstances.length) {
-          const unlitPipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout,
-            this.attachmentLayout,
-            { ...materialGeometries.material, mirrored: true }
-          );
-          unlitPipeline.use(renderPass);
-          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+      } else if (materialGeometries.material instanceof PBRMaterial) {
+        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
+        for (let geometryInstances of materialGeometries.geometries.values()) {
+          if (geometryInstances.instances.length) {
+            const pipeline = this.pbrPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              { ...materialGeometries.material, mirrored: false }
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+          }
+          if (geometryInstances.mirroredInstances.length) {
+            const pipeline = this.pbrPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              { ...materialGeometries.material, mirrored: true }
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+          }
         }
       }
     }
@@ -11391,58 +11711,6 @@ var MobileAppConfig = class extends AppConfig {
     __name(this, "MobileAppConfig");
   }
   emojiTextureSize = 128;
-};
-
-// src/materials/unlit.ts
-var UnlitMaterial = class extends MaterialBase {
-  static {
-    __name(this, "UnlitMaterial");
-  }
-  static SharedComponent = true;
-  uniformBuffer;
-  materialBindGroup;
-  label;
-  transparent;
-  doubleSided;
-  baseColorFactor;
-  baseColorTexture;
-  baseAlbedo;
-  canDecal;
-  constructor(gpu, desc) {
-    super();
-    this.label = desc?.label;
-    this.transparent = desc?.transparent ?? false;
-    this.doubleSided = desc?.doubleSided ?? false;
-    this.baseColorFactor = new Vec4(desc?.baseColorFactor ?? [1, 1, 1, 1]);
-    this.baseColorTexture = desc?.baseColorTexture ?? gpu.whiteTexture;
-    this.baseAlbedo = new Vec3(desc?.baseAlbedo ?? [1, 1, 1]);
-    this.canDecal = desc?.canDecal ?? false;
-    this.uniformBuffer = gpu.device.createBuffer({
-      label: "Unlit Material",
-      size: Vec4.BYTE_LENGTH * 2,
-      usage: GPUBufferUsage.UNIFORM,
-      mappedAtCreation: true
-    });
-    this.materialBindGroup = gpu.device.createBindGroup({
-      label: "Unlit Material",
-      layout: gpu.unlitPipelineFactory.materialBGL,
-      entries: [{
-        binding: 0,
-        resource: this.uniformBuffer
-      }, {
-        binding: 1,
-        resource: this.baseColorTexture
-      }, {
-        binding: 2,
-        resource: gpu.defaultSampler
-      }]
-    });
-    const mapped = new Float32Array(this.uniformBuffer.getMappedRange());
-    mapped.set(this.baseColorFactor, 0);
-    mapped.set(this.baseAlbedo, 4);
-    this.uniformBuffer.unmap();
-    Object.freeze(this);
-  }
 };
 
 // src/loaders/gltf/gltf-state.ts
@@ -11846,13 +12114,28 @@ var GltfState = class {
         }
         return this.getImageTexture(imageIndex);
       }, "getTexture");
-      return new UnlitMaterial(this.gpu, {
+      if (material.extensions?.KHR_materials_unlit !== void 0) {
+        return new UnlitMaterial(this.gpu, {
+          label: material.name,
+          doubleSided: material.doubleSided,
+          baseColorFactor: material.pbrMetallicRoughness?.baseColorFactor,
+          baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture),
+          baseAlbedo: material.extras?.baseColor,
+          canDecal: material.extras?.canDecal
+        });
+      }
+      return new PBRMaterial(this.gpu, {
         label: material.name,
         doubleSided: material.doubleSided,
         baseColorFactor: material.pbrMetallicRoughness?.baseColorFactor,
         baseColorTexture: await getTexture(material.pbrMetallicRoughness?.baseColorTexture),
-        baseAlbedo: material.extras?.baseColor,
-        canDecal: material.extras?.canDecal
+        normalTexture: await getTexture(material.normalTexture),
+        metallicFactor: material.pbrMetallicRoughness?.metallicFactor,
+        roughnessFactor: material.pbrMetallicRoughness?.roughnessFactor,
+        metallicRoughnessTexture: await getTexture(material.pbrMetallicRoughness?.metallicRoughnessTexture),
+        emissiveFactor: material.emissiveFactor,
+        emissiveTexture: await getTexture(material.emissiveTexture),
+        occlusionTexture: await getTexture(material.occlusionTexture)
       });
     }, "buildMaterial");
     for (const [index, material] of gltf.materials.entries()) {

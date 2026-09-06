@@ -68,7 +68,7 @@ enum InputMode {
       this.pane = new Pane({
         title: document.title.split('-')[0],
       });
-      
+
 
       this.gltfLoader = new GltfLoader(gpu);
       const actorFromGltf = (url: string): Actor => {
