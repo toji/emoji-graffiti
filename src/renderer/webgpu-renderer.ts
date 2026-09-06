@@ -59,6 +59,8 @@ export class WebGPURenderer {
   blackTexture: GPUTexture;
   normalTexture: GPUTexture;
 
+  environmentTexture: GPUTexture;
+
   causticsTexture?: GPUTexture;
 
   constructor(device: GPUDevice, options: WebGPURendererOptions) {
@@ -81,6 +83,19 @@ export class WebGPURenderer {
 
     this.textureLoader.fromUrl('./media/textures/caustics.jpg').then((texture: GPUTexture) => {
       this.causticsTexture = texture;
+      this.frameBindingsDirty();
+    });
+
+    // Temporarily bind a black cube map for the environment.
+    // TODO: Should make it white later.
+    this.environmentTexture = this.device.createTexture({
+      label: 'Temp Environment',
+      size: [1, 1, 6],
+      format: 'rgba8unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING,
+    });
+    this.textureLoader.fromUrl('./media/environment/industrial_pipe_and_valve_ibl.ktx').then((texture: GPUTexture) => {
+      this.environmentTexture = texture;
       this.frameBindingsDirty();
     });
 
@@ -119,18 +134,23 @@ export class WebGPURenderer {
         visibility: GPUShaderStage.FRAGMENT,
         sampler: {}
       }, {
-        // Decal Data
+        // Environment Texture
         binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: { viewDimension: 'cube' }
+      }, {
+        // Decal Data
+        binding: 5,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: { type: 'read-only-storage' }
       }, {
         // Decal Array Texture
-        binding: 5,
+        binding: 6,
         visibility: GPUShaderStage.FRAGMENT,
         texture: { viewDimension: '2d-array' }
       }, {
         // Caustics Texture
-        binding: 6,
+        binding: 7,
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
       }]
@@ -218,15 +238,18 @@ export class WebGPURenderer {
           resource: this.defaultSampler,
         }, {
           binding: 4,
-          resource: this.decalManager.decalBuffer,
+          resource: this.environmentTexture.createView({dimension: 'cube'}),
         }, {
           binding: 5,
+          resource: this.decalManager.decalBuffer,
+        }, {
+          binding: 6,
           resource: this.decalManager.decalTextureArray.createView({
             label: 'Decal',
             dimension: '2d-array'
           }),
         }, {
-          binding: 6,
+          binding: 7,
           resource: this.causticsTexture ?? this.whiteTexture,
         }]
       });

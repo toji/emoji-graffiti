@@ -3,6 +3,7 @@ import { RenderPipelineFactory } from "../pipeline-factory.ts";
 import { AttachmentLayout } from "../attachment-layout.ts";
 import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
+import { DecalFrameBindings, FrameBindings, SRGBConversions } from "./common.ts";
 
 interface UnlitPipelineArgs {
   transparent: boolean,
@@ -48,49 +49,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
       const module = this.device.createShaderModule({
         label: 'Unlit Material',
         code: wgsl`
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-          };
-
-          struct Camera {
-            projection: mat4x4f,
-            invProjection: mat4x4f,
-            view: mat4x4f,
-            viewPos: vec3f,
-            time: f32,
-          };
-
-          @group(0) @binding(0) var<uniform> camera: Camera;
-
-          struct Instance {
-            model: mat4x4f,
-            normal: mat3x3f,
-          }
-          @group(0) @binding(1) var<storage> instances: array<Instance>;
-          @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
-
-          @group(0) @binding(3) var defaultSampler: sampler;
-
-          struct Decal {
-            id: u32,
-            textureIndex: u32,
-            opacity: f32,
-            highlight: u32,
-            origin: vec3f,
-            decalProj: mat4x4f,
-          };
-          struct SceneDecals {
-            decalCount: u32,
-            decal: array<Decal>,
-          };
-          @group(0) @binding(4) var<storage> decals: SceneDecals;
-          @group(0) @binding(5) var decalTexture: texture_2d_array<f32>;
-          @group(0) @binding(6) var causticsTexture: texture_2d<f32>;
+          ${DecalFrameBindings}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -100,6 +59,15 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           @group(1) @binding(0) var<uniform> material: Material;
           @group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
           @group(1) @binding(2) var texSampler: sampler;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+          };
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
@@ -111,15 +79,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             return VertexOut(pos, in.texcoord0, n, worldPos);
           }
 
-          const GAMMA = 2.2f;
-          const INV_GAMMA = 1.0f / GAMMA;
-          fn linearTosRGB(linear : vec3f) -> vec3f {
-            return pow(linear, vec3(INV_GAMMA));
-          }
-
-          fn sRGBToLinear(srgb : vec3f) -> vec3f {
-            return pow(srgb, vec3(GAMMA));
-          }
+          ${SRGBConversions}
 
           const projBias = mat4x4f(
             0.5, 0, 0, 0,

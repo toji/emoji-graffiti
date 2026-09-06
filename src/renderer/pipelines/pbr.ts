@@ -4,6 +4,7 @@ import { AttachmentLayout } from "../attachment-layout.ts";
 import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
+import { FrameBindings, SRGBConversions } from "./common.ts";
 
 interface PBRPipelineArgs {
   transparent: boolean,
@@ -64,48 +65,7 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
       const module = this.device.createShaderModule({
         label: 'PBR Material',
         code: wgsl`
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-            @location(3) color: vec4f,
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
-            @location(4) tangent: vec3f,
-            @location(5) bitangent: vec3f,
-          #endif
-          };
-
-          struct Camera {
-            projection: mat4x4f,
-            invProjection: mat4x4f,
-            view: mat4x4f,
-            viewPos: vec3f,
-            time: f32,
-          };
-
-          @group(0) @binding(0) var<uniform> camera: Camera;
-
-          struct Instance {
-            model: mat4x4f,
-            normal: mat3x3f,
-          }
-          @group(0) @binding(1) var<storage> instances: array<Instance>;
-          @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
-
-          @group(0) @binding(3) var defaultSampler: sampler;
-
-          const GAMMA = 2.2f;
-          const INV_GAMMA = 1.0f / GAMMA;
-          fn linearTosRGB(linear : vec3f) -> vec3f {
-            return pow(linear, vec3(INV_GAMMA));
-          }
-
-          fn sRGBToLinear(srgb : vec3f) -> vec3f {
-            return pow(srgb, vec3(GAMMA));
-          }
+          ${FrameBindings}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -120,6 +80,20 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
           @group(1) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
           @group(1) @binding(5) var occlusionTexture: texture_2d<f32>;
           @group(1) @binding(6) var emissiveTexture: texture_2d<f32>;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+            @location(3) color: vec4f,
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            @location(4) tangent: vec3f,
+            @location(5) bitangent: vec3f,
+          #endif
+          };
 
           @vertex
           fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
@@ -145,6 +119,8 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
             return out;
           }
 
+          ${SRGBConversions}
+
           struct FragOut {
             @location(0) color: vec4f,
             @location(1) decalId: u32,
@@ -161,13 +137,15 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
             let normal = normalize(in.normal);
           #endif
 
-            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
+            let environment = textureSample(environmentTexture, materialSampler, normal);
+
+            let baseColor = in.color * material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
             let metalRough = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, materialSampler, in.texCoord).bg;
 
             var out: FragOut;
             out.decalId = 0;
 
-            let color = in.color.rgb * baseColor.rgb * normal;
+            let color = baseColor.rgb + (environment.rgb * metalRough.r);
             out.color = vec4(linearTosRGB(color), baseColor.a);
 
             return out;
