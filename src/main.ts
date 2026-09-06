@@ -84,7 +84,7 @@ enum InputMode {
       // Load the main scene.
       this.stage.attachChild(actorFromGltf('./media/models/gallery.glb'));
 
-      this.spraycan = actorFromGltf('./media/models/spraycan.glb');
+      this.spraycan = actorFromGltf('./media/models/spraypaint_can.glb');
       this.spraycan.transform.translation = [0.25, -0.75, -0.5];
       this.spraycan.transform.rotationRef.rotateY(Math.PI);
 
