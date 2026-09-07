@@ -69,6 +69,41 @@ enum InputMode {
         title: document.title.split('-')[0],
       });
 
+      this.pane.addButton({
+        title: 'Save',
+      }).on('click', () => {
+        const json = this.serializeDecalLayout();
+        console.log('Serialized Decals: ', json);
+        //this.deserializeDecalLayout(json);
+
+        const blob = new Blob([json], { type: "text/json" });
+        const link = document.createElement("a");
+        link.download = 'decalLayout.json';
+        link.href = window.URL.createObjectURL(blob);
+        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+        /*const evt = new MouseEvent("click", {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+        });*/
+        link.click(); //dispatchEvent(evt);
+        link.remove();
+      });
+
+      this.pane.addButton({
+        title: 'Load',
+      }).on('click', () => {
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = async () => {
+          // you can use this method to get file and perform respective operations
+          let file = input.files?.item(0);
+          if (file) {
+            this.deserializeDecalLayout(await file.text());
+          }
+        };
+        input.click();
+      });
 
       this.gltfLoader = new GltfLoader(gpu);
       const actorFromGltf = (url: string): Actor => {
@@ -84,6 +119,7 @@ enum InputMode {
       // Load the main scene.
       this.stage.attachChild(actorFromGltf('./media/models/gallery.glb'));
 
+      // Load props
       this.spraycan = actorFromGltf('./media/models/spraypaint_can.glb');
       this.spraycan.transform.translation = [0.25, -0.75, -0.5];
       this.spraycan.transform.rotationRef.rotateY(Math.PI);
@@ -95,6 +131,11 @@ enum InputMode {
       this.paintballGun = actorFromGltf('./media/models/paintball_gun.glb');
       this.paintballGun.transform.translation = [0.3, -0.6, -0.5];
       this.paintballGun.transform.rotationRef.rotateY(Math.PI);
+
+      // Load an environment map
+      gpu.textureLoader.fromUrl('./media/environment/industrial_pipe_and_valve_ibl.ktx').then((texture: GPUTexture) => {
+        gpu.environmentTexture = texture;
+      });
 
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 0.004;
@@ -190,12 +231,7 @@ enum InputMode {
       });
 
       this.clearButton.addEventListener('click', () => {
-        this.stage.query(Decal).forEach((actor: Actor) => {
-          // Don't remove the decal that we're using to place the next one.
-          if (!actor.has(Tag('placing-decal'))) {
-            actor.parent?.removeChild(actor);
-          }
-        });
+        this.clearDecals();
       });
 
       this.onEmojiPicked(this.config.emoji);
@@ -262,6 +298,59 @@ enum InputMode {
           this.emojiPicker.style.display = 'none';
           break;
       }
+    }
+
+    clearDecals() {
+      this.stage.query(Decal).forEach((actor: Actor) => {
+        // Don't remove the decal that we're using to place the next one.
+        if (!actor.has(Tag('placing-decal'))) {
+          actor.parent?.removeChild(actor);
+        }
+      });
+    }
+
+    async deserializeDecalLayout(json: string) {
+      const decalLayout = JSON.parse(json);
+      this.clearDecals();
+
+      if (decalLayout.version != 1) {
+        throw new Error(`Unsupported DecalLayout version: ${decalLayout.version}`);
+      }
+
+      for (const decal of decalLayout.decals) {
+        const emoji = decalLayout.emoji[decal.emojiIndex];
+        const actor = new Actor(await this.gpu.decalManager.getDecal(emoji));
+        actor.transform.translation = decal.translation;
+        actor.transform.rotation = decal.rotation;
+        this.stage.attachChild(actor);
+      }
+    }
+
+    serializeDecalLayout(): string {
+      const decalLayout: any = {
+        version: 1,
+        emoji: [],
+        decals: [],
+      };
+
+      this.stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
+        // Don't serialize the placing helper.
+        if (actor.has(Tag('placing-decal'))) {
+          return;
+        }
+
+        if (!decalLayout.emoji[decal.textureIndex]) {
+          decalLayout.emoji[decal.textureIndex] = decal.emoji;
+        }
+
+        decalLayout.decals.push({
+          emojiIndex: decal.textureIndex,
+          translation: [...actor.worldTransform.translation],
+          rotation: [...actor.worldTransform.rotation],
+        });
+      });
+
+      return JSON.stringify(decalLayout);
     }
 
     async onEmojiPicked(emoji: any) {

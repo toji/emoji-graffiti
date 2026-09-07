@@ -58,8 +58,9 @@ export class WebGPURenderer {
   whiteTexture: GPUTexture;
   blackTexture: GPUTexture;
   normalTexture: GPUTexture;
+  whiteCubeTexture: GPUTexture;
 
-  environmentTexture: GPUTexture;
+  #environmentTexture?: GPUTexture;
 
   causticsTexture?: GPUTexture;
 
@@ -88,15 +89,11 @@ export class WebGPURenderer {
 
     // Temporarily bind a black cube map for the environment.
     // TODO: Should make it white later.
-    this.environmentTexture = this.device.createTexture({
+    this.whiteCubeTexture = this.device.createTexture({
       label: 'Temp Environment',
       size: [1, 1, 6],
       format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING,
-    });
-    this.textureLoader.fromUrl('./media/environment/industrial_pipe_and_valve_ibl.ktx').then((texture: GPUTexture) => {
-      this.environmentTexture = texture;
-      this.frameBindingsDirty();
     });
 
     this.attachmentLayout = new AttachmentLayout(
@@ -174,6 +171,15 @@ export class WebGPURenderer {
     this.pbrPipelineFactory = new PBRPipelineFactory(this);
   }
 
+  get environmentTexture(): GPUTexture | undefined {
+    return this.#environmentTexture;
+  }
+
+  set environmentTexture(value: GPUTexture | undefined) {
+    this.#environmentTexture = value;
+    this.frameBindingsDirty();
+  }
+
   onResize(width: number, height: number) {
     width = Math.floor(width * this.config.outputScale);
     height = Math.floor(height * this.config.outputScale);
@@ -217,7 +223,7 @@ export class WebGPURenderer {
   frameBindingsDirty() {
     this.#rebuildFrameBindings = true;
   }
-  ensureFrameBindings(): GPUBindGroup {
+  #ensureFrameBindings(): GPUBindGroup {
     if (this.#rebuildFrameBindings) {
       this.#rebuildFrameBindings = false;
 
@@ -238,7 +244,7 @@ export class WebGPURenderer {
           resource: this.defaultSampler,
         }, {
           binding: 4,
-          resource: this.environmentTexture.createView({dimension: 'cube'}),
+          resource: (this.environmentTexture ? this.environmentTexture : this.whiteCubeTexture).createView({dimension: 'cube'}),
         }, {
           binding: 5,
           resource: this.decalManager.decalBuffer,
@@ -257,7 +263,7 @@ export class WebGPURenderer {
     return this.frameBindGroup!;
   }
 
-  updateCamera(cameraActor: Actor, timestamp: number) {
+  #updateCamera(cameraActor: Actor, timestamp: number) {
     const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
     if (!camera) {
       throw new Error('cameraActor passed to WebGPURenderer.render() must have a camera component');
@@ -275,7 +281,7 @@ export class WebGPURenderer {
   }
 
   render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
-    this.updateCamera(cameraActor, timestamp);
+    this.#updateCamera(cameraActor, timestamp);
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
 
@@ -304,7 +310,7 @@ export class WebGPURenderer {
       }
     });
 
-    renderPass.setBindGroup(0, this.ensureFrameBindings());
+    renderPass.setBindGroup(0, this.#ensureFrameBindings());
 
     // Loop through the gathered instances and render
     // TODO: Materials and Pipelines need to be handled way better here.
