@@ -74,6 +74,10 @@ interface WebGPUMesh {
   primitives: WebGPUMeshPrimitive[]
 }
 
+interface ImplicitShape {
+  type: string;
+}
+
 export class GltfState {
   gpu: WebGPURenderer;
   gltf!: GlTf;
@@ -90,6 +94,7 @@ export class GltfState {
   #samplers: GPUSampler[] = [];
   #materials: Promise<MaterialBase>[] = [];
   #meshes: Promise<WebGPUMesh>[] = [];
+  #shapes: ImplicitShape[] = [];
 
   constructor(gpu: WebGPURenderer, userOptions: any, url?: string) {
     this.gpu = gpu;
@@ -138,6 +143,7 @@ export class GltfState {
     this.#loadSamplers();
     this.#loadMaterials();
     this.#loadMeshes();
+    this.#loadImplicitShapes();
   }
 
   getBufferViewByteArray(index: number): Promise<Uint8Array<ArrayBuffer>> {
@@ -650,6 +656,17 @@ export class GltfState {
 
     for (const mesh of gltf.meshes) {
       this.#meshes.push(buildMesh(mesh));
+    }
+  }
+
+  #loadImplicitShapes() {
+    const gltf = this.gltf;
+
+    if (!gltf.extensions?.KHR_implicit_shapes) { return; }
+
+    const shapes = gltf.extensions!.KHR_implicit_shapes?.shapes ?? [];
+    for (const shape of shapes) {
+      this.#shapes.push(shape);
     }
   }
 }

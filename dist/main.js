@@ -11340,7 +11340,8 @@ var WebGPURenderer = class {
   whiteTexture;
   blackTexture;
   normalTexture;
-  environmentTexture;
+  whiteCubeTexture;
+  #environmentTexture;
   causticsTexture;
   constructor(device, options) {
     this.device = device;
@@ -11359,15 +11360,11 @@ var WebGPURenderer = class {
       this.causticsTexture = texture;
       this.frameBindingsDirty();
     });
-    this.environmentTexture = this.device.createTexture({
+    this.whiteCubeTexture = this.device.createTexture({
       label: "Temp Environment",
       size: [1, 1, 6],
       format: "rgba8unorm",
       usage: GPUTextureUsage.TEXTURE_BINDING
-    });
-    this.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
-      this.environmentTexture = texture;
-      this.frameBindingsDirty();
     });
     this.attachmentLayout = new AttachmentLayout(
       [this.config.colorFormat, this.config.selectionFormat],
@@ -11437,6 +11434,13 @@ var WebGPURenderer = class {
     this.unlitPipelineFactory = new UnlitPipelineFactory(this);
     this.pbrPipelineFactory = new PBRPipelineFactory(this);
   }
+  get environmentTexture() {
+    return this.#environmentTexture;
+  }
+  set environmentTexture(value) {
+    this.#environmentTexture = value;
+    this.frameBindingsDirty();
+  }
   onResize(width, height) {
     width = Math.floor(width * this.config.outputScale);
     height = Math.floor(height * this.config.outputScale);
@@ -11470,7 +11474,7 @@ var WebGPURenderer = class {
   frameBindingsDirty() {
     this.#rebuildFrameBindings = true;
   }
-  ensureFrameBindings() {
+  #ensureFrameBindings() {
     if (this.#rebuildFrameBindings) {
       this.#rebuildFrameBindings = false;
       this.frameBindGroup = this.device.createBindGroup({
@@ -11490,7 +11494,7 @@ var WebGPURenderer = class {
           resource: this.defaultSampler
         }, {
           binding: 4,
-          resource: this.environmentTexture.createView({ dimension: "cube" })
+          resource: (this.environmentTexture ? this.environmentTexture : this.whiteCubeTexture).createView({ dimension: "cube" })
         }, {
           binding: 5,
           resource: this.decalManager.decalBuffer
@@ -11508,7 +11512,7 @@ var WebGPURenderer = class {
     }
     return this.frameBindGroup;
   }
-  updateCamera(cameraActor, timestamp) {
+  #updateCamera(cameraActor, timestamp) {
     const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
     if (!camera) {
       throw new Error("cameraActor passed to WebGPURenderer.render() must have a camera component");
@@ -11521,7 +11525,7 @@ var WebGPURenderer = class {
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
   }
   render(stage, cameraActor, timestamp = performance.now()) {
-    this.updateCamera(cameraActor, timestamp);
+    this.#updateCamera(cameraActor, timestamp);
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
     if (this.instanceManager.instanceCount == 0) {
@@ -11548,7 +11552,7 @@ var WebGPURenderer = class {
         depthStoreOp: "discard"
       }
     });
-    renderPass.setBindGroup(0, this.ensureFrameBindings());
+    renderPass.setBindGroup(0, this.#ensureFrameBindings());
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
         renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
@@ -11792,6 +11796,7 @@ var GltfState = class {
   #samplers = [];
   #materials = [];
   #meshes = [];
+  #shapes = [];
   constructor(gpu, userOptions, url) {
     this.gpu = gpu;
     this.stats = {
@@ -11830,6 +11835,7 @@ var GltfState = class {
     this.#loadSamplers();
     this.#loadMaterials();
     this.#loadMeshes();
+    this.#loadImplicitShapes();
   }
   getBufferViewByteArray(index) {
     return this.#bufferViewByteArrays[index];
@@ -12271,6 +12277,16 @@ var GltfState = class {
       this.#meshes.push(buildMesh(mesh));
     }
   }
+  #loadImplicitShapes() {
+    const gltf = this.gltf;
+    if (!gltf.extensions?.KHR_implicit_shapes) {
+      return;
+    }
+    const shapes = gltf.extensions.KHR_implicit_shapes?.shapes ?? [];
+    for (const shape of shapes) {
+      this.#shapes.push(shape);
+    }
+  }
 };
 
 // src/loaders/gltf/gltf-loader.ts
@@ -12381,6 +12397,9 @@ var GltfLoader = class {
           }
         }
       }
+    }
+    if (node.extensions?.KHR_physics_rigid_bodies) {
+      console.log("Got a physics body:", node.extensions?.KHR_physics_rigid_bodies);
     }
     if (node.matrix) {
       actor.transform.matrix = node.matrix;
@@ -20721,6 +20740,32 @@ var VERSION = new Semver("4.0.5");
       this.pane = new Pane({
         title: document.title.split("-")[0]
       });
+      this.pane.addButton({
+        title: "Save"
+      }).on("click", () => {
+        const json = this.serializeDecalLayout();
+        console.log("Serialized Decals: ", json);
+        const blob = new Blob([json], { type: "text/json" });
+        const link = document.createElement("a");
+        link.download = "decalLayout.json";
+        link.href = window.URL.createObjectURL(blob);
+        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+        link.click();
+        link.remove();
+      });
+      this.pane.addButton({
+        title: "Load"
+      }).on("click", () => {
+        let input = document.createElement("input");
+        input.type = "file";
+        input.onchange = async () => {
+          let file = input.files?.item(0);
+          if (file) {
+            this.deserializeDecalLayout(await file.text());
+          }
+        };
+        input.click();
+      });
       this.gltfLoader = new GltfLoader(gpu);
       const actorFromGltf = /* @__PURE__ */ __name((url) => {
         const actor = new Actor();
@@ -20741,6 +20786,9 @@ var VERSION = new Semver("4.0.5");
       this.paintballGun = actorFromGltf("./media/models/paintball_gun.glb");
       this.paintballGun.transform.translation = [0.3, -0.6, -0.5];
       this.paintballGun.transform.rotationRef.rotateY(Math.PI);
+      gpu.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
+        gpu.environmentTexture = texture;
+      });
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 4e-3;
       this.camera = new Actor(
@@ -20812,11 +20860,7 @@ var VERSION = new Semver("4.0.5");
         this.#switchMode(2 /* Erase */);
       });
       this.clearButton.addEventListener("click", () => {
-        this.stage.query(Decal).forEach((actor) => {
-          if (!actor.has(Tag("placing-decal"))) {
-            actor.parent?.removeChild(actor);
-          }
-        });
+        this.clearDecals();
       });
       this.onEmojiPicked(this.config.emoji);
       this.gpu.canvas.addEventListener("mousemove", async (ev) => {
@@ -20879,6 +20923,48 @@ var VERSION = new Semver("4.0.5");
           this.emojiPicker.style.display = "none";
           break;
       }
+    }
+    clearDecals() {
+      this.stage.query(Decal).forEach((actor) => {
+        if (!actor.has(Tag("placing-decal"))) {
+          actor.parent?.removeChild(actor);
+        }
+      });
+    }
+    async deserializeDecalLayout(json) {
+      const decalLayout = JSON.parse(json);
+      this.clearDecals();
+      if (decalLayout.version != 1) {
+        throw new Error(`Unsupported DecalLayout version: ${decalLayout.version}`);
+      }
+      for (const decal of decalLayout.decals) {
+        const emoji = decalLayout.emoji[decal.emojiIndex];
+        const actor = new Actor(await this.gpu.decalManager.getDecal(emoji));
+        actor.transform.translation = decal.translation;
+        actor.transform.rotation = decal.rotation;
+        this.stage.attachChild(actor);
+      }
+    }
+    serializeDecalLayout() {
+      const decalLayout = {
+        version: 1,
+        emoji: [],
+        decals: []
+      };
+      this.stage.query(Decal).forEach((actor, decal) => {
+        if (actor.has(Tag("placing-decal"))) {
+          return;
+        }
+        if (!decalLayout.emoji[decal.textureIndex]) {
+          decalLayout.emoji[decal.textureIndex] = decal.emoji;
+        }
+        decalLayout.decals.push({
+          emojiIndex: decal.textureIndex,
+          translation: [...actor.worldTransform.translation],
+          rotation: [...actor.worldTransform.rotation]
+        });
+      });
+      return JSON.stringify(decalLayout);
     }
     async onEmojiPicked(emoji) {
       console.log(emoji);

@@ -137,6 +137,11 @@ export class GltfLoader {
       }
     }
 
+    // Collision Geometry
+    if (node.extensions?.KHR_physics_rigid_bodies) {
+      console.log('Got a physics body:', node.extensions?.KHR_physics_rigid_bodies);
+    }
+
     // Set the actor transform
     if (node.matrix) {
       actor.transform.matrix = node.matrix as Mat4Like;
