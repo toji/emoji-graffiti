@@ -10707,12 +10707,19 @@ var EmojiRenderer = class {
   textureLoader;
   canvas;
   ctx;
-  fontLoaded;
+  emojiFontLoaded;
   constructor(textureLoader) {
     this.textureLoader = textureLoader;
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");
-    this.fontLoaded = document.fonts.ready;
+    const emojiFontPromises = [];
+    document.fonts.forEach((font) => {
+      if (font.family === "Noto Color Emoji") {
+        emojiFontPromises.push(font.loaded);
+        font.load();
+      }
+    });
+    this.emojiFontLoaded = Promise.all(emojiFontPromises);
   }
   loadCustomEmojiImage(url) {
     return new Promise((resolve, reject) => {
@@ -10731,7 +10738,7 @@ var EmojiRenderer = class {
     const height = this.canvas.height = texture.height;
     this.ctx.clearRect(0, 0, width, height);
     if (emoji.unicode) {
-      await this.fontLoaded;
+      await this.emojiFontLoaded;
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
       this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;

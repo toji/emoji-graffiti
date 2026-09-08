@@ -4,18 +4,25 @@ export class EmojiRenderer {
   textureLoader: WebGpuTextureLoader;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  fontLoaded: Promise<FontFaceSet>;
+  emojiFontLoaded: Promise<FontFace[]>;
 
   constructor(textureLoader: WebGpuTextureLoader) {
     this.textureLoader = textureLoader;
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d')!;
 
-    // Check to ensure the emoji font is loaded. If any emoji are rendered
-    // before this promise resolves then they will fall back to using the
-    // system emoji set, which may yield a different look than the user intended
-    // and may mix emoji styles.
-    this.fontLoaded = document.fonts.ready;
+    // Ensure the emoji font is loaded. If any emoji are rendered before the
+    // font has finished loading then they will fall back to using the system
+    // emoji set, which may yield a different look than the user intended and
+    // may mix emoji styles.
+    const emojiFontPromises: Promise<FontFace>[] = [];
+    document.fonts.forEach((font: FontFace) => {
+      if (font.family === 'Noto Color Emoji') {
+        emojiFontPromises.push(font.loaded);
+        font.load();
+      }
+    });
+    this.emojiFontLoaded = Promise.all(emojiFontPromises);
   }
 
   loadCustomEmojiImage(url: string): Promise<HTMLImageElement> {
@@ -36,7 +43,7 @@ export class EmojiRenderer {
     // Blit the emoji to the 2D canvas
     if (emoji.unicode) {
       // Wait to ensure the emoji font is loaded.
-      await this.fontLoaded;
+      await this.emojiFontLoaded;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
