@@ -4,7 +4,7 @@ export class EmojiRenderer {
   textureLoader: WebGpuTextureLoader;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  fontLoaded: Promise<void>;
+  fontLoaded: Promise<FontFaceSet>;
 
   constructor(textureLoader: WebGpuTextureLoader) {
     this.textureLoader = textureLoader;
@@ -15,22 +15,7 @@ export class EmojiRenderer {
     // before this promise resolves then they will fall back to using the
     // system emoji set, which may yield a different look than the user intended
     // and may mix emoji styles.
-    this.fontLoaded = new Promise((resolve) => {
-      let pending = false;
-      for (const font of document.fonts.values()) {
-        if (!font.loaded) {
-          pending = true;
-          document.fonts.addEventListener('loadingdone', (ev) => {
-            console.log(ev);
-            resolve();
-          });
-          break;
-        }
-      }
-      if (!pending) {
-        resolve();
-      }
-    });
+    this.fontLoaded = document.fonts.ready;
   }
 
   loadCustomEmojiImage(url: string): Promise<HTMLImageElement> {

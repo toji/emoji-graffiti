@@ -10712,22 +10712,7 @@ var EmojiRenderer = class {
     this.textureLoader = textureLoader;
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");
-    this.fontLoaded = new Promise((resolve) => {
-      let pending = false;
-      for (const font of document.fonts.values()) {
-        if (!font.loaded) {
-          pending = true;
-          document.fonts.addEventListener("loadingdone", (ev) => {
-            console.log(ev);
-            resolve();
-          });
-          break;
-        }
-      }
-      if (!pending) {
-        resolve();
-      }
-    });
+    this.fontLoaded = document.fonts.ready;
   }
   loadCustomEmojiImage(url) {
     return new Promise((resolve, reject) => {
