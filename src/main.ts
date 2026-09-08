@@ -137,6 +137,8 @@ enum InputMode {
         gpu.environmentTexture = texture;
       });
 
+      this.loadDecalLayoutFromUrl('./media/decalLayout.json');
+
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 0.004;
       this.camera = new Actor(
@@ -309,8 +311,17 @@ enum InputMode {
       });
     }
 
-    async deserializeDecalLayout(json: string) {
+    async loadDecalLayoutFromUrl(url: string) {
+      const response = await fetch(url);
+      this.deserializeDecalLayoutFromJson(await response.json());
+    }
+
+    deserializeDecalLayoutFromString(json: string) {
       const decalLayout = JSON.parse(json);
+      this.deserializeDecalLayoutFromJson(decalLayout);
+    }
+
+    async deserializeDecalLayoutFromJson(decalLayout: any) {
       this.clearDecals();
 
       if (decalLayout.version != 1) {

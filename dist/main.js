@@ -20789,6 +20789,7 @@ var VERSION = new Semver("4.0.5");
       gpu.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
         gpu.environmentTexture = texture;
       });
+      this.loadDecalLayoutFromUrl("./media/decalLayout.json");
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 4e-3;
       this.camera = new Actor(
@@ -20931,8 +20932,15 @@ var VERSION = new Semver("4.0.5");
         }
       });
     }
-    async deserializeDecalLayout(json) {
+    async loadDecalLayoutFromUrl(url) {
+      const response = await fetch(url);
+      this.deserializeDecalLayoutFromJson(await response.json());
+    }
+    deserializeDecalLayoutFromString(json) {
       const decalLayout = JSON.parse(json);
+      this.deserializeDecalLayoutFromJson(decalLayout);
+    }
+    async deserializeDecalLayoutFromJson(decalLayout) {
       this.clearDecals();
       if (decalLayout.version != 1) {
         throw new Error(`Unsupported DecalLayout version: ${decalLayout.version}`);
