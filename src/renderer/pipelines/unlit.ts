@@ -3,7 +3,7 @@ import { RenderPipelineFactory } from "../pipeline-factory.ts";
 import { AttachmentLayout } from "../attachment-layout.ts";
 import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
-import { DecalFrameBindings, FrameBindings, SRGBConversions } from "./common.ts";
+import { DecalFrameBindings, SRGBConversions } from "./common.ts";
 
 interface UnlitPipelineArgs {
   transparent: boolean,
