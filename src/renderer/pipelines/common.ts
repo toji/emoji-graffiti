@@ -1,13 +1,19 @@
-export const FrameBindings = /* wgsl */`
+export const CameraBindings = /* wgsl */`
   struct Camera {
     projection: mat4x4f,
     invProjection: mat4x4f,
     view: mat4x4f,
     viewPos: vec3f,
     time: f32,
+    zRange: vec2f,
+    outputSize: vec2f,
   };
 
   @group(0) @binding(0) var<uniform> camera: Camera;
+`;
+
+export const FrameBindings = /* wgsl */`
+  ${CameraBindings}
 
   struct Instance {
     model: mat4x4f,

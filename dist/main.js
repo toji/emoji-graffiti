@@ -10188,65 +10188,6 @@ var WebGpuTextureClient = class {
   }
 };
 
-// src/core/camera.ts
-var Camera = class {
-  static {
-    __name(this, "Camera");
-  }
-  zNear = 1;
-  zFar = 1024;
-  constructor(init) {
-    this.zNear = init.zNear ?? this.zNear;
-    this.zFar = init.zFar ?? this.zFar;
-  }
-  getProjection(projectionMat) {
-    throw new Error("Must be overriden in inherited Camera type");
-  }
-};
-var PerspectiveCamera = class extends Camera {
-  static {
-    __name(this, "PerspectiveCamera");
-  }
-  static SharedComponent = true;
-  // Projection Matrix values
-  fieldOfView = Math.PI * 0.5;
-  // 90 deg
-  aspect = 1;
-  constructor(init = {}) {
-    super(init);
-    this.fieldOfView = init.fieldOfView ?? this.fieldOfView;
-    this.zNear = init.zNear ?? this.zNear;
-    this.zFar = init.zFar ?? this.zFar;
-    this.aspect = init.aspect ?? this.aspect;
-  }
-  getProjection(projectionMat) {
-    projectionMat.perspectiveZO(this.fieldOfView, this.aspect, this.zFar, this.zNear);
-  }
-};
-var OrthographicCamera = class extends Camera {
-  static {
-    __name(this, "OrthographicCamera");
-  }
-  static SharedComponent = true;
-  // Ortho Matrix values
-  left = -1;
-  right = 1;
-  bottom = -1;
-  top = 1;
-  constructor(init = {}) {
-    super(init);
-    this.left = init.left ?? this.left;
-    this.right = init.right ?? this.right;
-    this.bottom = init.bottom ?? this.bottom;
-    this.top = init.top ?? this.top;
-    this.zNear = init.zNear ?? this.zNear;
-    this.zFar = init.zFar ?? this.zFar;
-  }
-  getProjection(projectionMat) {
-    projectionMat.orthoZO(this.left, this.right, this.bottom, this.top, this.zFar, this.zNear);
-  }
-};
-
 // src/renderer/pipeline-factory.ts
 var Pipeline = class {
   static {
@@ -10450,7 +10391,7 @@ var RenderPipelineFactory = class {
 };
 
 // src/renderer/pipelines/common.ts
-var FrameBindings = (
+var CameraBindings = (
   /* wgsl */
   `
   struct Camera {
@@ -10459,9 +10400,17 @@ var FrameBindings = (
     view: mat4x4f,
     viewPos: vec3f,
     time: f32,
+    zRange: vec2f,
+    outputSize: vec2f,
   };
 
   @group(0) @binding(0) var<uniform> camera: Camera;
+`
+);
+var FrameBindings = (
+  /* wgsl */
+  `
+  ${CameraBindings}
 
   struct Instance {
     model: mat4x4f,
@@ -11317,6 +11266,278 @@ var PBRMaterial = class extends MaterialBase {
   }
 };
 
+// src/core/camera.ts
+var Camera = class {
+  static {
+    __name(this, "Camera");
+  }
+  zNear = 1;
+  zFar = 1024;
+  constructor(init) {
+    this.zNear = init.zNear ?? this.zNear;
+    this.zFar = init.zFar ?? this.zFar;
+  }
+  getProjection(projectionMat) {
+    throw new Error("Must be overriden in inherited Camera type");
+  }
+};
+var PerspectiveCamera = class extends Camera {
+  static {
+    __name(this, "PerspectiveCamera");
+  }
+  static SharedComponent = true;
+  // Projection Matrix values
+  fieldOfView = Math.PI * 0.5;
+  // 90 deg
+  aspect = 1;
+  constructor(init = {}) {
+    super(init);
+    this.fieldOfView = init.fieldOfView ?? this.fieldOfView;
+    this.zNear = init.zNear ?? this.zNear;
+    this.zFar = init.zFar ?? this.zFar;
+    this.aspect = init.aspect ?? this.aspect;
+  }
+  getProjection(projectionMat) {
+    projectionMat.perspectiveZO(this.fieldOfView, this.aspect, this.zFar, this.zNear);
+  }
+};
+var OrthographicCamera = class extends Camera {
+  static {
+    __name(this, "OrthographicCamera");
+  }
+  static SharedComponent = true;
+  // Ortho Matrix values
+  left = -1;
+  right = 1;
+  bottom = -1;
+  top = 1;
+  constructor(init = {}) {
+    super(init);
+    this.left = init.left ?? this.left;
+    this.right = init.right ?? this.right;
+    this.bottom = init.bottom ?? this.bottom;
+    this.top = init.top ?? this.top;
+    this.zNear = init.zNear ?? this.zNear;
+    this.zFar = init.zFar ?? this.zFar;
+  }
+  getProjection(projectionMat) {
+    projectionMat.orthoZO(this.left, this.right, this.bottom, this.top, this.zFar, this.zNear);
+  }
+};
+
+// src/renderer/camera-manager.ts
+var CameraManager = class {
+  static {
+    __name(this, "CameraManager");
+  }
+  gpu;
+  #cameraArray = new Float32Array(16 * 3 + 8);
+  #projMat = new Mat4(this.#cameraArray.buffer, 0);
+  #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
+  #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
+  #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
+  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
+  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
+  cameraBuffer;
+  constructor(gpu) {
+    this.gpu = gpu;
+    const device = gpu.device;
+    this.cameraBuffer = device.createBuffer({
+      label: "Camera",
+      size: this.#cameraArray.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+  }
+  updateCamera(cameraActor, timestamp) {
+    const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
+    if (!camera) {
+      throw new Error("cameraActor passed to WebGPURenderer.render() must have a camera component");
+    }
+    camera.getProjection(this.#projMat);
+    Mat4.invert(this.#inverseProjMat, this.#projMat);
+    Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
+    this.#viewPos.set(cameraActor.worldTransform.translation);
+    this.#cameraArray[51] = timestamp / 1e3;
+    this.#zRange[1] = camera.zNear;
+    this.#zRange[0] = camera.zFar;
+    this.#outputSize[0] = this.gpu.canvas.width;
+    this.#outputSize[1] = this.gpu.canvas.height;
+    this.gpu.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
+  }
+};
+
+// src/renderer/pipelines/clusters.ts
+var TILE_COUNT = [32, 18, 48];
+var TOTAL_TILES = TILE_COUNT[0] * TILE_COUNT[1] * TILE_COUNT[2];
+var WORKGROUP_SIZE = [4, 2, 4];
+var ClusterBoundsUpdateSource = (
+  /*wgsl*/
+  `
+  ${CameraBindings}
+
+  struct ClusterBounds {
+    minAABB : vec3<f32>,
+    maxAABB : vec3<f32>,
+  };
+  struct Clusters {
+    bounds : array<ClusterBounds, ${TOTAL_TILES}>
+  };
+  @group(0) @binding(1) var<storage, read_write> clusters : Clusters;
+
+  fn lineIntersectionToZPlane(a : vec3<f32>, b : vec3<f32>, zDistance : f32) -> vec3<f32> {
+    let normal = vec3(0.0, 0.0, 1.0);
+    let ab =  b - a;
+    let t = (zDistance - dot(normal, a)) / dot(normal, ab);
+    return a + t * ab;
+  }
+
+  fn clipToView(clip : vec4<f32>) -> vec4<f32> {
+    let view = camera.invProjection * clip;
+    return view / vec4(view.w, view.w, view.w, view.w);
+  }
+
+  fn screen2View(screen : vec4<f32>) -> vec4<f32> {
+    let texCoord = screen.xy / camera.outputSize.xy;
+    let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
+    return clipToView(clip);
+  }
+
+  const tileCount = vec3u(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+  const eyePos = vec3(0.0);
+
+  @compute @workgroup_size(${WORKGROUP_SIZE[0]}, ${WORKGROUP_SIZE[1]}, ${WORKGROUP_SIZE[2]})
+  fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
+    let tileIndex : u32 = global_id.x +
+                          global_id.y * tileCount.x +
+                          global_id.z * tileCount.x * tileCount.y;
+
+    let tileSize = vec2(camera.outputSize.x / f32(tileCount.x),
+                        camera.outputSize.y / f32(tileCount.y));
+
+    let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
+    let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
+
+    let maxPoint_vS = screen2View(maxPoint_sS).xyz;
+    let minPoint_vS = screen2View(minPoint_sS).xyz;
+
+    let tileNear : f32 = -camera.zRange[0] * pow(camera.zRange[1]/ camera.zRange[0], f32(global_id.z)/f32(tileCount.z));
+    let tileFar : f32 = -camera.zRange[0] * pow(camera.zRange[1]/ camera.zRange[0], f32(global_id.z+1u)/f32(tileCount.z));
+
+    let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
+    let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);
+    let maxPointNear = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileNear);
+    let maxPointFar = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileFar);
+
+    clusters.bounds[tileIndex].minAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
+    clusters.bounds[tileIndex].maxAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
+  }
+`
+);
+var TileFunctions = (
+  /*wgsl*/
+  `
+const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
+
+fn linearDepth(depthSample : f32) -> f32 {
+  return camera.zRange[1] * camera.zRange[0] / fma(depthSample, camera.zRange[0]-camera.zRange[1], camera.zRange[1]);
+}
+
+fn getTile(fragCoord : vec4f) -> vec3u {
+  // TODO: scale and bias calculation can be moved outside the shader to save cycles.
+  let sliceScale = f32(tileCount.z) / log2(camera.zRange[1] / camera.zRange[0]);
+  let sliceBias = -(f32(tileCount.z) * log2(camera.zRange[0]) / log2(camera.zRange[1] / camera.zRange[0]));
+  let zTile = u32(max(log2(linearDepth(fragCoord.z)) * sliceScale + sliceBias, 0.0));
+
+  return vec3(u32(fragCoord.x / (camera.outputSize.x / f32(tileCount.x))),
+              u32(fragCoord.y / (camera.outputSize.y / f32(tileCount.y))),
+              zTile);
+}
+
+fn getClusterIndex(fragCoord : vec4f) -> u32 {
+  let tile = getTile(fragCoord);
+  return tile.x +
+         tile.y * tileCount.x +
+         tile.z * tileCount.x * tileCount.y;
+}
+`
+);
+
+// src/renderer/cluster-manager.ts
+var DISPATCH_SIZE = [
+  TILE_COUNT[0] / WORKGROUP_SIZE[0],
+  TILE_COUNT[1] / WORKGROUP_SIZE[1],
+  TILE_COUNT[2] / WORKGROUP_SIZE[2]
+];
+var CLUSTER_BOUNDS_SIZE = TOTAL_TILES * 32;
+var ClusterManager = class {
+  static {
+    __name(this, "ClusterManager");
+  }
+  gpu;
+  clusterBoundsUpdateBGL;
+  clusterBoundsUpdateBindGroup;
+  clusterBoundsBuffer;
+  boundsPipeline;
+  constructor(gpu) {
+    this.gpu = gpu;
+    const device = gpu.device;
+    this.clusterBoundsUpdateBGL = device.createBindGroupLayout({
+      label: "Cluster Bounds",
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "uniform" }
+      }, {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "storage" }
+      }]
+    });
+    this.clusterBoundsBuffer = device.createBuffer({
+      label: "Cluster Bounds",
+      size: CLUSTER_BOUNDS_SIZE,
+      usage: GPUBufferUsage.STORAGE
+    });
+    this.clusterBoundsUpdateBindGroup = device.createBindGroup({
+      label: "Cluster Bounds Update",
+      layout: this.clusterBoundsUpdateBGL,
+      entries: [{
+        binding: 0,
+        resource: gpu.cameraManager.cameraBuffer
+      }, {
+        binding: 1,
+        resource: this.clusterBoundsBuffer
+      }]
+    });
+    device.createComputePipelineAsync({
+      label: "Cluster Bounds Update",
+      layout: device.createPipelineLayout({
+        bindGroupLayouts: [
+          this.clusterBoundsUpdateBGL
+        ]
+      }),
+      compute: {
+        module: device.createShaderModule({
+          label: "Cluster Bounds Update",
+          code: ClusterBoundsUpdateSource
+        })
+      }
+    }).then((pipeline) => {
+      this.boundsPipeline = pipeline;
+    });
+  }
+  updateClusterBounds(commandEncoder) {
+    if (!this.boundsPipeline) {
+      return;
+    }
+    const passEncoder = commandEncoder.beginComputePass({ label: "Cluster Bounds Compute Pass" });
+    passEncoder.setPipeline(this.boundsPipeline);
+    passEncoder.setBindGroup(0, this.clusterBoundsUpdateBindGroup);
+    passEncoder.dispatchWorkgroups(DISPATCH_SIZE[0], DISPATCH_SIZE[1], DISPATCH_SIZE[2]);
+    passEncoder.end();
+  }
+};
+
 // src/renderer/webgpu-renderer.ts
 var WebGPURenderer = class {
   static {
@@ -11330,14 +11551,10 @@ var WebGPURenderer = class {
   depthStencilTexture;
   msaaColorTexture;
   attachmentLayout;
-  #cameraArray = new Float32Array(16 * 3 + 4);
-  #projMat = new Mat4(this.#cameraArray.buffer, 0);
-  #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
-  #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
-  #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
   frameBGL;
-  frameBindGroup;
-  cameraBuffer;
+  #frameBindGroup;
+  cameraManager;
+  clusterManager;
   instanceManager;
   decalManager;
   selectionManager;
@@ -11378,17 +11595,12 @@ var WebGPURenderer = class {
       this.config.depthStencilFormat,
       this.config.sampleCount
     );
-    this.cameraBuffer = device.createBuffer({
-      label: "Camera",
-      size: this.#cameraArray.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    });
     this.frameBGL = device.createBindGroupLayout({
       label: "Frame",
       entries: [{
         // Camera Uniforms
         binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
         buffer: {}
       }, {
         // Instance Data
@@ -11425,6 +11637,11 @@ var WebGPURenderer = class {
         binding: 7,
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
+      }, {
+        // Cluster Bounds
+        binding: 8,
+        visibility: GPUShaderStage.FRAGMENT,
+        buffer: { type: "read-only-storage" }
       }]
     });
     this.defaultSampler = device.createSampler({
@@ -11435,9 +11652,11 @@ var WebGPURenderer = class {
       magFilter: "linear",
       mipmapFilter: "linear"
     });
+    this.cameraManager = new CameraManager(this);
+    this.clusterManager = new ClusterManager(this);
+    this.instanceManager = new InstanceManager(this);
     this.decalManager = new DecalManager(this);
     this.selectionManager = new SelectionManager(this);
-    this.instanceManager = new InstanceManager(this);
     this.unlitPipelineFactory = new UnlitPipelineFactory(this);
     this.pbrPipelineFactory = new PBRPipelineFactory(this);
   }
@@ -11481,15 +11700,15 @@ var WebGPURenderer = class {
   frameBindingsDirty() {
     this.#rebuildFrameBindings = true;
   }
-  #ensureFrameBindings() {
+  get frameBindings() {
     if (this.#rebuildFrameBindings) {
       this.#rebuildFrameBindings = false;
-      this.frameBindGroup = this.device.createBindGroup({
+      this.#frameBindGroup = this.device.createBindGroup({
         label: "Frame",
         layout: this.frameBGL,
         entries: [{
           binding: 0,
-          resource: this.cameraBuffer
+          resource: this.cameraManager.cameraBuffer
         }, {
           binding: 1,
           resource: this.instanceManager.instanceBuffers.instanceTransformBuffer
@@ -11514,25 +11733,16 @@ var WebGPURenderer = class {
         }, {
           binding: 7,
           resource: this.causticsTexture ?? this.whiteTexture
+        }, {
+          binding: 8,
+          resource: this.clusterManager.clusterBoundsBuffer
         }]
       });
     }
-    return this.frameBindGroup;
-  }
-  #updateCamera(cameraActor, timestamp) {
-    const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
-    if (!camera) {
-      throw new Error("cameraActor passed to WebGPURenderer.render() must have a camera component");
-    }
-    camera.getProjection(this.#projMat);
-    Mat4.invert(this.#inverseProjMat, this.#projMat);
-    Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
-    this.#viewPos.set(cameraActor.worldTransform.translation);
-    this.#cameraArray[51] = timestamp / 1e3;
-    this.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
+    return this.#frameBindGroup;
   }
   render(stage, cameraActor, timestamp = performance.now()) {
-    this.#updateCamera(cameraActor, timestamp);
+    this.cameraManager.updateCamera(cameraActor, timestamp);
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
     if (this.instanceManager.instanceCount == 0) {
@@ -11540,6 +11750,7 @@ var WebGPURenderer = class {
     }
     const colorTexture = this.context.getCurrentTexture();
     const commandEncoder = this.device.createCommandEncoder();
+    this.clusterManager.updateClusterBounds(commandEncoder);
     const renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [{
         view: colorTexture,
@@ -11559,7 +11770,7 @@ var WebGPURenderer = class {
         depthStoreOp: "discard"
       }
     });
-    renderPass.setBindGroup(0, this.#ensureFrameBindings());
+    renderPass.setBindGroup(0, this.frameBindings);
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
         renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);

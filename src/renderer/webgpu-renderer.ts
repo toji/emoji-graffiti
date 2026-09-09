@@ -1,4 +1,3 @@
-import { Mat4, Vec3 } from "gl-matrix";
 import { Config } from "../util/config.ts";
 import { RenderConfig } from "./render-config.ts";
 import { Stage } from "../core/stage.ts";
@@ -7,12 +6,13 @@ import { AttachmentLayout } from "./attachment-layout.ts";
 import { UnlitMaterial } from "../materials/unlit.ts";
 import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
-import { OrthographicCamera, PerspectiveCamera } from "../core/camera.ts";
 import { UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
 import { SelectionManager } from "./selection-manager.ts";
 import { PBRPipelineFactory } from "./pipelines/pbr.ts";
 import { PBRMaterial } from "../materials/pbr.ts";
+import { CameraManager } from "./camera-manager.ts";
+import { ClusterManager } from "./cluster-manager.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -35,18 +35,12 @@ export class WebGPURenderer {
 
   attachmentLayout: AttachmentLayout;
 
-  #cameraArray = new Float32Array(16*3 + 4);
-  #projMat = new Mat4(this.#cameraArray.buffer, 0);
-  #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
-  #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
-  #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
-
   frameBGL: GPUBindGroupLayout;
-  frameBindGroup?: GPUBindGroup;
-  cameraBuffer: GPUBuffer;
+  #frameBindGroup?: GPUBindGroup;
 
+  cameraManager: CameraManager;
+  clusterManager: ClusterManager;
   instanceManager: InstanceManager;
-
   decalManager: DecalManager;
   selectionManager: SelectionManager;
 
@@ -102,18 +96,12 @@ export class WebGPURenderer {
       this.config.sampleCount
     );
 
-    this.cameraBuffer = device.createBuffer({
-      label: 'Camera',
-      size: this.#cameraArray.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    });
-
     this.frameBGL = device.createBindGroupLayout({
       label: 'Frame',
       entries: [{
         // Camera Uniforms
         binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
         buffer: {}
       }, {
         // Instance Data
@@ -150,6 +138,11 @@ export class WebGPURenderer {
         binding: 7,
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
+      }, {
+        // Cluster Bounds
+        binding: 8,
+        visibility: GPUShaderStage.FRAGMENT,
+        buffer: { type: 'read-only-storage' }
       }]
     });
 
@@ -162,10 +155,11 @@ export class WebGPURenderer {
       mipmapFilter: 'linear',
     });
 
+    this.cameraManager = new CameraManager(this);
+    this.clusterManager = new ClusterManager(this);
+    this.instanceManager = new InstanceManager(this);
     this.decalManager = new DecalManager(this);
     this.selectionManager = new SelectionManager(this);
-
-    this.instanceManager = new InstanceManager(this);
 
     this.unlitPipelineFactory = new UnlitPipelineFactory(this);
     this.pbrPipelineFactory = new PBRPipelineFactory(this);
@@ -223,16 +217,16 @@ export class WebGPURenderer {
   frameBindingsDirty() {
     this.#rebuildFrameBindings = true;
   }
-  #ensureFrameBindings(): GPUBindGroup {
+  get frameBindings(): GPUBindGroup {
     if (this.#rebuildFrameBindings) {
       this.#rebuildFrameBindings = false;
 
-      this.frameBindGroup = this.device.createBindGroup({
+      this.#frameBindGroup = this.device.createBindGroup({
         label: 'Frame',
         layout: this.frameBGL,
         entries: [{
           binding: 0,
-          resource: this.cameraBuffer,
+          resource: this.cameraManager.cameraBuffer,
         }, {
           binding: 1,
           resource: this.instanceManager.instanceBuffers!.instanceTransformBuffer,
@@ -257,31 +251,17 @@ export class WebGPURenderer {
         }, {
           binding: 7,
           resource: this.causticsTexture ?? this.whiteTexture,
+        }, {
+          binding: 8,
+          resource: this.clusterManager.clusterBoundsBuffer,
         }]
       });
     }
-    return this.frameBindGroup!;
-  }
-
-  #updateCamera(cameraActor: Actor, timestamp: number) {
-    const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
-    if (!camera) {
-      throw new Error('cameraActor passed to WebGPURenderer.render() must have a camera component');
-    }
-
-    // Update the various camera matrices.
-    camera.getProjection(this.#projMat);
-    Mat4.invert(this.#inverseProjMat, this.#projMat);
-    Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
-    this.#viewPos.set(cameraActor.worldTransform.translation);
-    this.#cameraArray[51] = timestamp / 1000;
-
-    // Update camera uniforms
-    this.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
+    return this.#frameBindGroup!;
   }
 
   render(stage: Stage, cameraActor: Actor, timestamp: number = performance.now()) {
-    this.#updateCamera(cameraActor, timestamp);
+    this.cameraManager.updateCamera(cameraActor, timestamp);
     this.instanceManager.updateInstances(stage);
     this.decalManager.updateDecals(stage);
 
@@ -290,6 +270,10 @@ export class WebGPURenderer {
     const colorTexture = this.context.getCurrentTexture();
 
     const commandEncoder = this.device.createCommandEncoder();
+
+    // Should only need to be done when the camera properties change or the screen resizes.
+    this.clusterManager.updateClusterBounds(commandEncoder);
+
     const renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [{
         view: colorTexture,
@@ -310,7 +294,7 @@ export class WebGPURenderer {
       }
     });
 
-    renderPass.setBindGroup(0, this.#ensureFrameBindings());
+    renderPass.setBindGroup(0, this.frameBindings);
 
     // Loop through the gathered instances and render
     // TODO: Materials and Pipelines need to be handled way better here.
