@@ -11,8 +11,8 @@ export class CameraManager {
   #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
   #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
   #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
-  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
-  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
+  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
+  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
   cameraBuffer: GPUBuffer;
 
   constructor(gpu: WebGPURenderer) {
@@ -38,10 +38,10 @@ export class CameraManager {
       Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
       this.#viewPos.set(cameraActor.worldTransform.translation);
       this.#cameraArray[51] = timestamp / 1000;
-      this.#zRange[1] = camera.zNear;
-      this.#zRange[0] = camera.zFar;
       this.#outputSize[0] = this.gpu.canvas.width;
       this.#outputSize[1] = this.gpu.canvas.height;
+      this.#zRange[0] = camera.zNear;
+      this.#zRange[1] = camera.zFar;
   
       // Update camera uniforms
       this.gpu.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);

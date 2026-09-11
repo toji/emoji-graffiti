@@ -4,6 +4,7 @@ import { AttachmentLayout } from "../attachment-layout.ts";
 import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
 import { DecalFrameBindings, SRGBConversions } from "./common.ts";
+import { TILE_COUNT, TileFunctions } from "./clusters.ts";
 
 interface UnlitPipelineArgs {
   transparent: boolean,
@@ -81,6 +82,8 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
 
           ${SRGBConversions}
 
+          ${TileFunctions}
+
           const projBias = mat4x4f(
             0.5, 0, 0, 0,
             0, -0.5, 0, 0,
@@ -139,6 +142,8 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           #else
             let color = baseColor.rgb;
           #endif
+            //let tileColor = vec3f(getTile(in.pos)) / vec3f(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+
             out.color = vec4(linearTosRGB(color), baseColor.a);
 
             return out;
