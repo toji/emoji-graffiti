@@ -10400,8 +10400,9 @@ var CameraBindings = (
     view: mat4x4f,
     viewPos: vec3f,
     time: f32,
-    zRange: vec2f,
     outputSize: vec2f,
+    zNear: f32,
+    zFar: f32,
   };
 
   @group(0) @binding(0) var<uniform> camera: Camera;
@@ -10457,6 +10458,102 @@ var SRGBConversions = (
   fn linearTosRGB(linear : vec3f) -> vec3f {
     return pow(linear, vec3(INV_GAMMA));
   }
+`
+);
+
+// src/renderer/pipelines/clusters.ts
+var TILE_COUNT = [32, 18, 48];
+var TOTAL_TILES = TILE_COUNT[0] * TILE_COUNT[1] * TILE_COUNT[2];
+var WORKGROUP_SIZE = [4, 2, 4];
+var ClusterBoundsUpdateSource = (
+  /*wgsl*/
+  `
+  ${CameraBindings}
+
+  struct ClusterBounds {
+    minAABB : vec3<f32>,
+    maxAABB : vec3<f32>,
+  };
+  struct Clusters {
+    bounds : array<ClusterBounds, ${TOTAL_TILES}>
+  };
+  @group(0) @binding(1) var<storage, read_write> clusters : Clusters;
+
+  fn lineIntersectionToZPlane(a: vec3f, b: vec3f, zDistance: f32) -> vec3f {
+    let normal = vec3f(0, 0, 1);
+    let ab =  b - a;
+    let t = (zDistance - dot(normal, a)) / dot(normal, ab);
+    return a + t * ab;
+  }
+
+  fn clipToView(clip : vec4f) -> vec4f {
+    let view = camera.invProjection * clip;
+    return view / vec4f(view.w, view.w, view.w, view.w);
+  }
+
+  fn screen2View(screen : vec4f) -> vec4f {
+    let texCoord = screen.xy / camera.outputSize.xy;
+    let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
+    return clipToView(clip);
+  }
+
+  const tileCount = vec3u(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+  const eyePos = vec3(0.0);
+
+  @compute @workgroup_size(${WORKGROUP_SIZE[0]}, ${WORKGROUP_SIZE[1]}, ${WORKGROUP_SIZE[2]})
+  fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
+    let tileIndex : u32 = global_id.x +
+                          global_id.y * tileCount.x +
+                          global_id.z * tileCount.x * tileCount.y;
+
+    let tileSize = vec2(camera.outputSize.x / f32(tileCount.x),
+                        camera.outputSize.y / f32(tileCount.y));
+
+    let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
+    let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
+
+    let maxPoint_vS = screen2View(maxPoint_sS).xyz;
+    let minPoint_vS = screen2View(minPoint_sS).xyz;
+
+    let tileNear : f32 = -camera.zNear * pow(camera.zFar/camera.zNear, f32(global_id.z)/f32(tileCount.z));
+    let tileFar : f32 = -camera.zNear * pow(camera.zFar/camera.zNear, f32(global_id.z+1u)/f32(tileCount.z));
+
+    let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
+    let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);
+    let maxPointNear = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileNear);
+    let maxPointFar = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileFar);
+
+    clusters.bounds[tileIndex].minAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
+    clusters.bounds[tileIndex].maxAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
+  }
+`
+);
+var TileFunctions = (
+  /*wgsl*/
+  `
+const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
+
+fn linearDepth(depthSample : f32) -> f32 {
+  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
+}
+
+fn getTile(fragCoord : vec4f) -> vec3u {
+  // TODO: scale and bias calculation can be moved outside the shader to save cycles.
+  let sliceScale = f32(tileCount.z) / log2(camera.zFar / camera.zNear);
+  let sliceBias = -(f32(tileCount.z) * log2(camera.zNear) / log2(camera.zFar / camera.zNear));
+  let zTile = u32(max(log2(linearDepth(fragCoord.z)) * sliceScale + sliceBias, 0.0));
+
+  return vec3(u32(fragCoord.x / (camera.outputSize.x / f32(tileCount.x))),
+              u32(fragCoord.y / (camera.outputSize.y / f32(tileCount.y))),
+              zTile);
+}
+
+fn getClusterIndex(fragCoord : vec4f) -> u32 {
+  let tile = getTile(fragCoord);
+  return tile.x +
+         tile.y * tileCount.x +
+         tile.z * tileCount.x * tileCount.y;
+}
 `
 );
 
@@ -10526,6 +10623,8 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
 
           ${SRGBConversions}
 
+          ${TileFunctions}
+
           const projBias = mat4x4f(
             0.5, 0, 0, 0,
             0, -0.5, 0, 0,
@@ -10584,6 +10683,8 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
           #else
             let color = baseColor.rgb;
           #endif
+            //let tileColor = vec3f(getTile(in.pos)) / vec3f(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+
             out.color = vec4(linearTosRGB(color), baseColor.a);
 
             return out;
@@ -11336,8 +11437,8 @@ var CameraManager = class {
   #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
   #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
   #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
-  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
-  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
+  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
+  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
   cameraBuffer;
   constructor(gpu) {
     this.gpu = gpu;
@@ -11358,109 +11459,13 @@ var CameraManager = class {
     Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
     this.#viewPos.set(cameraActor.worldTransform.translation);
     this.#cameraArray[51] = timestamp / 1e3;
-    this.#zRange[1] = camera.zNear;
-    this.#zRange[0] = camera.zFar;
     this.#outputSize[0] = this.gpu.canvas.width;
     this.#outputSize[1] = this.gpu.canvas.height;
+    this.#zRange[0] = camera.zNear;
+    this.#zRange[1] = camera.zFar;
     this.gpu.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
   }
 };
-
-// src/renderer/pipelines/clusters.ts
-var TILE_COUNT = [32, 18, 48];
-var TOTAL_TILES = TILE_COUNT[0] * TILE_COUNT[1] * TILE_COUNT[2];
-var WORKGROUP_SIZE = [4, 2, 4];
-var ClusterBoundsUpdateSource = (
-  /*wgsl*/
-  `
-  ${CameraBindings}
-
-  struct ClusterBounds {
-    minAABB : vec3<f32>,
-    maxAABB : vec3<f32>,
-  };
-  struct Clusters {
-    bounds : array<ClusterBounds, ${TOTAL_TILES}>
-  };
-  @group(0) @binding(1) var<storage, read_write> clusters : Clusters;
-
-  fn lineIntersectionToZPlane(a : vec3<f32>, b : vec3<f32>, zDistance : f32) -> vec3<f32> {
-    let normal = vec3(0.0, 0.0, 1.0);
-    let ab =  b - a;
-    let t = (zDistance - dot(normal, a)) / dot(normal, ab);
-    return a + t * ab;
-  }
-
-  fn clipToView(clip : vec4<f32>) -> vec4<f32> {
-    let view = camera.invProjection * clip;
-    return view / vec4(view.w, view.w, view.w, view.w);
-  }
-
-  fn screen2View(screen : vec4<f32>) -> vec4<f32> {
-    let texCoord = screen.xy / camera.outputSize.xy;
-    let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
-    return clipToView(clip);
-  }
-
-  const tileCount = vec3u(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
-  const eyePos = vec3(0.0);
-
-  @compute @workgroup_size(${WORKGROUP_SIZE[0]}, ${WORKGROUP_SIZE[1]}, ${WORKGROUP_SIZE[2]})
-  fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
-    let tileIndex : u32 = global_id.x +
-                          global_id.y * tileCount.x +
-                          global_id.z * tileCount.x * tileCount.y;
-
-    let tileSize = vec2(camera.outputSize.x / f32(tileCount.x),
-                        camera.outputSize.y / f32(tileCount.y));
-
-    let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
-    let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
-
-    let maxPoint_vS = screen2View(maxPoint_sS).xyz;
-    let minPoint_vS = screen2View(minPoint_sS).xyz;
-
-    let tileNear : f32 = -camera.zRange[0] * pow(camera.zRange[1]/ camera.zRange[0], f32(global_id.z)/f32(tileCount.z));
-    let tileFar : f32 = -camera.zRange[0] * pow(camera.zRange[1]/ camera.zRange[0], f32(global_id.z+1u)/f32(tileCount.z));
-
-    let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
-    let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);
-    let maxPointNear = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileNear);
-    let maxPointFar = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileFar);
-
-    clusters.bounds[tileIndex].minAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
-    clusters.bounds[tileIndex].maxAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
-  }
-`
-);
-var TileFunctions = (
-  /*wgsl*/
-  `
-const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
-
-fn linearDepth(depthSample : f32) -> f32 {
-  return camera.zRange[1] * camera.zRange[0] / fma(depthSample, camera.zRange[0]-camera.zRange[1], camera.zRange[1]);
-}
-
-fn getTile(fragCoord : vec4f) -> vec3u {
-  // TODO: scale and bias calculation can be moved outside the shader to save cycles.
-  let sliceScale = f32(tileCount.z) / log2(camera.zRange[1] / camera.zRange[0]);
-  let sliceBias = -(f32(tileCount.z) * log2(camera.zRange[0]) / log2(camera.zRange[1] / camera.zRange[0]));
-  let zTile = u32(max(log2(linearDepth(fragCoord.z)) * sliceScale + sliceBias, 0.0));
-
-  return vec3(u32(fragCoord.x / (camera.outputSize.x / f32(tileCount.x))),
-              u32(fragCoord.y / (camera.outputSize.y / f32(tileCount.y))),
-              zTile);
-}
-
-fn getClusterIndex(fragCoord : vec4f) -> u32 {
-  let tile = getTile(fragCoord);
-  return tile.x +
-         tile.y * tileCount.x +
-         tile.z * tileCount.x * tileCount.y;
-}
-`
-);
 
 // src/renderer/cluster-manager.ts
 var DISPATCH_SIZE = [
@@ -21011,7 +21016,7 @@ var VERSION = new Semver("4.0.5");
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 4e-3;
       this.camera = new Actor(
-        new PerspectiveCamera({ zNear: 0.01 }),
+        new PerspectiveCamera({ zNear: 0.01, zFar: 32 }),
         controller
       );
       this.camera.transform.translation = [0.2, 1.6, 2];

@@ -142,7 +142,7 @@ enum InputMode {
       const controller = new FlyingController(gpu.canvas);
       controller.speed = 0.004;
       this.camera = new Actor(
-        new PerspectiveCamera({zNear: 0.01}),
+        new PerspectiveCamera({zNear: 0.01, zFar: 32}),
         controller,
       );
       this.camera.transform.translation = [0.2, 1.6, 2];

@@ -5,8 +5,9 @@ export const CameraBindings = /* wgsl */`
     view: mat4x4f,
     viewPos: vec3f,
     time: f32,
-    zRange: vec2f,
     outputSize: vec2f,
+    zNear: f32,
+    zFar: f32,
   };
 
   @group(0) @binding(0) var<uniform> camera: Camera;
