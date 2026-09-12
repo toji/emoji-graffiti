@@ -10,6 +10,13 @@ import { Decal } from './materials/decal.ts';
 import { AudioPlayer } from './audio-player.ts';
 
 import { Pane } from 'tweakpane';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { StagePhysics } from './physics/stage-physics.ts';
+import { RigidBody } from './physics/rigid-body.ts';
+import { StaticCollider } from './physics/static-collider.ts';
+import { Geometry } from './geometry/geometry.ts';
+import { BoxGeometry } from './geometry/descriptors/box.ts';
+import { PBRMaterial } from './materials/pbr.ts';
 
 enum InputMode {
   View,
@@ -17,6 +24,8 @@ enum InputMode {
   Erase,
   Shoot,
 };
+
+const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
@@ -43,6 +52,8 @@ enum InputMode {
     sponge: Actor;
     paintballGun: Actor;
 
+    physics?: StagePhysics;
+
     gltfLoader: GltfLoader;
 
     mode: InputMode = InputMode.View;
@@ -64,6 +75,32 @@ enum InputMode {
     constructor(gpu: WebGPURenderer) {
       super(gpu);
       this.config = Config.Create(AppConfig);
+
+      RAPIER.init().then(() => {
+        const world = new RAPIER.World(GRAVITY);
+
+        this.physics = new StagePhysics(world);
+        this.stage.add(this.physics);
+
+        // Create the ground
+        const ground = new Actor(
+          new StaticCollider([RAPIER.ColliderDesc.cuboid(10.0, 0.1, 10.0)])
+        );
+        this.stage.attachChild(ground);
+
+        const cube = new Actor(
+          new RigidBody(
+            RAPIER.RigidBodyDesc.dynamic(),
+            [RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5)]
+          ),
+          new Geometry(gpu.device, new BoxGeometry()),
+          new PBRMaterial(gpu, { baseColorFactor: [0.2, 0.4, 0.9, 1.0], roughnessFactor: 0.3, metallicFactor: 0.8 })
+        );
+        cube.transform.translation = [0, 8, 0];
+        cube.transform.rotationRef.rotateX(0.2);
+        cube.transform.rotationRef.rotateZ(0.2);
+        this.stage.attachChild(cube);
+      });
 
       this.pane = new Pane({
         title: document.title.split('-')[0],
