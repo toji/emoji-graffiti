@@ -5,6 +5,7 @@ import { StagePhysics } from './stage-physics.ts';
 
 export class RigidBody {
   #rigidBody?: RAPIER.RigidBody;
+  #colliders?: RAPIER.Collider[];
 
   constructor(private desc: RAPIER.RigidBodyDesc, private colliderDescs: RAPIER.ColliderDesc[]) {
   }
@@ -22,8 +23,9 @@ export class RigidBody {
 
     this.#rigidBody = stagePhysics.world.createRigidBody(this.desc);
 
+    this.#colliders = [];
     for (const collider of this.colliderDescs) {
-      stagePhysics.world.createCollider(collider, this.#rigidBody);
+      this.#colliders.push(stagePhysics.world.createCollider(collider, this.#rigidBody));
     }
 
     this.#rigidBody.setTranslation(translation, true);
@@ -51,6 +53,7 @@ export class RigidBody {
     stagePhysics.world.removeRigidBody(this.#rigidBody);
 
     this.#rigidBody = undefined;
+    this.#colliders = undefined;
   }
 
   static TickOrder = 1;

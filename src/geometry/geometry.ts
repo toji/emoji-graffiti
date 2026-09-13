@@ -57,7 +57,7 @@ export interface AttributeDescriptor {
 };
 
 export interface BufferAttributeDescriptor {
-  buffer: GPUBuffer,
+  gpuBuffer: GPUBuffer,
   format: GPUVertexFormat,
   offset: number,
   stride: number,
@@ -407,17 +407,17 @@ class GeometryAllocationBatch {
         const shaderLocation = AttribLocation[attribName];
 
         let source;
-        if (attrib.buffer) {
+        if (attrib.gpuBuffer) {
           bufferSources++;
-          source = arraySources.get(attrib.buffer);
-          const size = attrib.size ?? attrib.buffer.size;
+          source = arraySources.get(attrib.gpuBuffer);
+          const size = attrib.size ?? attrib.gpuBuffer.size;
           if (!source) {
             source = {
-              buffer: attrib.buffer,
+              buffer: attrib.gpuBuffer,
               bufferOffset: attrib.offset,
               size,
             }
-            arraySources.set(attrib.buffer, source);
+            arraySources.set(attrib.gpuBuffer, source);
           }
 
           // The maxVertices is the maximum number that could be rendered with the data we have,
@@ -425,7 +425,8 @@ class GeometryAllocationBatch {
           // vertices in it, according to the stride.
           maxVertices = Math.min(maxVertices, size / arrayStride);
         } else {
-          const values = attrib.values ?? attrib;
+          const isValueArray =  ArrayBuffer.isView(attrib) || attrib instanceof ArrayBuffer || Array.isArray(attrib);
+          const values = isValueArray ? attrib : attrib.values;
 
           // Figure out how much space each attribute will require. Does
           // some basic de-duping of attrib values to prevent the same array from

@@ -17,13 +17,17 @@ export class StaticCollider {
     const stagePhysics = actor.stage?.get(StagePhysics);
     if (!stagePhysics) { return undefined; }
 
-    const translation = actor.worldTransform.translation;
-    const rotation = actor.worldTransform.rotation;
+    // TODO: This should be world transform, but the rotation decompose in the
+    // transform is screwing up for some scaling values.
+    const translation = actor.transform.translation;
+    const rotation = actor.transform.rotation;
 
+    this.#colliders = [];
     for (const colliderDesc of this.colliderDescs) {
       const collider = stagePhysics.world.createCollider(colliderDesc);
-      collider.setTranslation(translation);
       collider.setRotation(rotation);
+      collider.setTranslation(translation);
+      this.#colliders.push(collider);
     }
   }
 

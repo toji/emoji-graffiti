@@ -2,7 +2,12 @@ import { GlTf, Node } from './gltf-interfaces.ts';
 import { GltfState } from './gltf-state.ts';
 import { WebGPURenderer } from '../../renderer/webgpu-renderer.ts';
 import { Actor } from '../../core/actor.ts';
-import { Mat4Like, Vec3Like, Vec4Like } from 'gl-matrix';
+import { Mat4Like, Vec3, Vec3Like, Vec4Like } from 'gl-matrix';
+import { StaticCollider } from '../../physics/static-collider.ts';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { Geometry } from '../../geometry/geometry.ts';
+import { BoxGeometry } from '../../geometry/descriptors/box.ts';
+import { PBRMaterial } from '../../materials/pbr.ts';
 
 const GLB_MAGIC = 0x46546C67; // ASCII for 'glTF'
 const CHUNK_TYPE = {
@@ -105,19 +110,28 @@ export class GltfLoader {
     }
 
     // Build out the scene graph
+    const actors: Actor[] = [];
     const sceneIndex = gltf.scene ?? 0;
     const scene = gltf.scenes[sceneIndex];
     for (const nodeIndex of scene.nodes ?? []) {
-      const node: Node = gltf.nodes![nodeIndex];
-      state.scene.attachChild(await this.buildNodeActor(state, node));
+      state.scene.attachChild(await this.buildNodeActor(state, nodeIndex, actors));
+    }
+
+    // Build physics nodes. Done after the scene graph above so that the world transforms can be
+    // fully calculated.
+    for (const nodeIndex of gltf.nodes?.keys() ?? []) {
+      this.buildNodePhysics(state, nodeIndex, actors);
     }
 
     return state.scene;
   }
 
-  async buildNodeActor(state: GltfState, node: Node): Promise<Actor> {
+  async buildNodeActor(state: GltfState, nodeIndex: number, actors: Actor[]): Promise<Actor> {
+    const node: Node = state.gltf.nodes![nodeIndex];
+
     // Create a new Actor
     const actor = new Actor();
+    actors[nodeIndex] = actor;
 
     // Attach components
     if (node.mesh !== undefined) {
@@ -137,11 +151,6 @@ export class GltfLoader {
       }
     }
 
-    // Collision Geometry
-    if (node.extensions?.KHR_physics_rigid_bodies) {
-      console.log('Got a physics body:', node.extensions?.KHR_physics_rigid_bodies);
-    }
-
     // Set the actor transform
     if (node.matrix) {
       actor.transform.matrix = node.matrix as Mat4Like;
@@ -152,11 +161,38 @@ export class GltfLoader {
     }
 
     // Populate any child nodes
-    for (const nodeIndex of node.children ?? []) {
-      const childNode = state.gltf.nodes![nodeIndex];
-      actor.attachChild(await this.buildNodeActor(state, childNode));
+    for (const childIndex of node.children ?? []) {
+      actor.attachChild(await this.buildNodeActor(state, childIndex, actors));
     }
 
     return actor;
+  }
+
+  buildNodePhysics(state: GltfState, nodeIndex: number, actors: Actor[]) {
+    const node: Node = state.gltf.nodes![nodeIndex];
+    const actor = actors[nodeIndex];
+    if (!actor) { return; }
+
+    if (node.extensions?.KHR_physics_rigid_bodies) {
+      const collider = node.extensions.KHR_physics_rigid_bodies.collider;
+      if (collider) {
+        let rapierCollider: RAPIER.ColliderDesc | undefined;
+        const shapeIndex = collider.geometry?.shape;
+
+        // TODO: Handle more collider geometries.
+        if (shapeIndex !== undefined) {
+          const shape = state.gltf.extensions!.KHR_implicit_shapes?.shapes[shapeIndex];
+          if (shape?.box) {
+            const size = new Vec3(shape.box.size ?? [1, 1, 1]);
+            Vec3.mul(size, size, actor.worldTransform.scale);
+            rapierCollider = RAPIER.ColliderDesc.cuboid(size[0]/2, size[1]/2, size[2]/2);
+          }
+
+          if (rapierCollider) {
+            actor.add(new StaticCollider([rapierCollider]));
+          }
+        }
+      }
+    }
   }
 }

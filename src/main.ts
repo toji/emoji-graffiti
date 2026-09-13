@@ -17,6 +17,8 @@ import { StaticCollider } from './physics/static-collider.ts';
 import { Geometry } from './geometry/geometry.ts';
 import { BoxGeometry } from './geometry/descriptors/box.ts';
 import { PBRMaterial } from './materials/pbr.ts';
+import { Vec4 } from 'gl-matrix';
+import { PhysicsDebugRenderer } from './physics/physics-debug-renderer.ts';
 
 enum InputMode {
   View,
@@ -81,12 +83,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
         this.physics = new StagePhysics(world);
         this.stage.add(this.physics);
-
-        // Create the ground
-        const ground = new Actor(
-          new StaticCollider([RAPIER.ColliderDesc.cuboid(10.0, 0.1, 10.0)])
-        );
-        this.stage.attachChild(ground);
+        //this.stage.add(new PhysicsDebugRenderer(gpu));
 
         const cube = new Actor(
           new RigidBody(
@@ -154,7 +151,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
       }
 
       // Load the main scene.
-      this.stage.attachChild(actorFromGltf('./media/models/gallery.glb'));
+      this.stage.attachChild(actorFromGltf('./media/models/gallery_physics.glb'));
 
       // Load props
       this.spraycan = actorFromGltf('./media/models/spraypaint_can.glb');
@@ -237,6 +234,29 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
             }
             decalIndex++;
           });
+        } else if (this.mode == InputMode.View) {
+          // TODO: Remove this later.
+          const rigidBody = new RigidBody(
+            RAPIER.RigidBodyDesc.dynamic(),
+            [RAPIER.ColliderDesc.cuboid(0.1, 0.1, 0.1)]
+          );
+
+          const cube = new Actor(
+            rigidBody,
+            new Geometry(gpu.device, new BoxGeometry({ width: 0.2, height: 0.2, depth: 0.2 })),
+            new PBRMaterial(gpu, { baseColorFactor: [0.9, 0.4, 0.2, 1.0], roughnessFactor: 0.1, metallicFactor: 0.8 })
+          );
+          cube.transform = this.camera.transform;
+          this.stage.attachChild(cube);
+
+          const forward = new Vec4(0, 0, -0.1, 0);
+          Vec4.transformMat4(forward, forward, this.camera.transform.matrix);
+          rigidBody.rigidBody?.applyImpulse(forward, true);
+          rigidBody.rigidBody?.applyTorqueImpulse({
+            x: (Math.random() - 0.5) * 0.001,
+            y: (Math.random() - 0.5) * 0.001,
+            z: (Math.random() - 0.5) * 0.001,
+          }, true);
         }
 
         return false;
