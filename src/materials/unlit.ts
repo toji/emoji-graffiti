@@ -12,6 +12,7 @@ export interface UnlitMaterialDesc {
 
   baseAlbedo?: Vec3Like;
   canDecal?: boolean;
+  depthTest?: boolean;
 }
 
 export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
@@ -28,6 +29,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
 
   baseAlbedo: Vec3;
   canDecal: boolean;
+  depthTest: boolean;
 
   constructor(gpu: WebGPURenderer, desc?: UnlitMaterialDesc) {
     super();
@@ -41,6 +43,7 @@ export class UnlitMaterial extends MaterialBase implements UnlitMaterialDesc {
     // These only apply to this specific demo
     this.baseAlbedo = new Vec3(desc?.baseAlbedo ?? [1, 1, 1]);
     this.canDecal = desc?.canDecal ?? false;
+    this.depthTest = desc?.depthTest ?? true;
 
     this.uniformBuffer = gpu.device.createBuffer({
       label: 'Unlit Material',

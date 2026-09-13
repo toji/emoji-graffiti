@@ -5,12 +5,14 @@ import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
 import { DecalFrameBindings, SRGBConversions } from "./common.ts";
 import { TILE_COUNT, TileFunctions } from "./clusters.ts";
+import { AttribLocation } from "../../geometry/geometry.ts";
 
 interface UnlitPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
   mirrored: boolean,
   canDecal: boolean,
+  depthTest: boolean,
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -76,8 +78,20 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             let instance = instances[instanceId];
             let worldPos = instance.model * in.position;
             let pos = camera.projection * camera.view * worldPos;
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.normal)}
             let n = normalize(instance.normal * in.normal);
-            return VertexOut(pos, in.texcoord0, n, worldPos);
+          #else
+            let n = normalize(instance.normal * vec3f(0, 0, 1));
+          #endif
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.texcoord0)}
+            let texCoord = in.texcoord0;
+          #else
+            let texCoord = vec2f(0);
+          #endif
+
+            return VertexOut(pos, texCoord, n, worldPos);
           }
 
           ${SRGBConversions}
@@ -162,7 +176,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
         depthStencil: {
           format: attachmentLayout.depthStencilFormat!,
           depthWriteEnabled: true,
-          depthCompare: 'greater',
+          depthCompare: args.depthTest ? 'greater' : 'always',
         },
         fragment: {
           module,
