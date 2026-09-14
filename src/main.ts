@@ -45,15 +45,13 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
     decalRotationInput: HTMLInputElement = document.querySelector('#decalRotation')!;
     decalRotation: number = 0;
 
-    currentEmojiTexture?: GPUTexture;
-    currentEmojiBindGroup?: GPUBindGroup;
-
     stage: Stage = new Stage();
     camera: Actor;
     decal: Actor;
     spraycan: Actor;
     sponge: Actor;
     paintballGun: Actor;
+    paintballDecal?: Decal;
 
     physics?: StagePhysics;
 
@@ -311,7 +309,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
       this.#switchMode(InputMode.View);
     }
 
-    #switchMode(mode: InputMode) {
+    async #switchMode(mode: InputMode) {
       this.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
 
@@ -353,6 +351,9 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
+
+          this.paintballDecal = await this.gpu.decalManager.getTextureDecal('./media/textures/paintball-splat.png');
+
           break;
         case InputMode.Erase:
           this.viewButton.classList.remove('selected');
@@ -363,17 +364,6 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          this.emojiPicker.style.display = 'none';
-          break;
-        case InputMode.Shoot:
-          this.viewButton.classList.remove('selected');
-          this.emojiButton.classList.remove('selected');
-          this.shootButton.classList.remove('selected');
-          this.eraseButton.classList.add('selected');
-          this.camera.removeChild(this.decal);
-          this.camera.removeChild(this.spraycan);
-          this.camera.removeChild(this.sponge);
-          this.camera.attachChild(this.paintballGun);
           this.emojiPicker.style.display = 'none';
           break;
       }

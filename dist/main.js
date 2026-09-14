@@ -10885,6 +10885,10 @@ var DecalManager = class {
     this.decalKeyMapping.set(decalKey, decalIndex);
     return decal;
   }
+  getTextureDecal(url) {
+    const emoji = { emoji: { url } };
+    return this.getDecal(emoji);
+  }
   updateDecals(stage) {
     const textureProj = new Mat4();
     let offset = 4;
@@ -27493,14 +27497,13 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
     emojiPicker = document.querySelector("emoji-picker");
     decalRotationInput = document.querySelector("#decalRotation");
     decalRotation = 0;
-    currentEmojiTexture;
-    currentEmojiBindGroup;
     stage = new Stage();
     camera;
     decal;
     spraycan;
     sponge;
     paintballGun;
+    paintballDecal;
     physics;
     gltfLoader;
     mode = 0 /* View */;
@@ -27697,7 +27700,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
       });
       this.#switchMode(0 /* View */);
     }
-    #switchMode(mode) {
+    async #switchMode(mode) {
       this.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
       if (this.emojiPicker.style.display === "none" && mode == 1 /* Paint */) {
@@ -27736,6 +27739,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
+          this.paintballDecal = await this.gpu.decalManager.getTextureDecal("./media/textures/paintball-splat.png");
           break;
         case 2 /* Erase */:
           this.viewButton.classList.remove("selected");
@@ -27746,17 +27750,6 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          this.emojiPicker.style.display = "none";
-          break;
-        case 3 /* Shoot */:
-          this.viewButton.classList.remove("selected");
-          this.emojiButton.classList.remove("selected");
-          this.shootButton.classList.remove("selected");
-          this.eraseButton.classList.add("selected");
-          this.camera.removeChild(this.decal);
-          this.camera.removeChild(this.spraycan);
-          this.camera.removeChild(this.sponge);
-          this.camera.attachChild(this.paintballGun);
           this.emojiPicker.style.display = "none";
           break;
       }
