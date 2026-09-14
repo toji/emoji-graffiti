@@ -137,7 +137,8 @@ export class GltfLoader {
     if (node.mesh !== undefined) {
       const mesh = await state.getMesh(node.mesh);
 
-      if (mesh !== undefined) {
+      // TODO: Temporary hack to not load meshes for colliders
+      if (mesh !== undefined && node.extensions?.KHR_physics_rigid_bodies === undefined) {
         if (mesh.primitives.length == 1) {
           actor.add(mesh.primitives[0].geometry);
           actor.add(mesh.primitives[0].material);

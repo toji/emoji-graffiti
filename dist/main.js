@@ -18758,7 +18758,7 @@ var GltfLoader = class {
     actors[nodeIndex] = actor;
     if (node.mesh !== void 0) {
       const mesh = await state.getMesh(node.mesh);
-      if (mesh !== void 0) {
+      if (mesh !== void 0 && node.extensions?.KHR_physics_rigid_bodies === void 0) {
         if (mesh.primitives.length == 1) {
           actor.add(mesh.primitives[0].geometry);
           actor.add(mesh.primitives[0].material);
@@ -27487,6 +27487,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
     pane;
     viewButton = document.querySelector("#view-button");
     emojiButton = document.querySelector("#emoji-button");
+    shootButton = document.querySelector("#shoot-button");
     eraseButton = document.querySelector("#erase-button");
     clearButton = document.querySelector("#clear-button");
     emojiPicker = document.querySelector("emoji-picker");
@@ -27635,7 +27636,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
             }
             decalIndex++;
           });
-        } else if (this.mode == 0 /* View */) {
+        } else if (this.mode == 3 /* Shoot */) {
           const rigidBody = new RigidBody(
             zg.RigidBodyDesc.dynamic(),
             [zg.ColliderDesc.cuboid(0.1, 0.1, 0.1)]
@@ -27647,7 +27648,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
           );
           cube.transform = this.camera.transform;
           this.stage.attachChild(cube);
-          const forward = new Vec4(0, 0, -0.1, 0);
+          const forward = new Vec4(0, 0, -0.2, 0);
           Vec4.transformMat4(forward, forward, this.camera.transform.matrix);
           rigidBody.rigidBody?.applyImpulse(forward, true);
           rigidBody.rigidBody?.applyTorqueImpulse({
@@ -27675,6 +27676,9 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
       this.emojiButton.addEventListener("click", () => {
         this.#switchMode(1 /* Paint */);
       });
+      this.shootButton.addEventListener("click", () => {
+        this.#switchMode(3 /* Shoot */);
+      });
       this.eraseButton.addEventListener("click", () => {
         this.#switchMode(2 /* Erase */);
       });
@@ -27696,10 +27700,16 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
     #switchMode(mode) {
       this.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
+      if (this.emojiPicker.style.display === "none" && mode == 1 /* Paint */) {
+        this.emojiPicker.style.display = "";
+      } else {
+        this.emojiPicker.style.display = "none";
+      }
       switch (this.mode) {
         case 0 /* View */:
           this.viewButton.classList.add("selected");
           this.emojiButton.classList.remove("selected");
+          this.shootButton.classList.remove("selected");
           this.eraseButton.classList.remove("selected");
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
@@ -27710,20 +27720,27 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
         case 1 /* Paint */:
           this.viewButton.classList.remove("selected");
           this.emojiButton.classList.add("selected");
+          this.shootButton.classList.remove("selected");
           this.eraseButton.classList.remove("selected");
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          if (this.emojiPicker.style.display === "none") {
-            this.emojiPicker.style.display = "";
-          } else {
-            this.emojiPicker.style.display = "none";
-          }
+          break;
+        case 3 /* Shoot */:
+          this.viewButton.classList.remove("selected");
+          this.emojiButton.classList.remove("selected");
+          this.shootButton.classList.add("selected");
+          this.eraseButton.classList.remove("selected");
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          this.camera.attachChild(this.paintballGun);
           break;
         case 2 /* Erase */:
           this.viewButton.classList.remove("selected");
           this.emojiButton.classList.remove("selected");
+          this.shootButton.classList.remove("selected");
           this.eraseButton.classList.add("selected");
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
@@ -27734,6 +27751,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
         case 3 /* Shoot */:
           this.viewButton.classList.remove("selected");
           this.emojiButton.classList.remove("selected");
+          this.shootButton.classList.remove("selected");
           this.eraseButton.classList.add("selected");
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
