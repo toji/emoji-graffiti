@@ -37,6 +37,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
+    shootButton: HTMLButtonElement = document.querySelector('#shoot-button')!;
     eraseButton: HTMLButtonElement = document.querySelector('#erase-button')!;
     clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
 
@@ -234,7 +235,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
             }
             decalIndex++;
           });
-        } else if (this.mode == InputMode.View) {
+        } else if (this.mode == InputMode.Shoot) {
           // TODO: Remove this later.
           const rigidBody = new RigidBody(
             RAPIER.RigidBodyDesc.dynamic(),
@@ -249,7 +250,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
           cube.transform = this.camera.transform;
           this.stage.attachChild(cube);
 
-          const forward = new Vec4(0, 0, -0.1, 0);
+          const forward = new Vec4(0, 0, -0.2, 0);
           Vec4.transformMat4(forward, forward, this.camera.transform.matrix);
           rigidBody.rigidBody?.applyImpulse(forward, true);
           rigidBody.rigidBody?.applyTorqueImpulse({
@@ -285,6 +286,10 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
         this.#switchMode(InputMode.Paint);
       });
 
+      this.shootButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Shoot);
+      });
+
       this.eraseButton.addEventListener('click', () => {
         this.#switchMode(InputMode.Erase);
       });
@@ -310,10 +315,18 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
       this.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
 
+      // Toggle the emoji picker.
+      if (this.emojiPicker.style.display === 'none' && mode == InputMode.Paint) {
+        this.emojiPicker.style.display = '';
+      } else {
+        this.emojiPicker.style.display = 'none';
+      }
+
       switch(this.mode) {
         case InputMode.View:
           this.viewButton.classList.add('selected');
           this.emojiButton.classList.remove('selected');
+          this.shootButton.classList.remove('selected');
           this.eraseButton.classList.remove('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
@@ -324,21 +337,27 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
         case InputMode.Paint:
           this.viewButton.classList.remove('selected');
           this.emojiButton.classList.add('selected');
+          this.shootButton.classList.remove('selected');
           this.eraseButton.classList.remove('selected');
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          // Toggle the emoji picker.
-          if (this.emojiPicker.style.display === 'none') {
-            this.emojiPicker.style.display = '';
-          } else {
-            this.emojiPicker.style.display = 'none';
-          }
+          break;
+        case InputMode.Shoot:
+          this.viewButton.classList.remove('selected');
+          this.emojiButton.classList.remove('selected');
+          this.shootButton.classList.add('selected');
+          this.eraseButton.classList.remove('selected');
+          this.camera.removeChild(this.decal);
+          this.camera.removeChild(this.spraycan);
+          this.camera.removeChild(this.sponge);
+          this.camera.attachChild(this.paintballGun);
           break;
         case InputMode.Erase:
           this.viewButton.classList.remove('selected');
           this.emojiButton.classList.remove('selected');
+          this.shootButton.classList.remove('selected');
           this.eraseButton.classList.add('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
@@ -349,6 +368,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
         case InputMode.Shoot:
           this.viewButton.classList.remove('selected');
           this.emojiButton.classList.remove('selected');
+          this.shootButton.classList.remove('selected');
           this.eraseButton.classList.add('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
