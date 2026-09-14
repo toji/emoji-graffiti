@@ -81,6 +81,11 @@ export class DecalManager {
     return decal;
   }
 
+  getTextureDecal(url: any) {
+    const emoji = { emoji: { url } }
+    return this.getDecal(emoji);
+  }
+
   updateDecals(stage: Stage) {
     const textureProj = new Mat4();
     let offset = 4;
