@@ -17,7 +17,7 @@ import { StaticCollider } from './physics/static-collider.ts';
 import { Geometry } from './geometry/geometry.ts';
 import { BoxGeometry } from './geometry/descriptors/box.ts';
 import { PBRMaterial } from './materials/pbr.ts';
-import { Vec4 } from 'gl-matrix';
+import { Vec3, Vec4 } from 'gl-matrix';
 import { PhysicsDebugRenderer } from './physics/physics-debug-renderer.ts';
 
 enum InputMode {
@@ -51,7 +51,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
     spraycan: Actor;
     sponge: Actor;
     paintballGun: Actor;
-    paintballDecal?: Decal;
+    paintballDecals: Decal[] = [];
 
     physics?: StagePhysics;
 
@@ -71,6 +71,12 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
       { offset: 1.75, duration: 0.5},
       { offset: 2.9, duration: 0.5},
       { offset: 4.2, duration: 0.5},
+    ]);
+
+    paintballClips = this.audioPlayer.loadClip('./media/sounds/paintball.mp3').subClips([
+      { offset: 0.6, duration: 0.5},
+      { offset: 3.4, duration: 0.5},
+      { offset: 6.7, duration: 0.5},
     ]);
 
     constructor(gpu: WebGPURenderer) {
@@ -234,8 +240,29 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
             decalIndex++;
           });
         } else if (this.mode == InputMode.Shoot) {
+          this.audioPlayer.play(this.paintballClips[Math.floor(Math.random() * this.paintballClips.length)]);
+
+          const forward = new Vec4(0, 0, -1, 0);
+          Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
+          const ray = new RAPIER.Ray(this.camera.worldTransform.translation, forward);
+          let maxToi = 32.0;
+          let solid = false;
+
+          let hit = this.physics!.world.castRay(ray, maxToi, solid);
+          if (hit != null) {
+              // The first collider hit has the handle `hit.colliderHandle` and it hit after
+              // the ray travelled a distance equal to `ray.dir * toi`.
+              let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5); // Same as: `ray.origin + ray.dir * toi`
+
+              const paintDecal = new Actor(this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)]);
+              paintDecal.transform = this.camera.transform;
+              paintDecal.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
+              paintDecal.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
+              this.stage.attachChild(paintDecal);
+          }
+
           // TODO: Remove this later.
-          const rigidBody = new RigidBody(
+          /*const rigidBody = new RigidBody(
             RAPIER.RigidBodyDesc.dynamic(),
             [RAPIER.ColliderDesc.cuboid(0.1, 0.1, 0.1)]
           );
@@ -255,7 +282,7 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
             x: (Math.random() - 0.5) * 0.001,
             y: (Math.random() - 0.5) * 0.001,
             z: (Math.random() - 0.5) * 0.001,
-          }, true);
+          }, true);*/
         }
 
         return false;
@@ -352,7 +379,10 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
 
-          this.paintballDecal = await this.gpu.decalManager.getTextureDecal('./media/textures/paintball-splat.png');
+          for (let i = 0; i < 3; ++i) {
+            this.paintballDecals[i] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i}.png`);
+            this.paintballDecals[i].projection.perspectiveZO(Math.PI/8, 1, 0.1, 2);
+          }
 
           break;
         case InputMode.Erase:
