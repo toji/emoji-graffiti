@@ -130,14 +130,14 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
+              var decalColor = decals.decal[i].baseColor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
 
               // TODO: Check to ensure in.normal is facing towards the decal.
               let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
               let nDotO = dot(in.normal, originToPoint);
 
               if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
-                let decalAlpha = decals.decal[i].opacity * decalColor.a;
+                let decalAlpha = decalColor.a;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
 
                 if (decals.decal[i].highlight == 1) {
