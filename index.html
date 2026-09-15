@@ -54,6 +54,21 @@
       .tp-dfwv {
         z-index: 10;
       }
+
+      .crosshairs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 5;
+        margin: auto;
+        pointer-events: none;
+        background-image: url(./media/textures/crosshairs.png);
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 66%;
+      }
     </style>
 
     <!-- Enables consistent looking emoji across platforms -->
@@ -78,6 +93,7 @@
     </div>
 
     <canvas id='webgpu-canvas'></canvas>
+    <div class='crosshairs'></div>
     <script type='module' src='./dist/main.js'></script>
   </body>
 </html>
