@@ -27513,6 +27513,7 @@ var PaintballColors = [
     emojiPicker = document.querySelector("emoji-picker");
     decalRotationInput = document.querySelector("#decalRotation");
     decalRotation = 0;
+    crosshairs = document.querySelector(".crosshairs");
     stage = new Stage();
     camera;
     decal;
@@ -27727,6 +27728,7 @@ var PaintballColors = [
       } else {
         this.emojiPicker.style.display = "none";
       }
+      this.crosshairs.style.display = "none";
       switch (this.mode) {
         case 0 /* View */:
           this.viewButton.classList.add("selected");
@@ -27758,9 +27760,10 @@ var PaintballColors = [
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
+          this.crosshairs.style.display = "";
           for (let i2 = 0; i2 < 3; ++i2) {
             this.paintballDecals[i2] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i2}.png`);
-            this.paintballDecals[i2].projection.perspectiveZO(Math.PI / 8, 1, 0.1, 2);
+            this.paintballDecals[i2].projection.perspectiveZO(Math.PI / 4, 1, 0.1, 2);
           }
           break;
         case 2 /* Erase */:
