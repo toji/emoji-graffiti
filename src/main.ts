@@ -149,7 +149,7 @@ const PaintballColors = [
           // you can use this method to get file and perform respective operations
           let file = input.files?.item(0);
           if (file) {
-            this.deserializeDecalLayout(await file.text());
+            this.deserializeDecalLayoutFromString(await file.text());
           }
         };
         input.click();
@@ -261,9 +261,7 @@ const PaintballColors = [
 
           let hit = this.physics!.world.castRay(ray, maxToi, solid);
           if (hit != null) {
-              // The first collider hit has the handle `hit.colliderHandle` and it hit after
-              // the ray travelled a distance equal to `ray.dir * toi`.
-              let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5); // Same as: `ray.origin + ray.dir * toi`
+              let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
 
               const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
               decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
@@ -273,29 +271,6 @@ const PaintballColors = [
               actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
               this.stage.attachChild(actor);
           }
-
-          // TODO: Remove this later.
-          /*const rigidBody = new RigidBody(
-            RAPIER.RigidBodyDesc.dynamic(),
-            [RAPIER.ColliderDesc.cuboid(0.1, 0.1, 0.1)]
-          );
-
-          const cube = new Actor(
-            rigidBody,
-            new Geometry(gpu.device, new BoxGeometry({ width: 0.2, height: 0.2, depth: 0.2 })),
-            new PBRMaterial(gpu, { baseColorFactor: [0.9, 0.4, 0.2, 1.0], roughnessFactor: 0.1, metallicFactor: 0.8 })
-          );
-          cube.transform = this.camera.transform;
-          this.stage.attachChild(cube);
-
-          const forward = new Vec4(0, 0, -0.2, 0);
-          Vec4.transformMat4(forward, forward, this.camera.transform.matrix);
-          rigidBody.rigidBody?.applyImpulse(forward, true);
-          rigidBody.rigidBody?.applyTorqueImpulse({
-            x: (Math.random() - 0.5) * 0.001,
-            y: (Math.random() - 0.5) * 0.001,
-            z: (Math.random() - 0.5) * 0.001,
-          }, true);*/
         }
 
         return false;
@@ -398,7 +373,7 @@ const PaintballColors = [
 
           for (let i = 0; i < 3; ++i) {
             this.paintballDecals[i] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i}.png`);
-            this.paintballDecals[i].projection.perspectiveZO(Math.PI/4, 1, 0.1, 2);
+            //this.paintballDecals[i].projection.perspectiveZO(Math.PI/4, 1, 0.1, 2);
           }
 
           break;
@@ -444,9 +419,15 @@ const PaintballColors = [
 
       for (const decal of decalLayout.decals) {
         const emoji = decalLayout.emoji[decal.emojiIndex];
-        const actor = new Actor(await this.gpu.decalManager.getDecal(emoji));
+        let decalComponent = await this.gpu.decalManager.getDecal(emoji);
+        if (decal.baseColorFactor) {
+          decalComponent = decalComponent.clone();
+          decalComponent.baseColorFactor.copy(decal.baseColorFactor);
+        }
+        const actor = new Actor(decalComponent);
         actor.transform.translation = decal.translation;
         actor.transform.rotation = decal.rotation;
+
         this.stage.attachChild(actor);
       }
     }
@@ -468,11 +449,17 @@ const PaintballColors = [
           decalLayout.emoji[decal.textureIndex] = decal.emoji;
         }
 
-        decalLayout.decals.push({
+        const out: any = {
           emojiIndex: decal.textureIndex,
           translation: [...actor.worldTransform.translation],
           rotation: [...actor.worldTransform.rotation],
-        });
+        };
+
+        if (!Vec4.equals(decal.baseColorFactor, [1, 1, 1, 1])) {
+          out.baseColorFactor = [...decal.baseColorFactor];
+        }
+
+        decalLayout.decals.push(out);
       });
 
       return JSON.stringify(decalLayout);
