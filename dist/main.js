@@ -10435,8 +10435,8 @@ var DecalFrameBindings = (
   struct Decal {
     id: u32,
     textureIndex: u32,
-    opacity: f32,
     highlight: u32,
+    baseColor: vec4f,
     origin: vec3f,
     decalProj: mat4x4f,
   };
@@ -10672,14 +10672,14 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
+              var decalColor = decals.decal[i].baseColor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
 
               // TODO: Check to ensure in.normal is facing towards the decal.
               let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
               let nDotO = dot(in.normal, originToPoint);
 
               if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
-                let decalAlpha = decals.decal[i].opacity * decalColor.a;
+                let decalAlpha = decalColor.a;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
 
                 if (decals.decal[i].highlight == 1) {
@@ -10830,7 +10830,7 @@ var EmojiRenderer = class {
 // src/renderer/decal-manager.ts
 var MAX_DECALS = 1024;
 var MAX_DECAL_TEXTURES = 256;
-var DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH + Vec4.BYTE_LENGTH;
+var DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH * 3;
 var DecalManager = class {
   static {
     __name(this, "DecalManager");
@@ -10907,11 +10907,11 @@ var DecalManager = class {
       Mat4.multiply(textureProj, decal.projection, textureProj);
       this.decalUintArray[offset] = decalCount + 1;
       this.decalUintArray[offset + 1] = decal.textureIndex;
-      this.decalFloatArray[offset + 2] = placing ? 0.75 : 1;
-      this.decalUintArray[offset + 3] = placing || selected ? 1 : 0;
-      this.decalFloatArray.set(actor.worldTransform.translation, offset + 4);
-      this.decalFloatArray.set(textureProj, offset + 8);
-      offset += 24;
+      this.decalUintArray[offset + 2] = placing || selected ? 1 : 0;
+      this.decalFloatArray.set([1, 1, 1, placing ? 0.75 : 1], offset + 4);
+      this.decalFloatArray.set(actor.worldTransform.translation, offset + 8);
+      this.decalFloatArray.set(textureProj, offset + 12);
+      offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
       decalCount++;
     });
     this.decalUintArray[0] = decalCount;

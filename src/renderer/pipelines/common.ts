@@ -33,8 +33,8 @@ export const DecalFrameBindings = /* wgsl */`
   struct Decal {
     id: u32,
     textureIndex: u32,
-    opacity: f32,
     highlight: u32,
+    baseColor: vec4f,
     origin: vec3f,
     decalProj: mat4x4f,
   };

@@ -8,7 +8,7 @@ import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
 
 const MAX_DECALS = 1024;
 const MAX_DECAL_TEXTURES = 256;
-const DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH + Vec4.BYTE_LENGTH;
+const DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH * 3;
 
 export class DecalManager {
   gpu: WebGPURenderer;
@@ -109,12 +109,12 @@ export class DecalManager {
 
       this.decalUintArray[offset] = decalCount + 1; // Actor ID?
       this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
-      this.decalFloatArray[offset+2] = placing ? 0.75 : 1.0; // Opacity
-      this.decalUintArray[offset+3] = placing || selected ? 1 : 0; // Highlight
-      this.decalFloatArray.set(actor.worldTransform.translation, offset+4); // Origin
-      this.decalFloatArray.set(textureProj, offset+8); // Projection
+      this.decalUintArray[offset+2] = placing || selected ? 1 : 0; // Highlight
+      this.decalFloatArray.set([1, 1, 1, placing ? 0.75 : 1.0], offset+4); // Base Color + Opacity
+      this.decalFloatArray.set(actor.worldTransform.translation, offset+8); // Origin
+      this.decalFloatArray.set(textureProj, offset+12); // Projection
 
-      offset += 24;
+      offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
       decalCount++;
     });
 
