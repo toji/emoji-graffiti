@@ -27585,7 +27585,7 @@ var PaintballColors = [
         input.onchange = async () => {
           let file = input.files?.item(0);
           if (file) {
-            this.deserializeDecalLayout(await file.text());
+            this.deserializeDecalLayoutFromString(await file.text());
           }
         };
         input.click();
@@ -27763,7 +27763,6 @@ var PaintballColors = [
           this.crosshairs.style.display = "";
           for (let i2 = 0; i2 < 3; ++i2) {
             this.paintballDecals[i2] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i2}.png`);
-            this.paintballDecals[i2].projection.perspectiveZO(Math.PI / 4, 1, 0.1, 2);
           }
           break;
         case 2 /* Erase */:
@@ -27801,7 +27800,12 @@ var PaintballColors = [
       }
       for (const decal of decalLayout.decals) {
         const emoji = decalLayout.emoji[decal.emojiIndex];
-        const actor = new Actor(await this.gpu.decalManager.getDecal(emoji));
+        let decalComponent = await this.gpu.decalManager.getDecal(emoji);
+        if (decal.baseColorFactor) {
+          decalComponent = decalComponent.clone();
+          decalComponent.baseColorFactor.copy(decal.baseColorFactor);
+        }
+        const actor = new Actor(decalComponent);
         actor.transform.translation = decal.translation;
         actor.transform.rotation = decal.rotation;
         this.stage.attachChild(actor);
@@ -27820,11 +27824,15 @@ var PaintballColors = [
         if (!decalLayout.emoji[decal.textureIndex]) {
           decalLayout.emoji[decal.textureIndex] = decal.emoji;
         }
-        decalLayout.decals.push({
+        const out = {
           emojiIndex: decal.textureIndex,
           translation: [...actor.worldTransform.translation],
           rotation: [...actor.worldTransform.rotation]
-        });
+        };
+        if (!Vec4.equals(decal.baseColorFactor, [1, 1, 1, 1])) {
+          out.baseColorFactor = [...decal.baseColorFactor];
+        }
+        decalLayout.decals.push(out);
       });
       return JSON.stringify(decalLayout);
     }
