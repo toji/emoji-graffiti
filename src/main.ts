@@ -29,6 +29,16 @@ enum InputMode {
 
 const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
+const PaintballColors = [
+  // Intentionally omitting red.
+  [0, 1, 0, 1],
+  [0, 0, 1, 1],
+  [1, 1, 0, 1],
+  [0, 1, 1, 1],
+  [1, 0, 1, 1],
+  [1, 0.5, 0, 1],
+];
+
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     config: AppConfig;
@@ -254,11 +264,13 @@ const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
               // the ray travelled a distance equal to `ray.dir * toi`.
               let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5); // Same as: `ray.origin + ray.dir * toi`
 
-              const paintDecal = new Actor(this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)]);
-              paintDecal.transform = this.camera.transform;
-              paintDecal.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
-              paintDecal.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
-              this.stage.attachChild(paintDecal);
+              const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
+              decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
+              const actor = new Actor(decal);
+              actor.transform = this.camera.transform;
+              actor.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
+              actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
+              this.stage.attachChild(actor);
           }
 
           // TODO: Remove this later.

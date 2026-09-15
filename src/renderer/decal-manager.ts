@@ -110,7 +110,7 @@ export class DecalManager {
       this.decalUintArray[offset] = decalCount + 1; // Actor ID?
       this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
       this.decalUintArray[offset+2] = placing || selected ? 1 : 0; // Highlight
-      this.decalFloatArray.set([1, 1, 1, placing ? 0.75 : 1.0], offset+4); // Base Color + Opacity
+      this.decalFloatArray.set(decal.baseColorFactor, offset+4); // Base Color + Opacity
       this.decalFloatArray.set(actor.worldTransform.translation, offset+8); // Origin
       this.decalFloatArray.set(textureProj, offset+12); // Projection
 
