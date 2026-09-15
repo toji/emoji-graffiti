@@ -27503,7 +27503,7 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
     spraycan;
     sponge;
     paintballGun;
-    paintballDecal;
+    paintballDecals = [];
     physics;
     gltfLoader;
     mode = 0 /* View */;
@@ -27518,6 +27518,11 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
       { offset: 1.75, duration: 0.5 },
       { offset: 2.9, duration: 0.5 },
       { offset: 4.2, duration: 0.5 }
+    ]);
+    paintballClips = this.audioPlayer.loadClip("./media/sounds/paintball.mp3").subClips([
+      { offset: 0.6, duration: 0.5 },
+      { offset: 3.4, duration: 0.5 },
+      { offset: 6.7, duration: 0.5 }
     ]);
     constructor(gpu) {
       super(gpu);
@@ -27640,25 +27645,21 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
             decalIndex++;
           });
         } else if (this.mode == 3 /* Shoot */) {
-          const rigidBody = new RigidBody(
-            zg.RigidBodyDesc.dynamic(),
-            [zg.ColliderDesc.cuboid(0.1, 0.1, 0.1)]
-          );
-          const cube = new Actor(
-            rigidBody,
-            new Geometry(gpu.device, new BoxGeometry({ width: 0.2, height: 0.2, depth: 0.2 })),
-            new PBRMaterial(gpu, { baseColorFactor: [0.9, 0.4, 0.2, 1], roughnessFactor: 0.1, metallicFactor: 0.8 })
-          );
-          cube.transform = this.camera.transform;
-          this.stage.attachChild(cube);
-          const forward = new Vec4(0, 0, -0.2, 0);
-          Vec4.transformMat4(forward, forward, this.camera.transform.matrix);
-          rigidBody.rigidBody?.applyImpulse(forward, true);
-          rigidBody.rigidBody?.applyTorqueImpulse({
-            x: (Math.random() - 0.5) * 1e-3,
-            y: (Math.random() - 0.5) * 1e-3,
-            z: (Math.random() - 0.5) * 1e-3
-          }, true);
+          this.audioPlayer.play(this.paintballClips[Math.floor(Math.random() * this.paintballClips.length)]);
+          const forward = new Vec4(0, 0, -1, 0);
+          Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
+          const ray = new zg.Ray(this.camera.worldTransform.translation, forward);
+          let maxToi = 32;
+          let solid = false;
+          let hit = this.physics.world.castRay(ray, maxToi, solid);
+          if (hit != null) {
+            let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
+            const paintDecal = new Actor(this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)]);
+            paintDecal.transform = this.camera.transform;
+            paintDecal.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
+            paintDecal.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
+            this.stage.attachChild(paintDecal);
+          }
         }
         return false;
       });
@@ -27739,7 +27740,10 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
-          this.paintballDecal = await this.gpu.decalManager.getTextureDecal("./media/textures/paintball-splat.png");
+          for (let i2 = 0; i2 < 3; ++i2) {
+            this.paintballDecals[i2] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i2}.png`);
+            this.paintballDecals[i2].projection.perspectiveZO(Math.PI / 8, 1, 0.1, 2);
+          }
           break;
         case 2 /* Erase */:
           this.viewButton.classList.remove("selected");
