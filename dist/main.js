@@ -10436,7 +10436,7 @@ var DecalFrameBindings = (
     id: u32,
     textureIndex: u32,
     highlight: u32,
-    baseColor: vec4f,
+    baseColorFactor: vec4f,
     origin: vec3f,
     decalProj: mat4x4f,
   };
@@ -10672,7 +10672,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = decals.decal[i].baseColor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
+              var decalColor = decals.decal[i].baseColorFactor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
 
               // TODO: Check to ensure in.normal is facing towards the decal.
               let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
@@ -10749,18 +10749,25 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
 };
 
 // src/materials/decal.ts
-var Decal = class {
+var Decal = class _Decal {
   static {
     __name(this, "Decal");
   }
   static SharedComponent = true;
   emoji;
   textureIndex;
+  baseColorFactor = new Vec4(1, 1, 1, 1);
   projection = new Mat4();
   constructor(emoji, textureIndex) {
     this.emoji = emoji;
     this.textureIndex = textureIndex;
     this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 4);
+  }
+  clone() {
+    const out = new _Decal(this.emoji, this.textureIndex);
+    out.baseColorFactor.copy(this.baseColorFactor);
+    out.projection.copy(this.projection);
+    return out;
   }
 };
 
@@ -10908,7 +10915,7 @@ var DecalManager = class {
       this.decalUintArray[offset] = decalCount + 1;
       this.decalUintArray[offset + 1] = decal.textureIndex;
       this.decalUintArray[offset + 2] = placing || selected ? 1 : 0;
-      this.decalFloatArray.set([1, 1, 1, placing ? 0.75 : 1], offset + 4);
+      this.decalFloatArray.set(decal.baseColorFactor, offset + 4);
       this.decalFloatArray.set(actor.worldTransform.translation, offset + 8);
       this.decalFloatArray.set(textureProj, offset + 12);
       offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
@@ -27485,6 +27492,15 @@ var BoxGeometry = class {
 
 // src/main.ts
 var GRAVITY = { x: 0, y: -9.81, z: 0 };
+var PaintballColors = [
+  // Intentionally omitting red.
+  [0, 1, 0, 1],
+  [0, 0, 1, 1],
+  [1, 1, 0, 1],
+  [0, 1, 1, 1],
+  [1, 0, 1, 1],
+  [1, 0.5, 0, 1]
+];
 (/* @__PURE__ */ __name((function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     config;
@@ -27654,11 +27670,13 @@ var GRAVITY = { x: 0, y: -9.81, z: 0 };
           let hit = this.physics.world.castRay(ray, maxToi, solid);
           if (hit != null) {
             let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
-            const paintDecal = new Actor(this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)]);
-            paintDecal.transform = this.camera.transform;
-            paintDecal.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
-            paintDecal.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
-            this.stage.attachChild(paintDecal);
+            const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
+            decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
+            const actor = new Actor(decal);
+            actor.transform = this.camera.transform;
+            actor.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
+            actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
+            this.stage.attachChild(actor);
           }
         }
         return false;

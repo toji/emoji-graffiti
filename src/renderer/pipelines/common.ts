@@ -34,7 +34,7 @@ export const DecalFrameBindings = /* wgsl */`
     id: u32,
     textureIndex: u32,
     highlight: u32,
-    baseColor: vec4f,
+    baseColorFactor: vec4f,
     origin: vec3f,
     decalProj: mat4x4f,
   };
