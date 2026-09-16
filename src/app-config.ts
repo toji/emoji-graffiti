@@ -3,6 +3,7 @@ import { Config } from './util/config.ts'
 export class AppConfig extends Config {
   emoji: any;
   sprayCooldown = 500;
+  physicsDebugRendering = false;
 
   static SetDefaults(isMobile: boolean): AppConfig {
     const defaults: AppConfig = isMobile ? new MobileAppConfig() : new AppConfig();

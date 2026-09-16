@@ -19,6 +19,7 @@ import { BoxGeometry } from './geometry/descriptors/box.ts';
 import { PBRMaterial } from './materials/pbr.ts';
 import { Vec3, Vec4 } from 'gl-matrix';
 import { PhysicsDebugRenderer } from './physics/physics-debug-renderer.ts';
+import { QueryArgs } from './util/query-args.ts';
 
 enum InputMode {
   View,
@@ -42,8 +43,7 @@ const PaintballColors = [
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     config: AppConfig;
-
-    pane: Pane;
+    pane?: Pane;
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
@@ -100,60 +100,9 @@ const PaintballColors = [
         this.physics = new StagePhysics(world);
         this.stage.add(this.physics);
         //this.stage.add(new PhysicsDebugRenderer(gpu));
-
-        const cube = new Actor(
-          new RigidBody(
-            RAPIER.RigidBodyDesc.dynamic(),
-            [RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5)]
-          ),
-          new Geometry(gpu.device, new BoxGeometry()),
-          new PBRMaterial(gpu, { baseColorFactor: [0.2, 0.4, 0.9, 1.0], roughnessFactor: 0.3, metallicFactor: 0.8 })
-        );
-        cube.transform.translation = [0, 8, 0];
-        cube.transform.rotationRef.rotateX(0.2);
-        cube.transform.rotationRef.rotateZ(0.2);
-        this.stage.attachChild(cube);
       });
 
-      this.pane = new Pane({
-        title: document.title.split('-')[0],
-      });
-
-      this.pane.addButton({
-        title: 'Save',
-      }).on('click', () => {
-        const json = this.serializeDecalLayout();
-        console.log('Serialized Decals: ', json);
-        //this.deserializeDecalLayout(json);
-
-        const blob = new Blob([json], { type: "text/json" });
-        const link = document.createElement("a");
-        link.download = 'decalLayout.json';
-        link.href = window.URL.createObjectURL(blob);
-        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
-        /*const evt = new MouseEvent("click", {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-        });*/
-        link.click(); //dispatchEvent(evt);
-        link.remove();
-      });
-
-      this.pane.addButton({
-        title: 'Load',
-      }).on('click', () => {
-        let input = document.createElement('input');
-        input.type = 'file';
-        input.onchange = async () => {
-          // you can use this method to get file and perform respective operations
-          let file = input.files?.item(0);
-          if (file) {
-            this.deserializeDecalLayoutFromString(await file.text());
-          }
-        };
-        input.click();
-      });
+      if (QueryArgs.getBool('debug')) { this.#setupDebugMenu(); }
 
       this.gltfLoader = new GltfLoader(gpu);
       const actorFromGltf = (url: string): Actor => {
@@ -389,6 +338,47 @@ const PaintballColors = [
           this.emojiPicker.style.display = 'none';
           break;
       }
+    }
+
+    #setupDebugMenu() {
+      this.pane = new Pane({
+        title: document.title.split('-')[0],
+      });
+
+      this.pane.addButton({
+        title: 'Save',
+      }).on('click', () => {
+        const json = this.serializeDecalLayout();
+        const blob = new Blob([json], { type: "text/json" });
+        const link = document.createElement("a");
+        link.download = 'decalLayout.json';
+        link.href = window.URL.createObjectURL(blob);
+        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+        link.click();
+        link.remove();
+      });
+
+      this.pane.addButton({
+        title: 'Load',
+      }).on('click', () => {
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = async () => {
+          let file = input.files?.item(0);
+          if (file) {
+            this.deserializeDecalLayoutFromString(await file.text());
+          }
+        };
+        input.click();
+      });
+
+      this.pane.addBinding(this.config, 'physicsDebugRendering').on('change', (ev) => {
+        if (ev.value) {
+          this.stage.add(new PhysicsDebugRenderer(this.gpu));
+        } else {
+          this.stage.remove(PhysicsDebugRenderer);
+        }
+      });
     }
 
     clearDecals() {
