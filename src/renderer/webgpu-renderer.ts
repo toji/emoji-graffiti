@@ -411,6 +411,8 @@ export interface WebGPUAppCallbacks {
 
 export class WebGPUApp implements WebGPUAppCallbacks {
   static async Begin<AppType extends WebGPUAppCallbacks>(appType: new(gpu: WebGPURenderer) => AppType, options: WebGPURendererOptions = {}) {
+    document.body.classList.add('loading');
+
     // Create the WebGPU device
     const adapter = await navigator.gpu?.requestAdapter();
     const device = await adapter?.requestDevice();
@@ -424,6 +426,8 @@ export class WebGPUApp implements WebGPUAppCallbacks {
     const app = new appType(gpu);
 
     await app.onInit(gpu);
+
+    document.body.classList.remove('loading');
 
     // Start listening for resize events
     ResizeHandler.observe(gpu.canvas, (width, height) => {

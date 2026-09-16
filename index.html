@@ -64,10 +64,36 @@
         z-index: 5;
         margin: auto;
         pointer-events: none;
-        background-image: url(./media/textures/crosshairs.png);
+        background-image: url(./media/images/crosshairs.png);
         background-position: center;
         background-repeat: no-repeat;
         opacity: 66%;
+      }
+
+      .loading canvas {
+        display: none;
+      }
+
+      .loading-splash {
+        display: none;
+        position: absolute;
+        text-align: center;
+        padding-top: 3em;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 20;
+        margin: auto;
+        pointer-events: none;
+        background-image: url(./media/images/spinner.gif);
+        background-color: white;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .loading .loading-splash {
+        display: block;
       }
     </style>
 
@@ -93,6 +119,10 @@
     </div>
 
     <canvas id='webgpu-canvas'></canvas>
+    <div class='loading-splash'>
+      <h1>😄 Emoji Graffiti 🎨</h1>
+      <h2>Loading...</h2>
+    </div>
     <div class='crosshairs'></div>
     <script type='module' src='./dist/main.js'></script>
   </body>

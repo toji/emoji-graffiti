@@ -7937,8 +7937,8 @@ var Config = class extends EventTarget {
   }
   // Updates the config to use values given in the URL query args if they match
   updateFromQueryArgs() {
-    const searchParams = new URLSearchParams(window.location.search);
-    searchParams.forEach((value, key) => {
+    const searchParams2 = new URLSearchParams(window.location.search);
+    searchParams2.forEach((value, key) => {
       if (Object.hasOwn(this, key)) {
         let parsedValue = void 0;
         if (typeof this[key] === "string") {
@@ -11909,6 +11909,7 @@ var WebGPUApp = class {
     __name(this, "WebGPUApp");
   }
   static async Begin(appType, options = {}) {
+    document.body.classList.add("loading");
     const adapter = await navigator.gpu?.requestAdapter();
     const device = await adapter?.requestDevice();
     if (!device) {
@@ -11918,6 +11919,7 @@ var WebGPUApp = class {
     const gpu = new WebGPURenderer(device, options);
     const app = new appType(gpu);
     await app.onInit(gpu);
+    document.body.classList.remove("loading");
     ResizeHandler.observe(gpu.canvas, (width, height) => {
       gpu.onResize(width, height);
       app.onResize(gpu, width, height);
@@ -11949,6 +11951,7 @@ var AppConfig = class _AppConfig extends Config {
   }
   emoji;
   sprayCooldown = 500;
+  physicsDebugRendering = false;
   static SetDefaults(isMobile) {
     const defaults = isMobile ? new MobileAppConfig() : new _AppConfig();
     defaults.emoji = {
@@ -27103,390 +27106,79 @@ var Pane = class extends RootApi {
 };
 var VERSION = new Semver("4.0.5");
 
-// src/physics/rigid-body.ts
-var RigidBody = class _RigidBody {
-  constructor(desc, colliderDescs) {
-    this.desc = desc;
-    this.colliderDescs = colliderDescs;
-  }
-  desc;
-  colliderDescs;
+// src/physics/physics-debug-renderer.ts
+var PhysicsDebugRenderer = class {
   static {
-    __name(this, "RigidBody");
+    __name(this, "PhysicsDebugRenderer");
   }
-  #rigidBody;
-  #colliders;
-  #ensureRigidBody(actor) {
-    if (this.#rigidBody) {
-      return this.#rigidBody;
-    }
-    if (!actor.stage) {
-      return void 0;
-    }
-    const stagePhysics = actor.stage?.get(StagePhysics);
-    if (!stagePhysics) {
-      return void 0;
-    }
-    const translation = actor.transform.translation;
-    const rotation = actor.transform.rotation;
-    this.#rigidBody = stagePhysics.world.createRigidBody(this.desc);
-    this.#colliders = [];
-    for (const collider of this.colliderDescs) {
-      this.#colliders.push(stagePhysics.world.createCollider(collider, this.#rigidBody));
-    }
-    this.#rigidBody.setTranslation(translation, true);
-    this.#rigidBody.setRotation(rotation, true);
-    return this.#rigidBody;
-  }
-  get rigidBody() {
-    return this.#rigidBody;
-  }
-  clone() {
-    return new _RigidBody(this.desc, this.colliderDescs);
+  gpu;
+  debugRenderActor = new Actor();
+  debugRenderGeometry;
+  constructor(gpu) {
+    this.gpu = gpu;
+    this.debugRenderActor.label = "PhysicsDebugRenderer Proxy";
+    this.debugRenderActor.add(new UnlitMaterial(gpu, { depthTest: false }));
   }
   addToStage(stage, actor) {
-    this.#ensureRigidBody(actor);
+    stage.attachChild(this.debugRenderActor);
   }
   removeFromStage(stage, actor) {
-    if (!this.#rigidBody) {
-      return;
-    }
-    let stagePhysics = stage.get(StagePhysics);
+    stage.removeChild(this.debugRenderActor);
+  }
+  //static TickOrder = 1;
+  onTick(tickData, actor) {
+    let stagePhysics = actor.stage?.get(StagePhysics);
     if (!stagePhysics) {
       return;
     }
-    stagePhysics.world.removeRigidBody(this.#rigidBody);
-    this.#rigidBody = void 0;
-    this.#colliders = void 0;
-  }
-  static TickOrder = 1;
-  onTick(tickData, actor) {
-    let rigidBody = this.#ensureRigidBody(actor);
-    if (!rigidBody) {
-      return;
-    }
-    const translation = rigidBody.translation();
-    const rotation = rigidBody.rotation();
-    actor.transform.translation = [translation.x, translation.y, translation.z];
-    actor.transform.rotation = [rotation.x, rotation.y, rotation.z, rotation.w];
+    const debugBuffers = stagePhysics.world.debugRender();
+    this.debugRenderGeometry = new Geometry(this.gpu.device, {
+      label: "PhysicsDebugRenderer Geometry",
+      position: debugBuffers.vertices,
+      color: debugBuffers.colors,
+      topology: "line-list"
+    });
+    this.debugRenderActor.add(this.debugRenderGeometry);
   }
 };
 
-// src/geometry/descriptors/box.ts
-var BoxGeometry = class {
-  static {
-    __name(this, "BoxGeometry");
+// src/util/query-args.ts
+var searchParams = void 0;
+function clearArgsCache() {
+  searchParams = void 0;
+}
+__name(clearArgsCache, "clearArgsCache");
+window.addEventListener("popstate", clearArgsCache);
+window.addEventListener("hashchange", clearArgsCache);
+function ensureArgsCached() {
+  if (!searchParams) {
+    searchParams = new URLSearchParams(window.location.search);
   }
-  position;
-  normal;
-  texcoord0;
-  constructor(desc = {}) {
-    const w2 = (desc.width ?? 1) * 0.5;
-    const h2 = (desc.height ?? 1) * 0.5;
-    const d2 = (desc.depth ?? 1) * 0.5;
-    const x2 = desc.x ?? 0;
-    const y2 = desc.y ?? 0;
-    const z2 = desc.z ?? 0;
-    const boxVertArray = new Float32Array([
-      //position,     normal,    uv,
-      // Left
-      x2 - w2,
-      y2 - h2,
-      z2 + d2,
-      -1,
-      0,
-      0,
-      1,
-      1,
-      x2 - w2,
-      y2 + h2,
-      z2 + d2,
-      -1,
-      0,
-      0,
-      1,
-      0,
-      x2 - w2,
-      y2 + h2,
-      z2 - d2,
-      -1,
-      0,
-      0,
-      0,
-      0,
-      x2 - w2,
-      y2 - h2,
-      z2 - d2,
-      -1,
-      0,
-      0,
-      0,
-      1,
-      x2 - w2,
-      y2 - h2,
-      z2 + d2,
-      -1,
-      0,
-      0,
-      1,
-      1,
-      x2 - w2,
-      y2 + h2,
-      z2 - d2,
-      -1,
-      0,
-      0,
-      0,
-      0,
-      // Right
-      x2 + w2,
-      y2 + h2,
-      z2 + d2,
-      1,
-      0,
-      0,
-      0,
-      0,
-      x2 + w2,
-      y2 - h2,
-      z2 + d2,
-      1,
-      0,
-      0,
-      0,
-      1,
-      x2 + w2,
-      y2 - h2,
-      z2 - d2,
-      1,
-      0,
-      0,
-      1,
-      1,
-      x2 + w2,
-      y2 + h2,
-      z2 - d2,
-      1,
-      0,
-      0,
-      1,
-      0,
-      x2 + w2,
-      y2 + h2,
-      z2 + d2,
-      1,
-      0,
-      0,
-      0,
-      0,
-      x2 + w2,
-      y2 - h2,
-      z2 - d2,
-      1,
-      0,
-      0,
-      1,
-      1,
-      // Bottom
-      x2 + w2,
-      y2 - h2,
-      z2 + d2,
-      0,
-      -1,
-      0,
-      1,
-      0,
-      x2 - w2,
-      y2 - h2,
-      z2 + d2,
-      0,
-      -1,
-      0,
-      0,
-      0,
-      x2 - w2,
-      y2 - h2,
-      z2 - d2,
-      0,
-      -1,
-      0,
-      0,
-      1,
-      x2 + w2,
-      y2 - h2,
-      z2 - d2,
-      0,
-      -1,
-      0,
-      1,
-      1,
-      x2 + w2,
-      y2 - h2,
-      z2 + d2,
-      0,
-      -1,
-      0,
-      1,
-      0,
-      x2 - w2,
-      y2 - h2,
-      z2 - d2,
-      0,
-      -1,
-      0,
-      0,
-      1,
-      // Top
-      x2 - w2,
-      y2 + h2,
-      z2 + d2,
-      0,
-      1,
-      0,
-      0,
-      1,
-      x2 + w2,
-      y2 + h2,
-      z2 + d2,
-      0,
-      1,
-      0,
-      1,
-      1,
-      x2 + w2,
-      y2 + h2,
-      z2 - d2,
-      0,
-      1,
-      0,
-      1,
-      0,
-      x2 - w2,
-      y2 + h2,
-      z2 - d2,
-      0,
-      1,
-      0,
-      0,
-      0,
-      x2 - w2,
-      y2 + h2,
-      z2 + d2,
-      0,
-      1,
-      0,
-      0,
-      1,
-      x2 + w2,
-      y2 + h2,
-      z2 - d2,
-      0,
-      1,
-      0,
-      1,
-      0,
-      // Back
-      x2 + w2,
-      y2 - h2,
-      z2 - d2,
-      0,
-      0,
-      -1,
-      0,
-      1,
-      x2 - w2,
-      y2 - h2,
-      z2 - d2,
-      0,
-      0,
-      -1,
-      1,
-      1,
-      x2 - w2,
-      y2 + h2,
-      z2 - d2,
-      0,
-      0,
-      -1,
-      1,
-      0,
-      x2 + w2,
-      y2 + h2,
-      z2 - d2,
-      0,
-      0,
-      -1,
-      0,
-      0,
-      x2 + w2,
-      y2 - h2,
-      z2 - d2,
-      0,
-      0,
-      -1,
-      0,
-      1,
-      x2 - w2,
-      y2 + h2,
-      z2 - d2,
-      0,
-      0,
-      -1,
-      1,
-      0,
-      // Front
-      x2 + w2,
-      y2 + h2,
-      z2 + d2,
-      0,
-      0,
-      1,
-      1,
-      0,
-      x2 - w2,
-      y2 + h2,
-      z2 + d2,
-      0,
-      0,
-      1,
-      0,
-      0,
-      x2 - w2,
-      y2 - h2,
-      z2 + d2,
-      0,
-      0,
-      1,
-      0,
-      1,
-      x2 - w2,
-      y2 - h2,
-      z2 + d2,
-      0,
-      0,
-      1,
-      0,
-      1,
-      x2 + w2,
-      y2 - h2,
-      z2 + d2,
-      0,
-      0,
-      1,
-      1,
-      1,
-      x2 + w2,
-      y2 + h2,
-      z2 + d2,
-      0,
-      0,
-      1,
-      1,
-      0
-    ]);
-    this.position = { values: boxVertArray, stride: 32 };
-    this.normal = { values: boxVertArray, stride: 32, offset: 12 };
-    this.texcoord0 = { values: boxVertArray, stride: 32, offset: 24 };
+}
+__name(ensureArgsCached, "ensureArgsCached");
+var QueryArgs = class {
+  static {
+    __name(this, "QueryArgs");
+  }
+  static hasQueryArgs() {
+    ensureArgsCached();
+    return searchParams.size != 0;
+  }
+  static getString(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.get(name) ?? (defaultValue ?? "");
+  }
+  static getInt(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
+  }
+  static getFloat(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
+  }
+  static getBool(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
   }
 };
 
@@ -27544,60 +27236,40 @@ var PaintballColors = [
     constructor(gpu) {
       super(gpu);
       this.config = Config.Create(AppConfig);
-      zg.init().then(() => {
+      if (QueryArgs.getBool("debug")) {
+        this.#setupDebugMenu();
+      }
+      this.gltfLoader = new GltfLoader(gpu);
+      const controller = new FlyingController(gpu.canvas);
+      controller.speed = 4e-3;
+      this.camera = new Actor(
+        new PerspectiveCamera({ zNear: 0.01, zFar: 32 }),
+        controller
+      );
+      this.camera.transform.translation = [0.2, 1.6, 2];
+      this.stage.attachChild(this.camera);
+      this.decal = new Actor(
+        Tag("placing-decal")
+      );
+      this.decal.transform.translation = [0, 0, 0];
+      this.#setupUIHandlers(gpu);
+      this.#switchMode(0 /* View */);
+      this.onEmojiPicked(this.config.emoji);
+    }
+    async onInit(gpu) {
+      const loadingPromises = [];
+      loadingPromises.push(zg.init().then(() => {
         const world = new zg.World(GRAVITY);
         this.physics = new StagePhysics(world);
         this.stage.add(this.physics);
-        const cube = new Actor(
-          new RigidBody(
-            zg.RigidBodyDesc.dynamic(),
-            [zg.ColliderDesc.cuboid(0.5, 0.5, 0.5)]
-          ),
-          new Geometry(gpu.device, new BoxGeometry()),
-          new PBRMaterial(gpu, { baseColorFactor: [0.2, 0.4, 0.9, 1], roughnessFactor: 0.3, metallicFactor: 0.8 })
-        );
-        cube.transform.translation = [0, 8, 0];
-        cube.transform.rotationRef.rotateX(0.2);
-        cube.transform.rotationRef.rotateZ(0.2);
-        this.stage.attachChild(cube);
-      });
-      this.pane = new Pane({
-        title: document.title.split("-")[0]
-      });
-      this.pane.addButton({
-        title: "Save"
-      }).on("click", () => {
-        const json = this.serializeDecalLayout();
-        console.log("Serialized Decals: ", json);
-        const blob = new Blob([json], { type: "text/json" });
-        const link = document.createElement("a");
-        link.download = "decalLayout.json";
-        link.href = window.URL.createObjectURL(blob);
-        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
-        link.click();
-        link.remove();
-      });
-      this.pane.addButton({
-        title: "Load"
-      }).on("click", () => {
-        let input = document.createElement("input");
-        input.type = "file";
-        input.onchange = async () => {
-          let file = input.files?.item(0);
-          if (file) {
-            this.deserializeDecalLayoutFromString(await file.text());
-          }
-        };
-        input.click();
-      });
-      this.gltfLoader = new GltfLoader(gpu);
+      }));
       const actorFromGltf = /* @__PURE__ */ __name((url) => {
         const actor = new Actor();
-        this.gltfLoader.loadFromUrl(url).then((scene) => {
+        loadingPromises.push(this.gltfLoader.loadFromUrl(url).then((scene) => {
           actor.attachChild(scene);
         }).catch((err) => {
           console.error("Gltf failed to load.", err);
-        });
+        }));
         return actor;
       }, "actorFromGltf");
       this.stage.attachChild(actorFromGltf("./media/models/gallery_physics.glb"));
@@ -27610,23 +27282,13 @@ var PaintballColors = [
       this.paintballGun = actorFromGltf("./media/models/paintball_gun.glb");
       this.paintballGun.transform.translation = [0.3, -0.6, -0.5];
       this.paintballGun.transform.rotationRef.rotateY(Math.PI);
-      gpu.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
+      loadingPromises.push(gpu.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
         gpu.environmentTexture = texture;
-      });
-      this.loadDecalLayoutFromUrl("./media/decalLayout.json");
-      const controller = new FlyingController(gpu.canvas);
-      controller.speed = 4e-3;
-      this.camera = new Actor(
-        new PerspectiveCamera({ zNear: 0.01, zFar: 32 }),
-        controller
-      );
-      this.camera.transform.translation = [0.2, 1.6, 2];
-      this.stage.attachChild(this.camera);
-      this.decal = new Actor(
-        new Decal({}, 0),
-        Tag("placing-decal")
-      );
-      this.decal.transform.translation = [0, 0, 0];
+      }));
+      loadingPromises.push(this.loadDecalLayoutFromUrl("./media/decalLayout.json"));
+      await Promise.allSettled(loadingPromises);
+    }
+    #setupUIHandlers(gpu) {
       this.decalRotationInput.addEventListener("input", (ev) => {
         this.decalRotation = this.decalRotationInput.value * (Math.PI / 180);
         this.decal.transform.rotationRef.identity();
@@ -27708,7 +27370,6 @@ var PaintballColors = [
       this.clearButton.addEventListener("click", () => {
         this.clearDecals();
       });
-      this.onEmojiPicked(this.config.emoji);
       this.gpu.canvas.addEventListener("mousemove", async (ev) => {
         if (this.mode == 2 /* Erase */) {
           this.getSelectedDecal(
@@ -27718,7 +27379,6 @@ var PaintballColors = [
           );
         }
       });
-      this.#switchMode(0 /* View */);
     }
     async #switchMode(mode) {
       this.mode = mode;
@@ -27777,6 +27437,43 @@ var PaintballColors = [
           this.emojiPicker.style.display = "none";
           break;
       }
+    }
+    #setupDebugMenu() {
+      this.pane = new Pane({
+        title: document.title.split("-")[0]
+      });
+      this.pane.addButton({
+        title: "Save"
+      }).on("click", () => {
+        const json = this.serializeDecalLayout();
+        const blob = new Blob([json], { type: "text/json" });
+        const link = document.createElement("a");
+        link.download = "decalLayout.json";
+        link.href = window.URL.createObjectURL(blob);
+        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+        link.click();
+        link.remove();
+      });
+      this.pane.addButton({
+        title: "Load"
+      }).on("click", () => {
+        let input = document.createElement("input");
+        input.type = "file";
+        input.onchange = async () => {
+          let file = input.files?.item(0);
+          if (file) {
+            this.deserializeDecalLayoutFromString(await file.text());
+          }
+        };
+        input.click();
+      });
+      this.pane.addBinding(this.config, "physicsDebugRendering").on("change", (ev) => {
+        if (ev.value) {
+          this.stage.add(new PhysicsDebugRenderer(this.gpu));
+        } else {
+          this.stage.remove(PhysicsDebugRenderer);
+        }
+      });
     }
     clearDecals() {
       this.stage.query(Decal).forEach((actor) => {
