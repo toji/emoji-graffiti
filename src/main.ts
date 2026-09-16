@@ -59,9 +59,9 @@ const PaintballColors = [
     stage: Stage = new Stage();
     camera: Actor;
     decal: Actor;
-    spraycan: Actor;
-    sponge: Actor;
-    paintballGun: Actor;
+    spraycan!: Actor;
+    sponge!: Actor;
+    paintballGun!: Actor;
     paintballDecals: Decal[] = [];
 
     physics?: StagePhysics;
@@ -94,24 +94,47 @@ const PaintballColors = [
       super(gpu);
       this.config = Config.Create(AppConfig);
 
-      RAPIER.init().then(() => {
-        const world = new RAPIER.World(GRAVITY);
-
-        this.physics = new StagePhysics(world);
-        this.stage.add(this.physics);
-        //this.stage.add(new PhysicsDebugRenderer(gpu));
-      });
-
       if (QueryArgs.getBool('debug')) { this.#setupDebugMenu(); }
 
       this.gltfLoader = new GltfLoader(gpu);
+
+      const controller = new FlyingController(gpu.canvas);
+      controller.speed = 0.004;
+      this.camera = new Actor(
+        new PerspectiveCamera({zNear: 0.01, zFar: 32}),
+        controller,
+      );
+      this.camera.transform.translation = [0.2, 1.6, 2];
+      this.stage.attachChild(this.camera);
+
+      this.decal = new Actor(
+        Tag('placing-decal')
+      );
+      this.decal.transform.translation = [0, 0, 0];
+
+      // Set up UI handlers
+      this.#setupUIHandlers(gpu);
+      this.#switchMode(InputMode.View);
+
+      this.onEmojiPicked(this.config.emoji);
+    }
+
+    async onInit(gpu: WebGPURenderer) {
+      const loadingPromises: Promise<any>[] = [];
+
+      loadingPromises.push(RAPIER.init().then(() => {
+        const world = new RAPIER.World(GRAVITY);
+        this.physics = new StagePhysics(world);
+        this.stage.add(this.physics);
+      }));
+
       const actorFromGltf = (url: string): Actor => {
         const actor: Actor = new Actor();
-          this.gltfLoader.loadFromUrl(url).then((scene: Actor) => {
-            actor.attachChild(scene);
-          }).catch((err) => {
-            console.error('Gltf failed to load.', err);
-          });
+        loadingPromises.push(this.gltfLoader.loadFromUrl(url).then((scene: Actor) => {
+          actor.attachChild(scene);
+        }).catch((err) => {
+          console.error('Gltf failed to load.', err);
+        }));
         return actor;
       }
 
@@ -132,27 +155,16 @@ const PaintballColors = [
       this.paintballGun.transform.rotationRef.rotateY(Math.PI);
 
       // Load an environment map
-      gpu.textureLoader.fromUrl('./media/environment/industrial_pipe_and_valve_ibl.ktx').then((texture: GPUTexture) => {
+      loadingPromises.push(gpu.textureLoader.fromUrl('./media/environment/industrial_pipe_and_valve_ibl.ktx').then((texture: GPUTexture) => {
         gpu.environmentTexture = texture;
-      });
+      }));
 
-      this.loadDecalLayoutFromUrl('./media/decalLayout.json');
+      loadingPromises.push(this.loadDecalLayoutFromUrl('./media/decalLayout.json'));
 
-      const controller = new FlyingController(gpu.canvas);
-      controller.speed = 0.004;
-      this.camera = new Actor(
-        new PerspectiveCamera({zNear: 0.01, zFar: 32}),
-        controller,
-      );
-      this.camera.transform.translation = [0.2, 1.6, 2];
-      this.stage.attachChild(this.camera);
+      await Promise.allSettled(loadingPromises);
+    }
 
-      this.decal = new Actor(
-        new Decal({}, 0),
-        Tag('placing-decal')
-      );
-      this.decal.transform.translation = [0, 0, 0];
-
+    #setupUIHandlers(gpu: WebGPURenderer) {
       this.decalRotationInput.addEventListener('input', (ev) => {
         // @ts-expect-error
         this.decalRotation = this.decalRotationInput.value * (Math.PI / 180);
@@ -260,8 +272,6 @@ const PaintballColors = [
         this.clearDecals();
       });
 
-      this.onEmojiPicked(this.config.emoji);
-
       this.gpu.canvas.addEventListener('mousemove', async (ev: MouseEvent) => {
         if (this.mode == InputMode.Erase) {
           this.getSelectedDecal(gpu,
@@ -269,8 +279,6 @@ const PaintballColors = [
             Math.floor(ev.clientY * devicePixelRatio));
         }
       });
-
-      this.#switchMode(InputMode.View);
     }
 
     async #switchMode(mode: InputMode) {
