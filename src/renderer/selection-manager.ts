@@ -37,7 +37,6 @@ export class SelectionManager {
     const module = gpu.device.createShaderModule({
       label: 'Decal Selection',
       code: `
-        //const selectCoord = vec2u(128u, 128u);
         var<immediate> selectCoord: vec2u;
 
         @group(0) @binding(0) var selectionTexture: texture_2d<u32>;
@@ -118,7 +117,6 @@ export class SelectionManager {
     computePass.setPipeline(this.selectionPipeline);
     computePass.setBindGroup(0, this.selectionBindGroup!);
 
-    // TODO: Use immediates to set the readback coords.
     this.immediateArray[0] = x;
     this.immediateArray[1] = y;
     // @ts-expect-error TypeScript defs for immediates not available yet.

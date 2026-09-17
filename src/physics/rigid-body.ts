@@ -37,6 +37,10 @@ export class RigidBody {
     return this.#rigidBody;
   }
 
+  get collider() {
+    return this.#colliders?.[0];
+  }
+
   clone() {
     return new RigidBody(this.desc, this.colliderDescs);
   }
