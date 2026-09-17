@@ -6,10 +6,10 @@ import { AttachmentLayout } from "./attachment-layout.ts";
 import { UnlitMaterial } from "../materials/unlit.ts";
 import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
-import { UnlitPipelineFactory } from "./pipelines/unlit.ts";
+import { UnlitPipelineArgs, UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
 import { SelectionManager } from "./selection-manager.ts";
-import { PBRPipelineFactory } from "./pipelines/pbr.ts";
+import { PBRPipelineArgs, PBRPipelineFactory } from "./pipelines/pbr.ts";
 import { PBRMaterial } from "../materials/pbr.ts";
 import { CameraManager } from "./camera-manager.ts";
 import { ClusterManager } from "./cluster-manager.ts";
@@ -303,17 +303,23 @@ export class WebGPURenderer {
         renderPass.setBindGroup(1, (materialGeometries.material as UnlitMaterial).materialBindGroup);
 
         for (let geometryInstances of materialGeometries.geometries.values()) {
+          const args: UnlitPipelineArgs = {
+            canDecal: materialGeometries.material.canDecal,
+            depthTest: materialGeometries.material.depthTest,
+            doubleSided: materialGeometries.material.doubleSided,
+            transparent: materialGeometries.material.transparent,
+            mirrored: false,
+          };
           if (geometryInstances.instances.length) {
             const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout,
-              { ...materialGeometries.material as UnlitMaterial, mirrored: false });
+              geometryInstances.geometry.layout, this.attachmentLayout, args);
             pipeline.use(renderPass);
             geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
           }
           if (geometryInstances.mirroredInstances.length) {
+            args.mirrored = true;
             const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout,
-              { ...materialGeometries.material as UnlitMaterial, mirrored: true });
+              geometryInstances.geometry.layout, this.attachmentLayout, args);
             pipeline.use(renderPass);
             geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
           }
@@ -322,17 +328,22 @@ export class WebGPURenderer {
         renderPass.setBindGroup(1, (materialGeometries.material as PBRMaterial).materialBindGroup);
 
         for (let geometryInstances of materialGeometries.geometries.values()) {
+          const args: PBRPipelineArgs = {
+            doubleSided: materialGeometries.material.doubleSided,
+            transparent: materialGeometries.material.transparent,
+            mirrored: false,
+          };
+
           if (geometryInstances.instances.length) {
             const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout,
-              { ...materialGeometries.material as PBRMaterial, mirrored: false });
+              geometryInstances.geometry.layout, this.attachmentLayout, args);
             pipeline.use(renderPass);
             geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
           }
           if (geometryInstances.mirroredInstances.length) {
+            args.mirrored = true;
             const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout,
-              { ...materialGeometries.material as PBRMaterial, mirrored: true });
+              geometryInstances.geometry.layout, this.attachmentLayout, args);
             pipeline.use(renderPass);
             geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
           }

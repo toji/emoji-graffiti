@@ -7,7 +7,7 @@ import { DecalFrameBindings, SRGBConversions } from "./common.ts";
 import { TILE_COUNT, TileFunctions } from "./clusters.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
 
-interface UnlitPipelineArgs {
+export interface UnlitPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
   mirrored: boolean,
