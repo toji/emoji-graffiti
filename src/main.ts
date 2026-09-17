@@ -1,6 +1,6 @@
 import { Stage } from './core/stage.ts';
 import { Actor, Tag } from './core/actor.ts';
-import { WebGPUApp, WebGPURenderer } from './renderer/webgpu-renderer.ts';
+import { WebGPURenderer } from './renderer/webgpu-renderer.ts';
 import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
 import { PerspectiveCamera } from './core/camera.ts';
@@ -12,14 +12,12 @@ import { AudioPlayer } from './audio-player.ts';
 import { Pane } from 'tweakpane';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { StagePhysics } from './physics/stage-physics.ts';
-import { RigidBody } from './physics/rigid-body.ts';
-import { StaticCollider } from './physics/static-collider.ts';
-import { Geometry } from './geometry/geometry.ts';
-import { BoxGeometry } from './geometry/descriptors/box.ts';
-import { PBRMaterial } from './materials/pbr.ts';
-import { Vec3, Vec4 } from 'gl-matrix';
+import { Vec4 } from 'gl-matrix';
 import { PhysicsDebugRenderer } from './physics/physics-debug-renderer.ts';
 import { QueryArgs } from './util/query-args.ts';
+import { WebGPUApp } from './renderer/webgpu-app.ts';
+import { RigidBody } from './physics/rigid-body.ts';
+import { PhysicsFPSController } from './controllers/physics-fps-controller.ts';
 
 enum InputMode {
   View,
@@ -98,7 +96,7 @@ const PaintballColors = [
 
       this.gltfLoader = new GltfLoader(gpu);
 
-      const controller = new FlyingController(gpu.canvas);
+      const controller = new PhysicsFPSController(gpu.canvas);
       controller.speed = 0.004;
       this.camera = new Actor(
         new PerspectiveCamera({zNear: 0.01, zFar: 32}),
@@ -126,6 +124,10 @@ const PaintballColors = [
         const world = new RAPIER.World(GRAVITY);
         this.physics = new StagePhysics(world);
         this.stage.add(this.physics);
+
+        const capsule = RAPIER.ColliderDesc.capsule(0.5, 0.2);
+        const desc = RAPIER.RigidBodyDesc.kinematicPositionBased();
+        this.camera.add(new RigidBody(desc, [capsule]));
       }));
 
       const actorFromGltf = (url: string): Actor => {

@@ -7,7 +7,7 @@ import { AttribLocation } from "../../geometry/geometry.ts";
 import { FrameBindings, SRGBConversions } from "./common.ts";
 import { PBRFunctions, SurfaceInfoStruct } from "./pbr-common.ts";
 
-interface PBRPipelineArgs {
+export interface PBRPipelineArgs {
   transparent: boolean,
   doubleSided: boolean,
   mirrored: boolean,
