@@ -9681,6 +9681,9 @@ var StaticCollider = class _StaticCollider {
       this.#colliders.push(collider);
     }
   }
+  get collider() {
+    return this.#colliders?.[0];
+  }
   clone() {
     return new _StaticCollider(this.colliderDescs);
   }
@@ -27057,78 +27060,6 @@ var WebGPUApp = class {
   }
 };
 
-// src/physics/rigid-body.ts
-var RigidBody = class _RigidBody {
-  constructor(desc, colliderDescs) {
-    this.desc = desc;
-    this.colliderDescs = colliderDescs;
-  }
-  desc;
-  colliderDescs;
-  static {
-    __name(this, "RigidBody");
-  }
-  #rigidBody;
-  #colliders;
-  #ensureRigidBody(actor) {
-    if (this.#rigidBody) {
-      return this.#rigidBody;
-    }
-    if (!actor.stage) {
-      return void 0;
-    }
-    const stagePhysics = actor.stage?.get(StagePhysics);
-    if (!stagePhysics) {
-      return void 0;
-    }
-    const translation = actor.transform.translation;
-    const rotation = actor.transform.rotation;
-    this.#rigidBody = stagePhysics.world.createRigidBody(this.desc);
-    this.#colliders = [];
-    for (const collider of this.colliderDescs) {
-      this.#colliders.push(stagePhysics.world.createCollider(collider, this.#rigidBody));
-    }
-    this.#rigidBody.setTranslation(translation, true);
-    this.#rigidBody.setRotation(rotation, true);
-    return this.#rigidBody;
-  }
-  get rigidBody() {
-    return this.#rigidBody;
-  }
-  get collider() {
-    return this.#colliders?.[0];
-  }
-  clone() {
-    return new _RigidBody(this.desc, this.colliderDescs);
-  }
-  addToStage(stage, actor) {
-    this.#ensureRigidBody(actor);
-  }
-  removeFromStage(stage, actor) {
-    if (!this.#rigidBody) {
-      return;
-    }
-    let stagePhysics = stage.get(StagePhysics);
-    if (!stagePhysics) {
-      return;
-    }
-    stagePhysics.world.removeRigidBody(this.#rigidBody);
-    this.#rigidBody = void 0;
-    this.#colliders = void 0;
-  }
-  static TickOrder = 1;
-  onTick(tickData, actor) {
-    let rigidBody = this.#ensureRigidBody(actor);
-    if (!rigidBody) {
-      return;
-    }
-    const translation = rigidBody.translation();
-    const rotation = rigidBody.rotation();
-    actor.transform.translation = [translation.x, translation.y, translation.z];
-    actor.transform.rotation = [rotation.x, rotation.y, rotation.z, rotation.w];
-  }
-};
-
 // src/controllers/controller-input.ts
 var ControllerInput = class {
   static {
@@ -27225,6 +27156,8 @@ var PhysicsFPSController = class extends ControllerInput {
   //-9.81;
   jumpVelocity = 0.3;
   #physicsController;
+  #collider;
+  #rigidBody;
   constructor(element) {
     super(element);
   }
@@ -27259,6 +27192,12 @@ var PhysicsFPSController = class extends ControllerInput {
       return void 0;
     }
     this.#physicsController = stagePhysics.world.createCharacterController(0.1);
+    this.#rigidBody = stagePhysics.world.createRigidBody(zg.RigidBodyDesc.kinematicPositionBased());
+    const playerHalfHeight = 0.75;
+    const capsule = zg.ColliderDesc.capsule(playerHalfHeight, 0.4);
+    this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
+    this.#collider.setTranslationWrtParent({ x: 0, y: -playerHalfHeight, z: 0 });
+    this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
   }
   addToStage(stage, actor) {
     this.#ensurePhysicsController(actor);
@@ -27280,14 +27219,8 @@ var PhysicsFPSController = class extends ControllerInput {
     if (!controller) {
       return;
     }
-    const rigidBody = actor.get(RigidBody);
-    if (!rigidBody) {
-      console.warn("PhysicsFPSController attached to an actor with no RigidBody");
-      return;
-    }
-    const collider = rigidBody?.collider;
-    if (!collider) {
-      console.warn("RigidBody has no active colliders");
+    if (!this.#rigidBody || !this.#collider) {
+      console.warn("PhysicsFPSController has no RigidBody or Collider");
       return;
     }
     if (!this.flying) {
@@ -27334,7 +27267,7 @@ var PhysicsFPSController = class extends ControllerInput {
       if (!this.flying) {
         tmpDir[1] += this.#yVelocity;
       }
-      controller.computeColliderMovement(collider, tmpDir);
+      controller.computeColliderMovement(this.#collider, tmpDir);
       const correctedMovement = controller.computedMovement();
       tmpDir[0] = correctedMovement.x;
       tmpDir[1] = correctedMovement.y;
@@ -27343,10 +27276,10 @@ var PhysicsFPSController = class extends ControllerInput {
       if (this.#onGround) {
         this.#yVelocity = 0;
       }
-      tmpDir.add(actor.transform.translation);
-      rigidBody.rigidBody.setTranslation(tmpDir, true);
+      actor.transform.translationRef.add(tmpDir);
+      this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
     }
-    rigidBody.rigidBody.setRotation(this.rotation, true);
+    actor.transform.rotation = this.rotation;
   }
 };
 
@@ -27409,20 +27342,17 @@ var PaintballColors = [
         this.#setupDebugMenu();
       }
       this.gltfLoader = new GltfLoader(gpu);
-      const playerHalfHeight = 0.75;
       const controller = new PhysicsFPSController(gpu.canvas);
       controller.speed = 4e-3;
-      this.player = new Actor(controller);
-      this.player.transform.translation = [0.2, 1.6, 2];
-      const capsule = zg.ColliderDesc.capsule(playerHalfHeight, 0.4);
-      const desc = zg.RigidBodyDesc.kinematicPositionBased();
-      this.player.add(new RigidBody(desc, [capsule]));
+      this.player = new Actor(
+        controller
+      );
+      this.player.transform.translation = [0.2, 2, 2];
+      this.stage.attachChild(this.player);
       this.camera = new Actor(
         new PerspectiveCamera({ zNear: 0.01, zFar: 32 })
       );
-      this.camera.transform.translation = [0, playerHalfHeight, 0];
       this.player.attachChild(this.camera);
-      this.stage.attachChild(this.player);
       this.decal = new Actor(
         Tag("placing-decal")
       );

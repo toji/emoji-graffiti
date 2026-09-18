@@ -97,24 +97,19 @@ const PaintballColors = [
 
       this.gltfLoader = new GltfLoader(gpu);
 
-      const playerHalfHeight = 0.75;
-
       const controller = new PhysicsFPSController(gpu.canvas);
       controller.speed = 0.004;
-      this.player = new Actor(controller);
-      this.player.transform.translation = [0.2, 1.6, 2];
-
-      const capsule = RAPIER.ColliderDesc.capsule(playerHalfHeight, 0.4);
-      const desc = RAPIER.RigidBodyDesc.kinematicPositionBased();
-      this.player.add(new RigidBody(desc, [capsule]));
+      this.player = new Actor(
+        controller,
+      );
+      this.player.transform.translation = [0.2, 2, 2];
+      this.stage.attachChild(this.player);
 
       this.camera = new Actor(
         new PerspectiveCamera({zNear: 0.01, zFar: 32}),
       );
-      this.camera.transform.translation = [0, playerHalfHeight, 0];
+      //this.camera.transform.translation = [0, 0, 2];
       this.player.attachChild(this.camera);
-
-      this.stage.attachChild(this.player);
 
       this.decal = new Actor(
         Tag('placing-decal')

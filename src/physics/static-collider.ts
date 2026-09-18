@@ -31,6 +31,10 @@ export class StaticCollider {
     }
   }
 
+  get collider() {
+    return this.#colliders?.[0];
+  }
+
   clone() {
     return new StaticCollider(this.colliderDescs);
   }

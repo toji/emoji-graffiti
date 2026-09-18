@@ -22,6 +22,8 @@ export class PhysicsFPSController extends ControllerInput {
   jumpVelocity = 0.3;
 
   #physicsController?: RAPIER.KinematicCharacterController;
+  #collider?: RAPIER.Collider;
+  #rigidBody?: RAPIER.RigidBody;
 
   constructor(element: HTMLElement) {
     super(element);
@@ -65,6 +67,13 @@ export class PhysicsFPSController extends ControllerInput {
     if (!stagePhysics) { return undefined; }
 
     this.#physicsController = stagePhysics.world.createCharacterController(0.1);
+    this.#rigidBody = stagePhysics.world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased());
+
+    const playerHalfHeight = 0.75;
+    const capsule = RAPIER.ColliderDesc.capsule(playerHalfHeight, 0.4);
+    this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
+    this.#collider.setTranslationWrtParent({x: 0, y: -playerHalfHeight, z: 0});
+    this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
   }
 
   addToStage(stage: Stage, actor: Actor) {
@@ -86,15 +95,8 @@ export class PhysicsFPSController extends ControllerInput {
     let controller = this.#ensurePhysicsController(actor);
     if (!controller) { return; }
 
-    const rigidBody = actor.get(RigidBody);
-    if (!rigidBody) {
-      console.warn('PhysicsFPSController attached to an actor with no RigidBody');
-      return;
-    }
-
-    const collider = rigidBody?.collider;
-    if (!collider) {
-      console.warn('RigidBody has no active colliders');
+    if (!this.#rigidBody || !this.#collider) {
+      console.warn('PhysicsFPSController has no RigidBody or Collider');
       return;
     }
 
@@ -151,7 +153,7 @@ export class PhysicsFPSController extends ControllerInput {
         tmpDir[1] += this.#yVelocity;
       }
 
-      controller.computeColliderMovement(collider, tmpDir);
+      controller.computeColliderMovement(this.#collider, tmpDir);
       const correctedMovement = controller.computedMovement();
       tmpDir[0] = correctedMovement.x;
       tmpDir[1] = correctedMovement.y;
@@ -162,11 +164,13 @@ export class PhysicsFPSController extends ControllerInput {
         this.#yVelocity = 0;
       }
 
-      tmpDir.add(actor.transform.translation);
+      actor.transform.translationRef.add(tmpDir);
 
-      rigidBody.rigidBody!.setTranslation(tmpDir, true);
+      this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
+
+      //tmpDir.add(actor.transform.translation);
     }
 
-    rigidBody.rigidBody!.setRotation(this.rotation, true);
+    actor.transform.rotation = this.rotation;
   }
 }
