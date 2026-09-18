@@ -27210,6 +27210,7 @@ var ControllerInput = class {
 
 // src/controllers/physics-fps-controller.ts
 var tmpDir = new Vec3();
+var tmpQuat = new Quat();
 var PhysicsFPSController = class extends ControllerInput {
   static {
     __name(this, "PhysicsFPSController");
@@ -27217,6 +27218,12 @@ var PhysicsFPSController = class extends ControllerInput {
   speed = 0.01;
   angles = new Vec2();
   rotation = new Quat();
+  flying = false;
+  #onGround = false;
+  #yVelocity = 0;
+  gravity = -2;
+  //-9.81;
+  jumpVelocity = 0.5;
   #physicsController;
   constructor(element) {
     super(element);
@@ -27283,6 +27290,11 @@ var PhysicsFPSController = class extends ControllerInput {
       console.warn("RigidBody has no active colliders");
       return;
     }
+    if (!this.flying) {
+      this.#yVelocity += this.gravity / 1e3 * tickData.delta;
+    } else {
+      this.#yVelocity = 0;
+    }
     Vec3.set(tmpDir, 0, 0, 0);
     if (this.keyPressed("KeyW")) {
       tmpDir[2] -= 1;
@@ -27297,24 +27309,44 @@ var PhysicsFPSController = class extends ControllerInput {
       tmpDir[0] += 1;
     }
     if (this.keyPressed("Space")) {
-      tmpDir[1] += 1;
+      if (this.flying) {
+        tmpDir[1] += 1;
+      } else if (this.#onGround) {
+        this.#yVelocity = this.jumpVelocity;
+      }
     }
     if (this.keyPressed("ShiftLeft")) {
-      tmpDir[1] -= 1;
+      if (this.flying) {
+        tmpDir[1] -= 1;
+      } else {
+      }
     }
-    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0) {
-      Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
+    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0 || this.#yVelocity !== 0) {
+      if (this.flying) {
+        Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
+      } else {
+        tmpQuat.identity();
+        tmpQuat.rotateY(-this.angles[1]);
+        Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
+      }
       tmpDir.normalize();
       tmpDir.scale(this.speed * tickData.delta);
+      if (!this.flying) {
+        tmpDir[1] += this.#yVelocity;
+      }
       controller.computeColliderMovement(collider, tmpDir);
       const correctedMovement = controller.computedMovement();
       tmpDir[0] = correctedMovement.x;
       tmpDir[1] = correctedMovement.y;
       tmpDir[2] = correctedMovement.z;
+      this.#onGround = controller.computedGrounded();
+      if (this.#onGround) {
+        this.#yVelocity = 0;
+      }
       tmpDir.add(actor.transform.translation);
-      rigidBody.rigidBody.setTranslation(tmpDir);
+      rigidBody.rigidBody.setTranslation(tmpDir, true);
     }
-    rigidBody.rigidBody.setRotation(this.rotation);
+    rigidBody.rigidBody.setRotation(this.rotation, true);
   }
 };
 
