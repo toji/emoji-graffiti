@@ -18,8 +18,8 @@ export class PhysicsFPSController extends ControllerInput {
   #onGround = false;
   #yVelocity = 0;
 
-  gravity = -2; //-9.81;
-  jumpVelocity = 0.5;
+  gravity = -1; //-9.81;
+  jumpVelocity = 0.3;
 
   #physicsController?: RAPIER.KinematicCharacterController;
 
@@ -64,7 +64,7 @@ export class PhysicsFPSController extends ControllerInput {
     const stagePhysics = actor.stage?.get(StagePhysics);
     if (!stagePhysics) { return undefined; }
 
-    this.#physicsController = stagePhysics.world.createCharacterController(0.2);
+    this.#physicsController = stagePhysics.world.createCharacterController(0.1);
   }
 
   addToStage(stage: Stage, actor: Actor) {

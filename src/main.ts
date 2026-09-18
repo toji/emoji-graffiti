@@ -56,6 +56,7 @@ const PaintballColors = [
 
     stage: Stage = new Stage();
     camera: Actor;
+    player: Actor;
     decal: Actor;
     spraycan!: Actor;
     sponge!: Actor;
@@ -96,14 +97,24 @@ const PaintballColors = [
 
       this.gltfLoader = new GltfLoader(gpu);
 
+      const playerHalfHeight = 0.75;
+
       const controller = new PhysicsFPSController(gpu.canvas);
       controller.speed = 0.004;
+      this.player = new Actor(controller);
+      this.player.transform.translation = [0.2, 1.6, 2];
+
+      const capsule = RAPIER.ColliderDesc.capsule(playerHalfHeight, 0.4);
+      const desc = RAPIER.RigidBodyDesc.kinematicPositionBased();
+      this.player.add(new RigidBody(desc, [capsule]));
+
       this.camera = new Actor(
         new PerspectiveCamera({zNear: 0.01, zFar: 32}),
-        controller,
       );
-      this.camera.transform.translation = [0.2, 1.6, 2];
-      this.stage.attachChild(this.camera);
+      this.camera.transform.translation = [0, playerHalfHeight, 0];
+      this.player.attachChild(this.camera);
+
+      this.stage.attachChild(this.player);
 
       this.decal = new Actor(
         Tag('placing-decal')
@@ -124,10 +135,6 @@ const PaintballColors = [
         const world = new RAPIER.World(GRAVITY);
         this.physics = new StagePhysics(world);
         this.stage.add(this.physics);
-
-        const capsule = RAPIER.ColliderDesc.capsule(0.5, 0.2);
-        const desc = RAPIER.RigidBodyDesc.kinematicPositionBased();
-        this.camera.add(new RigidBody(desc, [capsule]));
       }));
 
       const actorFromGltf = (url: string): Actor => {
@@ -222,14 +229,14 @@ const PaintballColors = [
           let maxToi = 32.0;
           let solid = false;
 
-          let hit = this.physics!.world.castRay(ray, maxToi, solid);
+          let hit = this.physics!.world.castRay(ray, maxToi, solid, RAPIER.QueryFilterFlags.EXCLUDE_KINEMATIC);
           if (hit != null) {
               let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
 
               const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
               decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
               const actor = new Actor(decal);
-              actor.transform = this.camera.transform;
+              actor.transform = this.camera.worldTransform;
               actor.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
               actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
               this.stage.attachChild(actor);
@@ -389,6 +396,10 @@ const PaintballColors = [
           this.stage.remove(PhysicsDebugRenderer);
         }
       });
+
+      if (this.config.physicsDebugRendering) {
+        this.stage.add(new PhysicsDebugRenderer(this.gpu));
+      }
     }
 
     clearDecals() {
