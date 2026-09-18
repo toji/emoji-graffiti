@@ -8,11 +8,18 @@ import { StaticCollider } from '../physics/static-collider.ts';
 import { RigidBody } from '../physics/rigid-body.ts';
 
 const tmpDir = new Vec3();
+const tmpQuat = new Quat();
 
 export class PhysicsFPSController extends ControllerInput {
   speed = 0.01;
   angles = new Vec2();
   rotation = new Quat();
+  flying = false;
+  #onGround = false;
+  #yVelocity = 0;
+
+  gravity = -2; //-9.81;
+  jumpVelocity = 0.5;
 
   #physicsController?: RAPIER.KinematicCharacterController;
 
@@ -91,6 +98,12 @@ export class PhysicsFPSController extends ControllerInput {
       return;
     }
 
+    if (!this.flying) {
+      this.#yVelocity += ((this.gravity / 1000) * tickData.delta);
+    } else {
+      this.#yVelocity = 0;
+    }
+
     // Handle keyboard state.
     Vec3.set(tmpDir, 0, 0, 0);
     if (this.keyPressed('KeyW')) {
@@ -106,29 +119,54 @@ export class PhysicsFPSController extends ControllerInput {
       tmpDir[0] += 1.0;
     }
     if (this.keyPressed('Space')) {
-      tmpDir[1] += 1.0;
+      if (this.flying) {
+        tmpDir[1] += 1.0;
+      } else if (this.#onGround) {
+        this.#yVelocity = this.jumpVelocity;
+      }
     }
     if (this.keyPressed('ShiftLeft')) {
-      tmpDir[1] -= 1.0;
+      if (this.flying) {
+        tmpDir[1] -= 1.0;
+      } else {
+        // TODO: Crouch? Run?
+      }
     }
 
-    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0) {
-      Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
+    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0 || this.#yVelocity !== 0) {
+      if (this.flying) {
+        Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
+      } else {
+        // When not flying only consider horizontal rotation for movement.
+        tmpQuat.identity();
+        tmpQuat.rotateY(-this.angles[1]);
+        Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
+      }
+
       tmpDir.normalize();
       tmpDir.scale(this.speed * tickData.delta);
 
+      // Emulate gravity, since the Rapier KinematicCharacterController effectively disables it.
+      if (!this.flying) {
+        tmpDir[1] += this.#yVelocity;
+      }
+
       controller.computeColliderMovement(collider, tmpDir);
       const correctedMovement = controller.computedMovement();
-
       tmpDir[0] = correctedMovement.x;
       tmpDir[1] = correctedMovement.y;
       tmpDir[2] = correctedMovement.z;
 
+      this.#onGround = controller.computedGrounded();
+      if (this.#onGround) {
+        this.#yVelocity = 0;
+      }
+
       tmpDir.add(actor.transform.translation);
 
-      rigidBody.rigidBody.setTranslation(tmpDir);
+      rigidBody.rigidBody!.setTranslation(tmpDir, true);
     }
 
-    rigidBody.rigidBody.setRotation(this.rotation);
+    rigidBody.rigidBody!.setRotation(this.rotation, true);
   }
 }
