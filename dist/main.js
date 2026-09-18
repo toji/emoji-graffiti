@@ -27221,9 +27221,9 @@ var PhysicsFPSController = class extends ControllerInput {
   flying = false;
   #onGround = false;
   #yVelocity = 0;
-  gravity = -2;
+  gravity = -1;
   //-9.81;
-  jumpVelocity = 0.5;
+  jumpVelocity = 0.3;
   #physicsController;
   constructor(element) {
     super(element);
@@ -27258,7 +27258,7 @@ var PhysicsFPSController = class extends ControllerInput {
     if (!stagePhysics) {
       return void 0;
     }
-    this.#physicsController = stagePhysics.world.createCharacterController(0.2);
+    this.#physicsController = stagePhysics.world.createCharacterController(0.1);
   }
   addToStage(stage, actor) {
     this.#ensurePhysicsController(actor);
@@ -27376,6 +27376,7 @@ var PaintballColors = [
     crosshairs = document.querySelector(".crosshairs");
     stage = new Stage();
     camera;
+    player;
     decal;
     spraycan;
     sponge;
@@ -27408,14 +27409,20 @@ var PaintballColors = [
         this.#setupDebugMenu();
       }
       this.gltfLoader = new GltfLoader(gpu);
+      const playerHalfHeight = 0.75;
       const controller = new PhysicsFPSController(gpu.canvas);
       controller.speed = 4e-3;
+      this.player = new Actor(controller);
+      this.player.transform.translation = [0.2, 1.6, 2];
+      const capsule = zg.ColliderDesc.capsule(playerHalfHeight, 0.4);
+      const desc = zg.RigidBodyDesc.kinematicPositionBased();
+      this.player.add(new RigidBody(desc, [capsule]));
       this.camera = new Actor(
-        new PerspectiveCamera({ zNear: 0.01, zFar: 32 }),
-        controller
+        new PerspectiveCamera({ zNear: 0.01, zFar: 32 })
       );
-      this.camera.transform.translation = [0.2, 1.6, 2];
-      this.stage.attachChild(this.camera);
+      this.camera.transform.translation = [0, playerHalfHeight, 0];
+      this.player.attachChild(this.camera);
+      this.stage.attachChild(this.player);
       this.decal = new Actor(
         Tag("placing-decal")
       );
@@ -27430,9 +27437,6 @@ var PaintballColors = [
         const world = new zg.World(GRAVITY);
         this.physics = new StagePhysics(world);
         this.stage.add(this.physics);
-        const capsule = zg.ColliderDesc.capsule(0.5, 0.2);
-        const desc = zg.RigidBodyDesc.kinematicPositionBased();
-        this.camera.add(new RigidBody(desc, [capsule]));
       }));
       const actorFromGltf = /* @__PURE__ */ __name((url) => {
         const actor = new Actor();
@@ -27501,13 +27505,13 @@ var PaintballColors = [
           const ray = new zg.Ray(this.camera.worldTransform.translation, forward);
           let maxToi = 32;
           let solid = false;
-          let hit = this.physics.world.castRay(ray, maxToi, solid);
+          let hit = this.physics.world.castRay(ray, maxToi, solid, zg.QueryFilterFlags.EXCLUDE_KINEMATIC);
           if (hit != null) {
             let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
             const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
             decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
             const actor = new Actor(decal);
-            actor.transform = this.camera.transform;
+            actor.transform = this.camera.worldTransform;
             actor.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
             actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
             this.stage.attachChild(actor);
@@ -27645,6 +27649,9 @@ var PaintballColors = [
           this.stage.remove(PhysicsDebugRenderer);
         }
       });
+      if (this.config.physicsDebugRendering) {
+        this.stage.add(new PhysicsDebugRenderer(this.gpu));
+      }
     }
     clearDecals() {
       this.stage.query(Decal).forEach((actor) => {
