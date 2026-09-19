@@ -64,6 +64,7 @@ const PaintballColors = [
     paintballDecals: Decal[] = [];
 
     physics?: StagePhysics;
+    controller: PhysicsFPSController;
 
     gltfLoader: GltfLoader;
 
@@ -89,6 +90,21 @@ const PaintballColors = [
       { offset: 6.7, duration: 0.5},
     ]);
 
+    /*footstepClips = this.audioPlayer.loadClip('./media/sounds/footsteps.mp3').subClips([
+      { offset: 0.0, duration: 0.75},
+      { offset: 0.75, duration: 0.75},
+      { offset: 1.25, duration: 0.5},
+      { offset: 1.75, duration: 0.5},
+      { offset: 2.25, duration: 0.5},
+      { offset: 2.75, duration: 0.5},
+      { offset: 3.25, duration: 0.5},
+      { offset: 3.75, duration: 0.5},
+      { offset: 4.25, duration: 0.5},
+      { offset: 4.75, duration: 0.5},
+      { offset: 5.25, duration: 0.5},
+    ]);*/
+    playingFootstep = false;
+
     constructor(gpu: WebGPURenderer) {
       super(gpu);
       this.config = Config.Create(AppConfig);
@@ -97,10 +113,10 @@ const PaintballColors = [
 
       this.gltfLoader = new GltfLoader(gpu);
 
-      const controller = new PhysicsFPSController(gpu.canvas);
-      controller.speed = 0.004;
+      this.controller = new PhysicsFPSController(gpu.canvas);
+      this.controller.speed = 0.004;
       this.player = new Actor(
-        controller,
+        this.controller,
       );
       this.player.transform.translation = [0.2, 2, 2];
       this.stage.attachChild(this.player);
@@ -184,7 +200,7 @@ const PaintballColors = [
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
-            this.audioPlayer.play(this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)]);
+            this.audioPlayer.play(this.sprayClips.random());
 
             this.decal.remove(Tag('placing-decal'));
             this.decal.transform = this.decal.worldTransform;
@@ -206,7 +222,7 @@ const PaintballColors = [
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor: Actor) => {
             if (decalIndex == this.lastSelectedDecal) {
-              this.audioPlayer.play(this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)]);
+              this.audioPlayer.play(this.eraseClips.random());
 
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
@@ -216,7 +232,7 @@ const PaintballColors = [
             decalIndex++;
           });
         } else if (this.mode == InputMode.Shoot) {
-          this.audioPlayer.play(this.paintballClips[Math.floor(Math.random() * this.paintballClips.length)]);
+          this.audioPlayer.play(this.paintballClips.random());
 
           const forward = new Vec4(0, 0, -1, 0);
           Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
@@ -509,6 +525,14 @@ const PaintballColors = [
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
       this.stage.tick(timestamp);
+
+      /*if (this.controller.walking && !this.playingFootstep) {
+        this.playingFootstep = true;
+        this.audioPlayer.play(this.footstepClips.random()).then(() => {
+          this.playingFootstep = false;
+        });
+      }*/
+
       gpu.render(this.stage, this.camera, timestamp);
     }
   }, {

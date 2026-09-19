@@ -25,6 +25,8 @@ export class PhysicsFPSController extends ControllerInput {
   #collider?: RAPIER.Collider;
   #rigidBody?: RAPIER.RigidBody;
 
+  #walking: boolean = false;
+
   constructor(element: HTMLElement) {
     super(element);
   }
@@ -56,6 +58,10 @@ export class PhysicsFPSController extends ControllerInput {
       Quat.rotateY(q, q, -this.angles[1]);
       Quat.rotateX(q, q, -this.angles[0]);
     }
+  }
+
+  get walking() {
+    return this.#walking;
   }
 
   #ensurePhysicsController(actor: Actor): RAPIER.KinematicCharacterController | undefined {
@@ -101,7 +107,7 @@ export class PhysicsFPSController extends ControllerInput {
     }
 
     if (!this.flying) {
-      this.#yVelocity += ((this.gravity / 1000) * tickData.delta);
+      this.#yVelocity += this.#onGround ? 0 :((this.gravity / 1000) * tickData.delta);
     } else {
       this.#yVelocity = 0;
     }
@@ -161,14 +167,15 @@ export class PhysicsFPSController extends ControllerInput {
 
       this.#onGround = controller.computedGrounded();
       if (this.#onGround) {
+        this.#walking = correctedMovement.x !== 0 || correctedMovement.z !== 0;
         this.#yVelocity = 0;
       }
 
       actor.transform.translationRef.add(tmpDir);
 
       this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
-
-      //tmpDir.add(actor.transform.translation);
+    } else {
+      this.#walking = false;
     }
 
     actor.transform.rotation = this.rotation;

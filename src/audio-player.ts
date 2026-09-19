@@ -9,12 +9,27 @@ export class AudioClip {
     this.duration = duration;
   }
 
-  subClips(clips: {offset: number, duration?: number}[]): AudioClip[] {
+  subClips(clips: {offset: number, duration?: number}[]): AudioClipAtlas {
     const audioClips: AudioClip[] = [];
     for (const clip of clips) {
       audioClips.push(new AudioClip(this.bufferPromise, this.offset + clip.offset, clip.duration));
     }
-    return audioClips;
+    return new AudioClipAtlas(audioClips);
+  }
+}
+
+export class AudioClipAtlas {
+  clips: AudioClip[];
+  constructor(audioClips: AudioClip[]) {
+    this.clips = audioClips;
+  }
+
+  get length() {
+    return this.clips.length;
+  }
+
+  random() {
+    return this.clips[Math.floor(Math.random() * this.clips.length)];
   }
 }
 
@@ -32,10 +47,14 @@ export class AudioPlayer {
     return new AudioClip(buffer);
   }
 
-  async play(clip: AudioClip) {
+  async play(clip: AudioClip): Promise<void> {
     const source = this.#context.createBufferSource();
     source.buffer = await clip.bufferPromise;
     source.connect(this.#context.destination);
+    const promise = new Promise<void>((resolve) => {
+      source.addEventListener('ended', () => resolve());
+    });
     source.start(0, clip.offset, clip.duration);
+    return promise;
   }
 }
