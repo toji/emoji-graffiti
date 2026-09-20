@@ -4,6 +4,7 @@ export class AppConfig extends Config {
   emoji: any;
   sprayCooldown = 500;
   physicsDebugRendering = false;
+  flying = false;
 
   static SetDefaults(isMobile: boolean): AppConfig {
     const defaults: AppConfig = isMobile ? new MobileAppConfig() : new AppConfig();

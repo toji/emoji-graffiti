@@ -641,7 +641,7 @@ export class GltfState {
         materialPromises.push(this.getMaterial(primitive.material!));
       }
 
-      const geometries = Geometry.CreateBatch(this.gpu.device, await Promise.all(descriptorPromises));
+      const geometries = Geometry.CreateBatch(this.gpu, await Promise.all(descriptorPromises));
       const materials = await Promise.all(materialPromises);
 
       return {
