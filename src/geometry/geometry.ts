@@ -121,6 +121,11 @@ export interface GeometryInit {
   label?: string
 }
 
+// Used rather than the device directly so that higher-level renderer classes can be passed.
+export interface WebGPUProvider {
+  device: GPUDevice;
+}
+
 export class Geometry implements GeometryInit {
   static SharedComponent = true;
   static #nextId = 1;
@@ -140,14 +145,14 @@ export class Geometry implements GeometryInit {
    * @param device - The GPUDevice to create the Geometry with
    * @param descriptor - Description of the Geometry to create
    */
-  constructor(device: GPUDevice, descriptor: GeometryDescriptor | GeometryInit) {
+  constructor(gpu: WebGPUProvider, descriptor: GeometryDescriptor | GeometryInit) {
     this.#id = Geometry.#nextId++;
 
     let init: GeometryInit;
     if ('layout' in descriptor) {
       init = descriptor as GeometryInit;
     } else {
-      init = Geometry.#CreateBatchInit(device, [descriptor])[0];
+      init = Geometry.#CreateBatchInit(gpu.device, [descriptor])[0];
     }
 
     this.layout = init.layout;
@@ -162,12 +167,12 @@ export class Geometry implements GeometryInit {
   /**
    * Creates multiple geometries as part of a single batch, enabling them to share GPUBuffers.
    */
-  static CreateBatch(device: GPUDevice, descriptors: GeometryDescriptor[]): Geometry[] {
-    const inits = Geometry.#CreateBatchInit(device, descriptors);
+  static CreateBatch(gpu: WebGPUProvider, descriptors: GeometryDescriptor[]): Geometry[] {
+    const inits = Geometry.#CreateBatchInit(gpu.device, descriptors);
 
     const geometries = [];
     for (const init of inits) {
-      geometries.push(new Geometry(device, init));
+      geometries.push(new Geometry(gpu, init));
     }
     return geometries;
   }

@@ -31,7 +31,7 @@ export class PhysicsDebugRenderer {
     if (!stagePhysics) { return; }
 
     const debugBuffers = stagePhysics.world.debugRender();
-    this.debugRenderGeometry = new Geometry(this.gpu.device, {
+    this.debugRenderGeometry = new Geometry(this.gpu, {
       label: 'PhysicsDebugRenderer Geometry',
       position: debugBuffers.vertices,
       color: debugBuffers.colors,

@@ -38,12 +38,11 @@ export class EmojiRenderer {
     const width = this.canvas.width = texture.width;
     const height = this.canvas.height = texture.height;
 
-    this.ctx.clearRect(0, 0, width, height);
-
     // Blit the emoji to the 2D canvas
     if (emoji.unicode) {
       // Wait to ensure the emoji font is loaded.
       await this.emojiFontLoaded;
+      this.ctx.clearRect(0, 0, width, height);
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
@@ -53,6 +52,7 @@ export class EmojiRenderer {
       const aspect = img.naturalWidth / img.naturalHeight;
       const imgWidth = (aspect > 1 ? width : width * aspect);
       const imgHeight = (aspect > 1 ? height / aspect : height);
+      this.ctx.clearRect(0, 0, width, height);
       this.ctx.drawImage(img, (width - imgWidth) * 0.5, (height - imgHeight) * 0.5, imgWidth, imgHeight);
     }
 

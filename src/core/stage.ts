@@ -117,14 +117,19 @@ export class StageData {
     }
   }
 
-  addActorComponent(actor: Actor, component: any) {
-    const componentType = component.constructor;
+  #getComponentSet(componentType: ComponentType) {
     let componentSet = this.components.get(componentType);
     if (!componentSet) {
       componentSet = { actors: new Set(), queries: [] };
       this.components.set(componentType, componentSet);
       this.#onNewCompontentType(componentType);
     }
+    return componentSet;
+  }
+
+  addActorComponent(actor: Actor, component: any) {
+    const componentType = component.constructor;
+    const componentSet = this.#getComponentSet(componentType);
     // Ensure that non-shared components are only attached to one actor at a time.
     if ((componentType as any).SharedComponent !== true) {
       const oldActor = this.unsharedComponentActors.get(component);
@@ -192,15 +197,7 @@ export class StageData {
 
   watchComponents(query: StageQuery, componentTypes: any[]) {
     for (const componentType of componentTypes) {
-      let componentSet = this.components.get(componentType);
-      if (componentSet === undefined) {
-        componentSet = {
-          actors: new Set(),
-          queries: [],
-        };
-        this.components.set(componentType, componentSet);
-      }
-      componentSet.queries.push(query);
+      this.#getComponentSet(componentType).queries.push(query);
     }
   }
 

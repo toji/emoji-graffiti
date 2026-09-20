@@ -7555,14 +7555,18 @@ var StageData = class {
       this.tickTypes = this.tickTypes.sort((a2, b2) => a2.order - b2.order);
     }
   }
-  addActorComponent(actor, component) {
-    const componentType = component.constructor;
+  #getComponentSet(componentType) {
     let componentSet = this.components.get(componentType);
     if (!componentSet) {
       componentSet = { actors: /* @__PURE__ */ new Set(), queries: [] };
       this.components.set(componentType, componentSet);
       this.#onNewCompontentType(componentType);
     }
+    return componentSet;
+  }
+  addActorComponent(actor, component) {
+    const componentType = component.constructor;
+    const componentSet = this.#getComponentSet(componentType);
     if (componentType.SharedComponent !== true) {
       const oldActor = this.unsharedComponentActors.get(component);
       if (oldActor && oldActor != actor) {
@@ -7621,15 +7625,7 @@ var StageData = class {
   }
   watchComponents(query, componentTypes) {
     for (const componentType of componentTypes) {
-      let componentSet = this.components.get(componentType);
-      if (componentSet === void 0) {
-        componentSet = {
-          actors: /* @__PURE__ */ new Set(),
-          queries: []
-        };
-        this.components.set(componentType, componentSet);
-      }
-      componentSet.queries.push(query);
+      this.#getComponentSet(componentType).queries.push(query);
     }
   }
   // Clear the stage of all actors
@@ -7754,271 +7750,6 @@ var StageQuery = class _StageQuery {
     }
     return count;
   }
-};
-
-// src/util/config.ts
-var UPDATED_CONFIGS = /* @__PURE__ */ new Set();
-var CONFIG_UPDATE_INTERVAL = 10 * 1e3;
-var CONFIG_HANDLER = {
-  set(obj, key, value) {
-    const changed = obj[key] !== value;
-    const ret = Reflect.set(...arguments);
-    if (changed) {
-      obj.fireChangedEvent(key, value);
-    }
-    return ret;
-  },
-  get: /* @__PURE__ */ __name(function(obj, key) {
-    const result = Reflect.get(obj, key);
-    if (typeof result === "function")
-      return result.bind(obj);
-    return result;
-  }, "get")
-};
-var configStringify = /* @__PURE__ */ __name((key, value) => {
-  return value instanceof Object && !(value instanceof Array) ? Object.keys(value).reduce((out, key2) => {
-    if (key2 != "configRevision") {
-      out[key2] = value[key2];
-    }
-    return out;
-  }, {}) : value;
-}, "configStringify");
-function SaveAllConfigs() {
-  if (UPDATED_CONFIGS.size) {
-    for (const config of UPDATED_CONFIGS) {
-      config.saveToStorage();
-    }
-    UPDATED_CONFIGS.clear();
-  }
-}
-__name(SaveAllConfigs, "SaveAllConfigs");
-function isMobileBrowser() {
-  if ("mobile" in navigator.userAgentData) {
-    return navigator.userAgentData.mobile;
-  }
-  let check = false;
-  (function(a2) {
-    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a2) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a2.substr(0, 4))) check = true;
-  })(navigator.userAgent || navigator.vendor || window.opera);
-  return check;
-}
-__name(isMobileBrowser, "isMobileBrowser");
-var CONFIG_DEFAULTS = /* @__PURE__ */ new Map();
-var updateInterval;
-var Config = class extends EventTarget {
-  static {
-    __name(this, "Config");
-  }
-  #loading = false;
-  #nextRevision = 1;
-  #revision = this.#nextRevision++;
-  #configRevisions = /* @__PURE__ */ new Map();
-  constructor() {
-    super();
-  }
-  static Create(configType, args = null) {
-    const config = new configType();
-    config.#loading = true;
-    let defaults = CONFIG_DEFAULTS.get(config.configStorageName);
-    if (!defaults) {
-      defaults = new configType();
-      if (Object.hasOwn(config.constructor, "SetDefaults")) {
-        const deviceDefaults = config.constructor.SetDefaults(isMobileBrowser(), args);
-        defaults.#setConfigProperties(deviceDefaults);
-      }
-      CONFIG_DEFAULTS.set(config.configStorageName, defaults);
-    }
-    config.#setConfigProperties(defaults);
-    if (config.configStorageName) {
-      config.loadFromStorage();
-      config.updateFromQueryArgs();
-    }
-    if (!updateInterval) {
-      updateInterval = setInterval(SaveAllConfigs, CONFIG_UPDATE_INTERVAL);
-    }
-    config.#loading = false;
-    return new Proxy(config, CONFIG_HANDLER);
-  }
-  get configStorageName() {
-    return this.constructor.name;
-  }
-  fireChangedEvent(property, value) {
-    if (this.#loading) {
-      return;
-    }
-    this.#updateRevision();
-    if (this.configStorageName) {
-      UPDATED_CONFIGS.add(this);
-    }
-    let event = new CustomEvent("changed", {
-      cancelable: false,
-      bubbles: true,
-      detail: {
-        property,
-        value
-      }
-    });
-    this.dispatchEvent(event);
-  }
-  #updateRevision() {
-    const key = JSON.stringify(this, configStringify);
-    const cachedRevision = this.#configRevisions.get(key);
-    if (cachedRevision) {
-      this.#revision = cachedRevision;
-    } else {
-      this.#revision = this.#nextRevision++;
-      this.#configRevisions.set(key, this.#revision);
-    }
-  }
-  get configRevision() {
-    return this.#revision;
-  }
-  #getConfigProperties() {
-    let defaults = CONFIG_DEFAULTS.get(this.configStorageName);
-    return Object.keys(defaults).reduce((out, key) => {
-      if (!defaults || defaults[key] !== this[key]) {
-        out[key] = this[key];
-      }
-      return out;
-    }, {});
-  }
-  #setConfigProperties(obj) {
-    if (!obj) {
-      return;
-    }
-    for (const key of Object.keys(obj)) {
-      if (Object.hasOwn(this, key)) {
-        if (this[key] == key) {
-          continue;
-        }
-        this[key] = obj[key];
-        this.fireChangedEvent(key, obj[key]);
-      } else {
-        console.warn(`Attempting to set unknown config property: ${key}.`);
-      }
-    }
-  }
-  saveToStorage() {
-    let storageName = this.configStorageName;
-    if (!storageName) {
-      throw new Error("Config does not specify a storage name");
-    }
-    console.info(`Saving updates to Config: ${storageName}, revision ${this.configRevision}`);
-    localStorage.setItem(storageName, JSON.stringify(this.#getConfigProperties()));
-  }
-  loadFromStorage() {
-    let storageName = this.configStorageName;
-    if (!storageName) {
-      throw new Error("Config does not specify a storage name");
-    }
-    let json = localStorage.getItem(storageName);
-    if (!json) {
-      return;
-    }
-    let obj;
-    try {
-      obj = JSON.parse(json);
-    } catch (err) {
-      console.warn(`Config loaded from localStorage was not valid json. ${err.message}`);
-      return;
-    }
-    this.#setConfigProperties(obj);
-  }
-  async loadFromUrl(url) {
-    const response = await fetch(url);
-    let obj;
-    try {
-      obj = await response.json();
-    } catch (err) {
-      console.warn(`Config loaded from ${url} was not valid json. ${err.message}`);
-      return;
-    }
-    this.#setConfigProperties(obj);
-  }
-  // Updates the config to use values given in the URL query args if they match
-  updateFromQueryArgs() {
-    const searchParams2 = new URLSearchParams(window.location.search);
-    searchParams2.forEach((value, key) => {
-      if (Object.hasOwn(this, key)) {
-        let parsedValue = void 0;
-        if (typeof this[key] === "string") {
-          parsedValue = value;
-        } else if (typeof this[key] === "number") {
-          parsedValue = parseFloat(value);
-        } else if (typeof this[key] === "boolean") {
-          parsedValue = parseInt(value, 10) != 0;
-        }
-        if (parsedValue !== void 0 && this[key] != parsedValue) {
-          this[key] = parsedValue;
-          this.fireChangedEvent(key, parsedValue);
-        }
-      }
-    });
-  }
-  resetToDefaults() {
-    let storageName = this.configStorageName;
-    if (!storageName) {
-      throw new Error("Config does not specify a storage name");
-    }
-    this.#setConfigProperties(CONFIG_DEFAULTS.get(storageName));
-  }
-  watch(...properties) {
-    return new ConfigWatcher(this, ...properties);
-  }
-};
-var ConfigWatcher = class extends Config {
-  static {
-    __name(this, "ConfigWatcher");
-  }
-  constructor(config, ...properties) {
-    super();
-    if (config) {
-      this.addWatch(config, ...properties);
-    }
-  }
-  get configStorageName() {
-    return null;
-  }
-  addWatch(config, ...properties) {
-    for (const property of properties) {
-      if (Object.hasOwn(this, property)) {
-        throw new Error(`ConfigWatcher is already watching a property named ${property}`);
-      }
-      this[property] = config[property];
-    }
-    config.addEventListener("changed", (event) => {
-      const detail = event.detail;
-      if (Object.hasOwn(this, detail.property)) {
-        this[detail.property] = detail.value;
-        this.fireChangedEvent(detail.property, detail.value);
-      }
-    });
-  }
-};
-
-// src/app-config.ts
-var AppConfig = class _AppConfig extends Config {
-  static {
-    __name(this, "AppConfig");
-  }
-  emoji;
-  sprayCooldown = 500;
-  physicsDebugRendering = false;
-  static SetDefaults(isMobile) {
-    const defaults = isMobile ? new MobileAppConfig() : new _AppConfig();
-    defaults.emoji = {
-      emoji: { name: "Firefox Logo", shortcodes: Array(1), url: "./media/emoji/firefox.svg" },
-      name: "Firefox Logo",
-      skinTone: 0
-    };
-    return defaults;
-  }
-};
-var MobileAppConfig = class extends AppConfig {
-  static {
-    __name(this, "MobileAppConfig");
-  }
-  emojiTextureSize = 128;
 };
 
 // src/core/camera.ts
@@ -8523,13 +8254,13 @@ var Geometry = class _Geometry {
    * @param device - The GPUDevice to create the Geometry with
    * @param descriptor - Description of the Geometry to create
    */
-  constructor(device, descriptor) {
+  constructor(gpu, descriptor) {
     this.#id = _Geometry.#nextId++;
     let init;
     if ("layout" in descriptor) {
       init = descriptor;
     } else {
-      init = _Geometry.#CreateBatchInit(device, [descriptor])[0];
+      init = _Geometry.#CreateBatchInit(gpu.device, [descriptor])[0];
     }
     this.layout = init.layout;
     this.drawCount = init.drawCount;
@@ -8541,11 +8272,11 @@ var Geometry = class _Geometry {
   /**
    * Creates multiple geometries as part of a single batch, enabling them to share GPUBuffers.
    */
-  static CreateBatch(device, descriptors) {
-    const inits = _Geometry.#CreateBatchInit(device, descriptors);
+  static CreateBatch(gpu, descriptors) {
+    const inits = _Geometry.#CreateBatchInit(gpu.device, descriptors);
     const geometries = [];
     for (const init of inits) {
-      geometries.push(new _Geometry(device, init));
+      geometries.push(new _Geometry(gpu, init));
     }
     return geometries;
   }
@@ -9620,7 +9351,7 @@ var GltfState = class {
         descriptorPromises.push(buildGeometryDescriptor(primitive));
         materialPromises.push(this.getMaterial(primitive.material));
       }
-      const geometries = Geometry.CreateBatch(this.gpu.device, await Promise.all(descriptorPromises));
+      const geometries = Geometry.CreateBatch(this.gpu, await Promise.all(descriptorPromises));
       const materials = await Promise.all(materialPromises);
       return {
         primitives: geometries.map((geometry, index) => {
@@ -15954,7 +15685,7 @@ var Decal = class _Decal {
   }
 };
 
-// src/audio-player.ts
+// src/audio/audio-player.ts
 var AudioClip = class _AudioClip {
   static {
     __name(this, "AudioClip");
@@ -15972,7 +15703,22 @@ var AudioClip = class _AudioClip {
     for (const clip of clips) {
       audioClips.push(new _AudioClip(this.bufferPromise, this.offset + clip.offset, clip.duration));
     }
-    return audioClips;
+    return new AudioClipAtlas(audioClips);
+  }
+};
+var AudioClipAtlas = class {
+  static {
+    __name(this, "AudioClipAtlas");
+  }
+  clips;
+  constructor(audioClips) {
+    this.clips = audioClips;
+  }
+  get length() {
+    return this.clips.length;
+  }
+  random() {
+    return this.clips[Math.floor(Math.random() * this.clips.length)];
   }
 };
 var AudioPlayer = class {
@@ -15990,7 +15736,3408 @@ var AudioPlayer = class {
     const source = this.#context.createBufferSource();
     source.buffer = await clip.bufferPromise;
     source.connect(this.#context.destination);
+    const promise = new Promise((resolve) => {
+      source.addEventListener("ended", () => resolve());
+    });
     source.start(0, clip.offset, clip.duration);
+    return promise;
+  }
+};
+
+// src/util/query-args.ts
+var searchParams = void 0;
+function clearArgsCache() {
+  searchParams = void 0;
+}
+__name(clearArgsCache, "clearArgsCache");
+window.addEventListener("popstate", clearArgsCache);
+window.addEventListener("hashchange", clearArgsCache);
+function ensureArgsCached() {
+  if (!searchParams) {
+    searchParams = new URLSearchParams(window.location.search);
+  }
+}
+__name(ensureArgsCached, "ensureArgsCached");
+var QueryArgs = class {
+  static {
+    __name(this, "QueryArgs");
+  }
+  static hasQueryArgs() {
+    ensureArgsCached();
+    return searchParams.size != 0;
+  }
+  static getString(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.get(name) ?? (defaultValue ?? "");
+  }
+  static getInt(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
+  }
+  static getFloat(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
+  }
+  static getBool(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
+  }
+};
+
+// src/util/config.ts
+var UPDATED_CONFIGS = /* @__PURE__ */ new Set();
+var CONFIG_UPDATE_INTERVAL = 10 * 1e3;
+var CONFIG_HANDLER = {
+  set(obj, key, value) {
+    const changed = obj[key] !== value;
+    const ret = Reflect.set(...arguments);
+    if (changed) {
+      obj.fireChangedEvent(key, value);
+    }
+    return ret;
+  },
+  get: /* @__PURE__ */ __name(function(obj, key) {
+    const result = Reflect.get(obj, key);
+    if (typeof result === "function")
+      return result.bind(obj);
+    return result;
+  }, "get")
+};
+var configStringify = /* @__PURE__ */ __name((key, value) => {
+  return value instanceof Object && !(value instanceof Array) ? Object.keys(value).reduce((out, key2) => {
+    if (key2 != "configRevision") {
+      out[key2] = value[key2];
+    }
+    return out;
+  }, {}) : value;
+}, "configStringify");
+function SaveAllConfigs() {
+  if (UPDATED_CONFIGS.size) {
+    for (const config of UPDATED_CONFIGS) {
+      config.saveToStorage();
+    }
+    UPDATED_CONFIGS.clear();
+  }
+}
+__name(SaveAllConfigs, "SaveAllConfigs");
+function isMobileBrowser() {
+  if ("mobile" in navigator.userAgentData) {
+    return navigator.userAgentData.mobile;
+  }
+  let check = false;
+  (function(a2) {
+    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a2) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a2.substr(0, 4))) check = true;
+  })(navigator.userAgent || navigator.vendor || window.opera);
+  return check;
+}
+__name(isMobileBrowser, "isMobileBrowser");
+var CONFIG_DEFAULTS = /* @__PURE__ */ new Map();
+var updateInterval;
+var Config = class extends EventTarget {
+  static {
+    __name(this, "Config");
+  }
+  #loading = false;
+  #nextRevision = 1;
+  #revision = this.#nextRevision++;
+  #configRevisions = /* @__PURE__ */ new Map();
+  constructor() {
+    super();
+  }
+  static Create(configType, args = null) {
+    const config = new configType();
+    config.#loading = true;
+    let defaults = CONFIG_DEFAULTS.get(config.configStorageName);
+    if (!defaults) {
+      defaults = new configType();
+      if (Object.hasOwn(config.constructor, "SetDefaults")) {
+        const deviceDefaults = config.constructor.SetDefaults(isMobileBrowser(), args);
+        defaults.#setConfigProperties(deviceDefaults);
+      }
+      CONFIG_DEFAULTS.set(config.configStorageName, defaults);
+    }
+    config.#setConfigProperties(defaults);
+    if (config.configStorageName) {
+      config.loadFromStorage();
+      config.updateFromQueryArgs();
+    }
+    if (!updateInterval) {
+      updateInterval = setInterval(SaveAllConfigs, CONFIG_UPDATE_INTERVAL);
+    }
+    config.#loading = false;
+    return new Proxy(config, CONFIG_HANDLER);
+  }
+  get configStorageName() {
+    return this.constructor.name;
+  }
+  fireChangedEvent(property, value) {
+    if (this.#loading) {
+      return;
+    }
+    this.#updateRevision();
+    if (this.configStorageName) {
+      UPDATED_CONFIGS.add(this);
+    }
+    let event = new CustomEvent("changed", {
+      cancelable: false,
+      bubbles: true,
+      detail: {
+        property,
+        value
+      }
+    });
+    this.dispatchEvent(event);
+  }
+  #updateRevision() {
+    const key = JSON.stringify(this, configStringify);
+    const cachedRevision = this.#configRevisions.get(key);
+    if (cachedRevision) {
+      this.#revision = cachedRevision;
+    } else {
+      this.#revision = this.#nextRevision++;
+      this.#configRevisions.set(key, this.#revision);
+    }
+  }
+  get configRevision() {
+    return this.#revision;
+  }
+  #getConfigProperties() {
+    let defaults = CONFIG_DEFAULTS.get(this.configStorageName);
+    return Object.keys(defaults).reduce((out, key) => {
+      if (!defaults || defaults[key] !== this[key]) {
+        out[key] = this[key];
+      }
+      return out;
+    }, {});
+  }
+  #setConfigProperties(obj) {
+    if (!obj) {
+      return;
+    }
+    for (const key of Object.keys(obj)) {
+      if (Object.hasOwn(this, key)) {
+        if (this[key] == key) {
+          continue;
+        }
+        this[key] = obj[key];
+        this.fireChangedEvent(key, obj[key]);
+      } else {
+        console.warn(`Attempting to set unknown config property: ${key}.`);
+      }
+    }
+  }
+  saveToStorage() {
+    let storageName = this.configStorageName;
+    if (!storageName) {
+      throw new Error("Config does not specify a storage name");
+    }
+    console.info(`Saving updates to Config: ${storageName}, revision ${this.configRevision}`);
+    localStorage.setItem(storageName, JSON.stringify(this.#getConfigProperties()));
+  }
+  loadFromStorage() {
+    let storageName = this.configStorageName;
+    if (!storageName) {
+      throw new Error("Config does not specify a storage name");
+    }
+    let json = localStorage.getItem(storageName);
+    if (!json) {
+      return;
+    }
+    let obj;
+    try {
+      obj = JSON.parse(json);
+    } catch (err) {
+      console.warn(`Config loaded from localStorage was not valid json. ${err.message}`);
+      return;
+    }
+    this.#setConfigProperties(obj);
+  }
+  async loadFromUrl(url) {
+    const response = await fetch(url);
+    let obj;
+    try {
+      obj = await response.json();
+    } catch (err) {
+      console.warn(`Config loaded from ${url} was not valid json. ${err.message}`);
+      return;
+    }
+    this.#setConfigProperties(obj);
+  }
+  // Updates the config to use values given in the URL query args if they match
+  updateFromQueryArgs() {
+    const searchParams2 = new URLSearchParams(window.location.search);
+    searchParams2.forEach((value, key) => {
+      if (Object.hasOwn(this, key)) {
+        let parsedValue = void 0;
+        if (typeof this[key] === "string") {
+          parsedValue = value;
+        } else if (typeof this[key] === "number") {
+          parsedValue = parseFloat(value);
+        } else if (typeof this[key] === "boolean") {
+          parsedValue = parseInt(value, 10) != 0;
+        }
+        if (parsedValue !== void 0 && this[key] != parsedValue) {
+          this[key] = parsedValue;
+          this.fireChangedEvent(key, parsedValue);
+        }
+      }
+    });
+  }
+  resetToDefaults() {
+    let storageName = this.configStorageName;
+    if (!storageName) {
+      throw new Error("Config does not specify a storage name");
+    }
+    this.#setConfigProperties(CONFIG_DEFAULTS.get(storageName));
+  }
+  watch(...properties) {
+    return new ConfigWatcher(this, ...properties);
+  }
+};
+var ConfigWatcher = class extends Config {
+  static {
+    __name(this, "ConfigWatcher");
+  }
+  constructor(config, ...properties) {
+    super();
+    if (config) {
+      this.addWatch(config, ...properties);
+    }
+  }
+  get configStorageName() {
+    return null;
+  }
+  addWatch(config, ...properties) {
+    for (const property of properties) {
+      if (Object.hasOwn(this, property)) {
+        throw new Error(`ConfigWatcher is already watching a property named ${property}`);
+      }
+      this[property] = config[property];
+    }
+    config.addEventListener("changed", (event) => {
+      const detail = event.detail;
+      if (Object.hasOwn(this, detail.property)) {
+        this[detail.property] = detail.value;
+        this.fireChangedEvent(detail.property, detail.value);
+      }
+    });
+  }
+};
+
+// src/renderer/render-config.ts
+var RenderConfig = class _RenderConfig extends Config {
+  static {
+    __name(this, "RenderConfig");
+  }
+  colorFormat = navigator.gpu?.getPreferredCanvasFormat() ?? "bgra8unorm";
+  depthStencilFormat = "depth24plus";
+  selectionFormat = "r32uint";
+  sampleCount = 1;
+  // How large the render targets are compared to the screen resolution.
+  // (Canvas render target size will always be 1:1 to allow for better UI)
+  outputScale = 1;
+  emojiTextureSize = 512;
+  static SetDefaults(isMobile, device) {
+    const defaults = isMobile ? new MobileRenderConfig() : new _RenderConfig();
+    return defaults;
+  }
+};
+var MobileRenderConfig = class extends RenderConfig {
+  static {
+    __name(this, "MobileRenderConfig");
+  }
+  depthStencilFormat = "depth16unorm";
+  sampleCount = 1;
+  outputScale = 0.6;
+  emojiTextureSize = 256;
+};
+
+// src/renderer/attachment-layout.ts
+var RenderableFormatValue = /* @__PURE__ */ ((RenderableFormatValue2) => {
+  RenderableFormatValue2[RenderableFormatValue2["r8unorm"] = 1] = "r8unorm";
+  RenderableFormatValue2[RenderableFormatValue2["r8uint"] = 2] = "r8uint";
+  RenderableFormatValue2[RenderableFormatValue2["r8sint"] = 3] = "r8sint";
+  RenderableFormatValue2[RenderableFormatValue2["rg8unorm"] = 4] = "rg8unorm";
+  RenderableFormatValue2[RenderableFormatValue2["rg8uint"] = 5] = "rg8uint";
+  RenderableFormatValue2[RenderableFormatValue2["rg8sint"] = 6] = "rg8sint";
+  RenderableFormatValue2[RenderableFormatValue2["rgba8unorm"] = 7] = "rgba8unorm";
+  RenderableFormatValue2[RenderableFormatValue2["rgba8unorm-srgb"] = 8] = "rgba8unorm-srgb";
+  RenderableFormatValue2[RenderableFormatValue2["rgba8uint"] = 9] = "rgba8uint";
+  RenderableFormatValue2[RenderableFormatValue2["rgba8sint"] = 10] = "rgba8sint";
+  RenderableFormatValue2[RenderableFormatValue2["bgra8unorm"] = 11] = "bgra8unorm";
+  RenderableFormatValue2[RenderableFormatValue2["bgra8unorm-srgb"] = 12] = "bgra8unorm-srgb";
+  RenderableFormatValue2[RenderableFormatValue2["r16uint"] = 13] = "r16uint";
+  RenderableFormatValue2[RenderableFormatValue2["r16sint"] = 14] = "r16sint";
+  RenderableFormatValue2[RenderableFormatValue2["r16float"] = 15] = "r16float";
+  RenderableFormatValue2[RenderableFormatValue2["rg16uint"] = 16] = "rg16uint";
+  RenderableFormatValue2[RenderableFormatValue2["rg16sint"] = 17] = "rg16sint";
+  RenderableFormatValue2[RenderableFormatValue2["rg16float"] = 18] = "rg16float";
+  RenderableFormatValue2[RenderableFormatValue2["rgba16uint"] = 19] = "rgba16uint";
+  RenderableFormatValue2[RenderableFormatValue2["rgba16sint"] = 20] = "rgba16sint";
+  RenderableFormatValue2[RenderableFormatValue2["rgba16float"] = 21] = "rgba16float";
+  RenderableFormatValue2[RenderableFormatValue2["r32uint"] = 22] = "r32uint";
+  RenderableFormatValue2[RenderableFormatValue2["r32sint"] = 23] = "r32sint";
+  RenderableFormatValue2[RenderableFormatValue2["r32float"] = 24] = "r32float";
+  RenderableFormatValue2[RenderableFormatValue2["rg32uint"] = 25] = "rg32uint";
+  RenderableFormatValue2[RenderableFormatValue2["rg32sint"] = 26] = "rg32sint";
+  RenderableFormatValue2[RenderableFormatValue2["rg32float"] = 27] = "rg32float";
+  RenderableFormatValue2[RenderableFormatValue2["rgba32uint"] = 28] = "rgba32uint";
+  RenderableFormatValue2[RenderableFormatValue2["rgba32sint"] = 29] = "rgba32sint";
+  RenderableFormatValue2[RenderableFormatValue2["rgba32float"] = 30] = "rgba32float";
+  RenderableFormatValue2[RenderableFormatValue2["rgb10a2uint"] = 31] = "rgb10a2uint";
+  RenderableFormatValue2[RenderableFormatValue2["rgb10a2unorm"] = 32] = "rgb10a2unorm";
+  RenderableFormatValue2[RenderableFormatValue2["rg11b10ufloat"] = 33] = "rg11b10ufloat";
+  return RenderableFormatValue2;
+})(RenderableFormatValue || {});
+var DepthStencilFormatValue = /* @__PURE__ */ ((DepthStencilFormatValue2) => {
+  DepthStencilFormatValue2[DepthStencilFormatValue2["stencil8"] = 1] = "stencil8";
+  DepthStencilFormatValue2[DepthStencilFormatValue2["depth16unorm"] = 2] = "depth16unorm";
+  DepthStencilFormatValue2[DepthStencilFormatValue2["depth24plus"] = 3] = "depth24plus";
+  DepthStencilFormatValue2[DepthStencilFormatValue2["depth24plus-stencil8"] = 4] = "depth24plus-stencil8";
+  DepthStencilFormatValue2[DepthStencilFormatValue2["depth32float"] = 5] = "depth32float";
+  DepthStencilFormatValue2[DepthStencilFormatValue2["depth32float-stencil8"] = 6] = "depth32float-stencil8";
+  return DepthStencilFormatValue2;
+})(DepthStencilFormatValue || {});
+var AttachmentLayout = class _AttachmentLayout {
+  static {
+    __name(this, "AttachmentLayout");
+  }
+  // Caching
+  static #nextId = 1;
+  static #keyMap = /* @__PURE__ */ new Map();
+  // Map of the given key to an ID
+  static #cache = /* @__PURE__ */ new Map();
+  // Map of ID to cached resource
+  static GetById(id) {
+    return this.#cache.get(id);
+  }
+  static #AddToCache(layout, key) {
+    Object.freeze(layout);
+    this.#keyMap.set(key, layout.id);
+    this.#cache.set(layout.id, layout);
+    return layout;
+  }
+  static Deserialize(value) {
+    const id = this.#keyMap.get(value);
+    if (id !== void 0) {
+      return this.#cache.get(id);
+    }
+    const buffer = HexStringToBuffer(value);
+    const layout = _AttachmentLayout.#DeserializeFromBuffer(buffer);
+    layout.#serializedBuffer = buffer;
+    layout.#serializedString = value;
+    return this.#AddToCache(layout, value);
+  }
+  static #DeserializeFromBuffer(inBuffer, bufferOffest, bufferLength) {
+    const dataView = new DataView(inBuffer, bufferOffest, bufferLength);
+    const sampleCount = dataView.getUint8(0);
+    const depthStencilFormat = DepthStencilFormatValue[dataView.getUint8(1)];
+    const colorFormatCount = dataView.getUint8(2);
+    const colorFormats = [];
+    for (let i2 = 0; i2 < colorFormatCount; ++i2) {
+      colorFormats.push(RenderableFormatValue[dataView.getUint8(3 + i2)]);
+    }
+    return new _AttachmentLayout(colorFormats, depthStencilFormat, sampleCount);
+  }
+  static DefaultOutputType(format) {
+    switch (format) {
+      case "r8unorm":
+      case "rg8unorm":
+      case "rgba8unorm":
+      case "rgba8unorm-srgb":
+      case "bgra8unorm":
+      case "bgra8unorm-srgb":
+      case "r16float":
+      case "rg16float":
+      case "rgba16float":
+      case "r32float":
+      case "rg32float":
+      case "rgba32float":
+      case "rgb10a2unorm":
+      case "rg11b10ufloat":
+        return "vec4f";
+      case "r8uint":
+      case "rg8uint":
+      case "rgba8uint":
+      case "r16uint":
+      case "rg16uint":
+      case "rgba16uint":
+      case "r32uint":
+      case "rg32uint":
+      case "rgba32uint":
+      case "rgb10a2uint":
+        return "vec4u";
+      case "r8sint":
+      case "rg8sint":
+      case "rgba8sint":
+      case "r16sint":
+      case "rg16sint":
+      case "rgba16sint":
+      case "r32sint":
+      case "rg32sint":
+      case "rgba32sint":
+        return "vec4i";
+      default:
+        throw new Error(`Unsupported Renderable Format ${format}`);
+    }
+  }
+  // Layout
+  id;
+  colorFormats;
+  depthStencilFormat;
+  sampleCount;
+  #serializedBuffer;
+  #serializedString;
+  constructor(colorFormats, depthStencilFormat, sampleCount = 1) {
+    const formats = [];
+    if (Array.isArray(colorFormats)) {
+      for (const format of colorFormats) {
+        if (RenderableFormatValue[format] == void 0) {
+          throw new Error(`${format} is not a renderable format`);
+        }
+        formats.push(format);
+      }
+    } else {
+      if (RenderableFormatValue[colorFormats] == void 0) {
+        throw new Error(`${colorFormats} is not a renderable format`);
+      }
+      formats.push(colorFormats);
+    }
+    if (depthStencilFormat && DepthStencilFormatValue[depthStencilFormat] == void 0) {
+      throw new Error(`${depthStencilFormat} is not a depth/stencil format`);
+    }
+    this.id = 0;
+    this.colorFormats = formats;
+    this.depthStencilFormat = depthStencilFormat;
+    this.sampleCount = sampleCount;
+    const key = this.serializeToString();
+    const id = _AttachmentLayout.#keyMap.get(key);
+    if (id !== void 0) {
+      return _AttachmentLayout.#cache.get(id);
+    }
+    this.id = _AttachmentLayout.#nextId++;
+    _AttachmentLayout.#AddToCache(this, key);
+  }
+  // The AttachmentLayout's binary serialized format is:
+  //  - Byte 0: Sample Count
+  //  - Byte 1: DepthStencilFormat
+  //  - Byte 3: Color Format Count (N)
+  //  - Byte 4-N: RenderableFormat
+  serializeToBuffer() {
+    if (this.#serializedBuffer) {
+      return this.#serializedBuffer;
+    }
+    const byteLength = 3 + this.colorFormats.length;
+    const outBuffer = new ArrayBuffer(byteLength);
+    const dataView = new DataView(outBuffer);
+    dataView.setUint8(0, this.sampleCount);
+    dataView.setUint8(1, this.depthStencilFormat ? DepthStencilFormatValue[this.depthStencilFormat] : 0);
+    dataView.setUint8(2, this.colorFormats.length);
+    for (let i2 = 0; i2 < this.colorFormats.length; ++i2) {
+      dataView.setUint8(i2 + 3, RenderableFormatValue[this.colorFormats[i2]]);
+    }
+    this.#serializedBuffer = outBuffer;
+    return outBuffer;
+  }
+  // The string format is the same as the binary format, written in hex pairs.
+  serializeToString() {
+    if (!this.#serializedString) {
+      this.#serializedString = BufferToHexString(this.serializeToBuffer());
+    }
+    return this.#serializedString;
+  }
+};
+
+// src/renderer/instance-manager.ts
+function nextMultipleOf2(multiple, value) {
+  return Math.ceil(value / multiple) * multiple;
+}
+__name(nextMultipleOf2, "nextMultipleOf");
+var GeometryInstances = class {
+  static {
+    __name(this, "GeometryInstances");
+  }
+  geometry;
+  instances = [];
+  mirroredInstances = [];
+  indexOffset = -1;
+  mirroredIndexOffset = -1;
+  constructor(geometry) {
+    this.geometry = geometry;
+  }
+  addInstance(actor) {
+    if (actor.worldTransform.mirrored) {
+      this.mirroredInstances.push(actor);
+    } else {
+      this.instances.push(actor);
+    }
+  }
+  get instanceCount() {
+    return this.instances.length;
+  }
+  get mirroredInstanceCount() {
+    return this.mirroredInstances.length;
+  }
+};
+var MaterialGeometries = class {
+  static {
+    __name(this, "MaterialGeometries");
+  }
+  material;
+  geometries = /* @__PURE__ */ new Map();
+  instanceCount = 0;
+  constructor(material) {
+    this.material = material;
+  }
+  addInstance(geometry, actor) {
+    let geometryInstances = this.geometries.get(geometry);
+    if (!geometryInstances) {
+      geometryInstances = new GeometryInstances(geometry);
+      this.geometries.set(geometry, geometryInstances);
+    }
+    geometryInstances.addInstance(actor);
+    this.instanceCount++;
+  }
+};
+var InstanceBuffers = class {
+  static {
+    __name(this, "InstanceBuffers");
+  }
+  gpu;
+  maxInstanceCount;
+  instanceTransformArray;
+  instanceIndexArray;
+  instanceTransformBuffer;
+  instanceIndexBuffer;
+  constructor(gpu, maxInstanceCount) {
+    this.gpu = gpu;
+    this.maxInstanceCount = maxInstanceCount;
+    this.instanceTransformArray = new Float32Array(maxInstanceCount * 28);
+    this.instanceIndexArray = new Uint32Array(maxInstanceCount);
+    this.instanceTransformBuffer = gpu.device.createBuffer({
+      label: "Instance Transform Buffer",
+      size: this.instanceTransformArray.byteLength,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
+    });
+    this.instanceIndexBuffer = gpu.device.createBuffer({
+      label: "Instance Index Buffer",
+      size: this.instanceIndexArray.byteLength,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
+    });
+  }
+  update(materials) {
+    let transformOffset = 0;
+    let indexOffset = 0;
+    const setNormalMat = /* @__PURE__ */ __name((normal, offset) => {
+      this.instanceTransformArray[offset + 0] = normal[0];
+      this.instanceTransformArray[offset + 1] = normal[1];
+      this.instanceTransformArray[offset + 2] = normal[2];
+      this.instanceTransformArray[offset + 4] = normal[3];
+      this.instanceTransformArray[offset + 5] = normal[4];
+      this.instanceTransformArray[offset + 6] = normal[5];
+      this.instanceTransformArray[offset + 8] = normal[6];
+      this.instanceTransformArray[offset + 9] = normal[7];
+      this.instanceTransformArray[offset + 10] = normal[8];
+    }, "setNormalMat");
+    for (let materialGeometries of materials.values()) {
+      for (let geometryInstances of materialGeometries.geometries.values()) {
+        if (geometryInstances.instances.length) {
+          geometryInstances.indexOffset = indexOffset;
+          for (let instance of geometryInstances.instances) {
+            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
+            this.instanceIndexArray[indexOffset] = indexOffset++;
+            transformOffset += 28;
+          }
+        }
+        if (geometryInstances.mirroredInstances) {
+          geometryInstances.mirroredIndexOffset = indexOffset;
+          for (let instance of geometryInstances.mirroredInstances) {
+            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
+            this.instanceIndexArray[indexOffset] = indexOffset++;
+            transformOffset += 28;
+          }
+        }
+      }
+    }
+    this.gpu.device.queue.writeBuffer(this.instanceTransformBuffer, 0, this.instanceTransformArray, 0, transformOffset);
+    this.gpu.device.queue.writeBuffer(this.instanceIndexBuffer, 0, this.instanceIndexArray, 0, indexOffset);
+  }
+};
+var InstanceManager = class {
+  static {
+    __name(this, "InstanceManager");
+  }
+  gpu;
+  materials = /* @__PURE__ */ new Map();
+  instanceCount = 0;
+  instanceBuffers;
+  constructor(gpu) {
+    this.gpu = gpu;
+  }
+  #clear() {
+    this.materials.clear();
+    this.instanceCount = 0;
+  }
+  #addInstance(material, geometry, actor) {
+    let materialGeometries = this.materials.get(material);
+    if (!materialGeometries) {
+      materialGeometries = new MaterialGeometries(material);
+      this.materials.set(material, materialGeometries);
+    }
+    materialGeometries.addInstance(geometry, actor);
+    this.instanceCount++;
+  }
+  updateInstances(stage) {
+    this.#clear();
+    stage.query(Geometry, ActorMaterial).forEach((actor, geometry, material) => {
+      this.#addInstance(material.material, geometry, actor);
+    });
+    let buffersUpdated = false;
+    if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
+      this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf2(128, this.instanceCount));
+      this.gpu.frameBindingsDirty();
+    }
+    this.instanceBuffers.update(this.materials);
+  }
+};
+
+// src/loaders/texture/mipmap-generator.ts
+var mipmapShader = (
+  /* wgsl */
+  `
+  var<private> pos : array<vec2f, 3> = array<vec2f, 3>(
+    vec2f(-1, -1), vec2f(-1, 3), vec2f(3, -1));
+
+  struct VertexOutput {
+    @builtin(position) position : vec4f,
+    @location(0) texCoord : vec2f,
+  };
+
+  @vertex
+  fn vertexMain(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
+    return VertexOutput(
+      vec4(pos[vertexIndex], 0.0, 1.0), // position
+      pos[vertexIndex] * vec2f(0.5, -0.5) + vec2f(0.5) // texCoord
+    );
+  }
+
+  @group(0) @binding(0) var imgSampler : sampler;
+  @group(0) @binding(1) var img : texture_2d<f32>;
+
+  @fragment
+  fn fragmentMain(@location(0) texCoord : vec2f) -> @location(0) vec4f {
+    return textureSample(img, imgSampler, texCoord);
+  }
+`
+);
+var WebGPUMipmapGenerator = class {
+  constructor(device) {
+    this.device = device;
+  }
+  device;
+  static {
+    __name(this, "WebGPUMipmapGenerator");
+  }
+  #resources;
+  // We'll need a new pipeline for every texture format used.
+  #pipelines = /* @__PURE__ */ new Map();
+  /**
+   * Determines the number of mip levels needed for a full mip chain given the width and height of texture level 0.
+   *
+   * @param width of texture level 0.
+   * @param height of texture level 0.
+   * @returns Ideal number of mip levels.
+   */
+  static calculateMipLevels(width, height) {
+    return Math.floor(Math.log2(Math.max(width, height))) + 1;
+  }
+  #ensureSharedResources() {
+    if (!this.#resources) {
+      const bindGroupLayout = this.device.createBindGroupLayout({
+        label: "Mipmap Generator Bind Group Layout",
+        entries: [{
+          binding: 0,
+          visibility: GPUShaderStage.FRAGMENT,
+          sampler: {}
+        }, {
+          binding: 1,
+          visibility: GPUShaderStage.FRAGMENT,
+          texture: {}
+        }]
+      });
+      this.#resources = {
+        module: this.device.createShaderModule({
+          label: "Mipmap Generator Shader",
+          code: mipmapShader
+        }),
+        sampler: this.device.createSampler({
+          label: "Mipmap Generator Sampler",
+          minFilter: "linear"
+        }),
+        bindGroupLayout,
+        pipelineLayout: this.device.createPipelineLayout({
+          label: "Mipmap Generator Pipeline Layout",
+          bindGroupLayouts: [bindGroupLayout]
+        })
+      };
+    }
+    return this.#resources;
+  }
+  #getMipmapPipeline(format) {
+    let pipeline = this.#pipelines.get(format);
+    if (!pipeline) {
+      const { pipelineLayout, module } = this.#ensureSharedResources();
+      pipeline = this.device.createRenderPipeline({
+        label: `Mipmap Generator ${format} Render Pipeline`,
+        layout: pipelineLayout,
+        vertex: { module },
+        fragment: {
+          module,
+          targets: [{ format }]
+        }
+      });
+      this.#pipelines.set(format, pipeline);
+    }
+    return pipeline;
+  }
+  /**
+   * Generates mipmaps for the given GPUTexture from the data in level 0.
+   *
+   * @param texture - Texture to generate mipmaps for.
+   */
+  generateMipmap(texture, layer) {
+    if (texture.dimension == "3d" || texture.dimension == "1d") {
+      throw new Error("Generating mipmaps for non-2d textures is currently unsupported!");
+    }
+    const pipeline = this.#getMipmapPipeline(texture.format);
+    const { bindGroupLayout, sampler } = this.#ensureSharedResources();
+    let mipTexture = texture;
+    const baseArrayLayer = layer ?? 0;
+    const arrayLayerCount = layer !== void 0 ? 1 : texture.depthOrArrayLayers;
+    const renderToSource = texture.usage & GPUTextureUsage.RENDER_ATTACHMENT;
+    if (!renderToSource) {
+      const mipTextureDescriptor = {
+        size: {
+          width: Math.max(texture.width >> 1, 1),
+          height: Math.max(texture.height >> 1, 1),
+          depthOrArrayLayers: arrayLayerCount
+        },
+        format: texture.format,
+        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
+        mipLevelCount: texture.mipLevelCount - 1
+      };
+      mipTexture = this.device.createTexture(mipTextureDescriptor);
+    }
+    const commandEncoder = this.device.createCommandEncoder({});
+    for (let arrayLayer = baseArrayLayer; arrayLayer < baseArrayLayer + arrayLayerCount; ++arrayLayer) {
+      let srcView = texture.createView({
+        baseMipLevel: 0,
+        mipLevelCount: 1,
+        dimension: "2d",
+        baseArrayLayer: arrayLayer,
+        arrayLayerCount: 1
+      });
+      let dstMipLevel = renderToSource ? 1 : 0;
+      for (let i2 = 1; i2 < texture.mipLevelCount; ++i2) {
+        const dstView = mipTexture.createView({
+          baseMipLevel: dstMipLevel++,
+          mipLevelCount: 1,
+          dimension: "2d",
+          baseArrayLayer: arrayLayer,
+          arrayLayerCount: 1
+        });
+        const bindGroup = this.device.createBindGroup({
+          layout: bindGroupLayout,
+          entries: [{
+            binding: 0,
+            resource: sampler
+          }, {
+            binding: 1,
+            resource: srcView
+          }]
+        });
+        const passEncoder = commandEncoder.beginRenderPass({
+          colorAttachments: [{
+            view: dstView,
+            loadOp: "clear",
+            storeOp: "store"
+          }]
+        });
+        passEncoder.setPipeline(pipeline);
+        passEncoder.setBindGroup(0, bindGroup);
+        passEncoder.draw(3);
+        passEncoder.end();
+        srcView = dstView;
+      }
+    }
+    if (!renderToSource) {
+      const mipLevelSize = {
+        width: Math.max(texture.width >> 1, 1),
+        height: Math.max(texture.height >> 1, 1),
+        depthOrArrayLayers: arrayLayerCount
+      };
+      for (let i2 = 1; i2 < texture.mipLevelCount; ++i2) {
+        commandEncoder.copyTextureToTexture({
+          texture: mipTexture,
+          mipLevel: i2 - 1
+        }, {
+          texture,
+          mipLevel: i2
+        }, mipLevelSize);
+        mipLevelSize.width = Math.max(mipLevelSize.width >> 1, 1);
+        mipLevelSize.height = Math.max(mipLevelSize.height >> 1, 1);
+      }
+    }
+    this.device.queue.submit([commandEncoder.finish()]);
+    if (!renderToSource) {
+      mipTexture.destroy();
+    }
+    return texture;
+  }
+};
+
+// src/util/worker-pool.ts
+var WORKER_DIR = import.meta.url.replace(/[^\/]*$/, "../../workers/");
+var WorkerPool = class {
+  static {
+    __name(this, "WorkerPool");
+  }
+  #workerPath;
+  #maxWorkerPoolSize;
+  #onMessage;
+  #pendingWorkItems = /* @__PURE__ */ new Map();
+  #nextWorkItemId = 1;
+  #workerPool = [];
+  #nextWorker = 0;
+  constructor(workerPath, maxWorkerPoolSize = void 0) {
+    this.#workerPath = WORKER_DIR + workerPath;
+    this.#maxWorkerPoolSize = maxWorkerPoolSize ?? Math.min(4, navigator.hardwareConcurrency);
+    this.#onMessage = (msg) => {
+      const id = msg.data.id;
+      const workItem = this.#pendingWorkItems.get(id);
+      if (!workItem) {
+        console.error(`Got a result for unknown work item ${id}`);
+        return;
+      }
+      this.#pendingWorkItems.delete(id);
+      if (msg.data.error) {
+        workItem.reject(msg.data.error);
+        return;
+      }
+      workItem.resolve(msg.data.result);
+    };
+  }
+  #selectWorker(id, resolver) {
+    this.#pendingWorkItems.set(id, resolver);
+    if (this.#pendingWorkItems.size >= this.#workerPool.length && this.#workerPool.length < this.#maxWorkerPoolSize) {
+      const worker = new Worker(this.#workerPath);
+      worker.addEventListener("message", this.#onMessage);
+      this.#workerPool.push(worker);
+      return worker;
+    }
+    return this.#workerPool[this.#nextWorker++ % this.#workerPool.length];
+  }
+  dispatch(args, transfer) {
+    return new Promise((resolve, reject) => {
+      const id = this.#nextWorkItemId++;
+      this.#selectWorker(id, { resolve, reject }).postMessage({
+        id,
+        args
+      }, transfer ?? []);
+    });
+  }
+};
+
+// src/util/cache-helper.ts
+var CacheHelper = class {
+  constructor(cache) {
+    this.cache = cache;
+  }
+  cache;
+  static {
+    __name(this, "CacheHelper");
+  }
+  setMulti(url, values) {
+    const description = {};
+    for (const key in values) {
+      const value = values[key];
+      const valueUrl = `${url}__${key}__`;
+      if (value instanceof ArrayBuffer) {
+        this.cache.put(valueUrl, new Response(value));
+        description[key] = { type: "arrayBuffer", url: valueUrl };
+      } else if (value instanceof Blob) {
+        this.cache.put(valueUrl, new Response(value));
+        description[key] = { type: "blob", url: valueUrl };
+      } else {
+        description[key] = { type: "literal", value };
+      }
+    }
+    this.cache.put(url, new Response(JSON.stringify(description)));
+  }
+  async getMulti(url) {
+    const response = await this.cache.match(url);
+    if (!response) {
+      return null;
+    }
+    const description = await response.json();
+    const values = {};
+    for (const key in description) {
+      const entry = description[key];
+      if (entry.type == "literal") {
+        values[key] = entry.value;
+      } else {
+        const valueResponse = await this.cache.match(entry.url);
+        if (!valueResponse) {
+          this.cache.delete(url);
+          return null;
+        }
+        values[key] = await valueResponse[entry.type]();
+      }
+    }
+    return values;
+  }
+};
+
+// src/loaders/texture/texture-loader-base.ts
+var WebTextureFormats = {
+  // Uncompressed formats
+  "rgb8unorm": { canGenerateMipmaps: true },
+  "rgba8unorm": { canGenerateMipmaps: true },
+  "rgb8unorm-srgb": { canGenerateMipmaps: true },
+  "rgba8unorm-srgb": { canGenerateMipmaps: true },
+  "rgb565unorm": { canGenerateMipmaps: true },
+  "rgba4unorm": { canGenerateMipmaps: true },
+  "rgba5551unorm": { canGenerateMipmaps: true },
+  "bgra8unorm": { canGenerateMipmaps: true },
+  "bgra8unorm-srgb": { canGenerateMipmaps: true },
+  // Floating point textures
+  "rg11b10ufloat": { canGenerateMipmaps: false },
+  // Compressed formats
+  "bc1-rgb-unorm": {
+    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
+  },
+  "bc2-rgba-unorm": {
+    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
+  },
+  "bc3-rgba-unorm": {
+    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
+  },
+  "bc7-rgba-unorm": {
+    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
+  },
+  "etc1-rgb-unorm": {
+    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
+  },
+  "etc2-rgba8unorm": {
+    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
+  },
+  "astc-4x4-rgba-unorm": {
+    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
+  },
+  "pvrtc1-4bpp-rgb-unorm": {
+    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
+  },
+  "pvrtc1-4bpp-rgba-unorm": {
+    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
+  }
+};
+var EXTENSION_MIME_TYPES = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  apng: "image/apng",
+  gif: "image/gif",
+  bmp: "image/bmp",
+  webp: "image/webp",
+  ico: "image/x-icon",
+  cur: "image/x-icon",
+  svg: "image/svg+xml",
+  basis: "image/basis",
+  ktx: "image/ktx",
+  ktx2: "image/ktx2",
+  dds: "image/vnd.ms-dds",
+  hdr: "image/vnd.radiance",
+  none: ""
+};
+var BasicTextureData = class {
+  static {
+    __name(this, "BasicTextureData");
+  }
+  type = "2d";
+  format;
+  size;
+  arrayBuffer;
+  mipLevelCount;
+  bufferViews = [];
+  constructor(format, width, height, imageData) {
+    this.format = format;
+    this.size = { width: Math.max(1, width), height: Math.max(1, height) };
+    this.mipLevelCount = 0;
+    this.arrayBuffer = imageData.buffer;
+    this.bufferViews = [{
+      levelSize: this.size,
+      level: 0,
+      layer: 0,
+      face: 0,
+      byteOffset: imageData.byteOffset,
+      byteLength: imageData.byteLength
+    }];
+  }
+};
+var ExtensionHandler = class {
+  static {
+    __name(this, "ExtensionHandler");
+  }
+  mimeTypes;
+  callback;
+  loader = void 0;
+  /**
+   * Creates an ExtensionHandler.
+   *
+   * @param {Array<string>} extensions - List of extensions that this loader can handle.
+   * @param {Function} callback - Callback which returns an instance of the loader.
+   */
+  constructor(mimeTypes, callback) {
+    this.mimeTypes = mimeTypes;
+    this.callback = callback;
+  }
+  /**
+   * Gets the loader associated with this extension set. Creates an instance by calling the callback if one hasn't been
+   * instantiated previously.
+   *
+   * @returns {object} Texture Loader instance.
+   */
+  getLoader() {
+    if (!this.loader) {
+      this.loader = this.callback();
+    }
+    return this.loader;
+  }
+};
+var ImageLoader = class {
+  static {
+    __name(this, "ImageLoader");
+  }
+  static supportedMIMETypes() {
+    return [
+      "image/jpeg",
+      "image/png",
+      "image/apng",
+      "image/gif",
+      "image/bmp",
+      "image/webp",
+      "image/x-icon",
+      "image/svg+xml"
+    ];
+  }
+  async fromBlob(client, blob, options) {
+    return client.fromImageBitmapBlob(blob, "rgba8unorm", options);
+  }
+  async fromBuffer(client, buffer, options) {
+    const blob = new Blob([buffer], { type: options.mimeType });
+    return this.fromBlob(client, blob, options);
+  }
+};
+var WorkerLoader = class extends WorkerPool {
+  static {
+    __name(this, "WorkerLoader");
+  }
+  /**
+   * Creates a WorkerLoader instance.
+   *
+   * @param relativeWorkerPath - Path to the worker script to load, relative to this file.
+   */
+  constructor(relativeWorkerPath) {
+    super(relativeWorkerPath);
+  }
+  async fromBlob(client, blob, options) {
+    const arrayBuffer = await blob.arrayBuffer();
+    const textureData = await this.dispatch({
+      arrayBuffer,
+      supportedFormats: client.supportedFormats(),
+      mipmaps: options.mipmaps,
+      extension: options.extension
+    }, [arrayBuffer]);
+    return client.fromTextureData(textureData, options);
+  }
+  async fromBuffer(client, arrayBuffer, options) {
+    const textureData = await this.dispatch({
+      arrayBuffer,
+      supportedFormats: client.supportedFormats(),
+      mipmaps: options.mipmaps,
+      extension: options.extension
+    });
+    return client.fromTextureData(textureData, options);
+  }
+};
+var EXTENSION_HANDLERS = [
+  new ExtensionHandler(ImageLoader.supportedMIMETypes(), () => new ImageLoader()),
+  new ExtensionHandler(["image/ktx", "image/ktx2"], () => new WorkerLoader("ktx/ktx-worker.js"))
+];
+var TMP_ANCHOR = document.createElement("a");
+var DEFAULT_URL_OPTIONS = {
+  mimeType: void 0,
+  mipmaps: true,
+  colorSpace: "linear"
+};
+function resolveMimeType(filename, mimeType) {
+  if (mimeType && mimeType != "application/octet-stream") {
+    return mimeType;
+  }
+  if (filename) {
+    const extIndex = filename.lastIndexOf(".");
+    const extension = extIndex > -1 ? filename.substring(extIndex + 1).toLowerCase() : "none";
+    mimeType = EXTENSION_MIME_TYPES[extension];
+    if (!mimeType) {
+      throw new Error(`Could not predict MIME type from filename "${filename}" with extension of "${extension}".`);
+    }
+  }
+  return mimeType;
+}
+__name(resolveMimeType, "resolveMimeType");
+function getMimeTypeLoader(handlers, mimeType) {
+  if (!mimeType) {
+    throw new Error("A valid MIME type must be specified.");
+  }
+  let typeHandler = handlers[mimeType];
+  if (!typeHandler) {
+    typeHandler = handlers["*"];
+  }
+  const loader = typeHandler.getLoader();
+  if (!loader) {
+    throw new Error(`Failed to get loader for MIME type "${mimeType}"`);
+  }
+  return loader;
+}
+__name(getMimeTypeLoader, "getMimeTypeLoader");
+var CachingClient = class {
+  static {
+    __name(this, "CachingClient");
+  }
+  #client;
+  #imageCache;
+  constructor(client, imageCache) {
+    this.#client = client;
+    this.#imageCache = new CacheHelper(imageCache);
+  }
+  async loadFromCache(uri, textureOptions) {
+    const image = await this.#imageCache.getMulti(uri);
+    if (image) {
+      const metadata = image.metadata;
+      if (metadata["type"] === "imageBitmap") {
+        return this.#client.fromImageBitmapBlob(image.blob, metadata["format"], textureOptions);
+      } else {
+        const textureData = {
+          ...metadata,
+          arrayBuffer: image.arrayBuffer
+        };
+        return this.#client.fromTextureData(textureData, textureOptions);
+      }
+    }
+    throw new Error("Image not in Cache");
+  }
+  supportedFormats() {
+    return this.#client.supportedFormats();
+  }
+  fromImageBitmapBlob(blob, format, options) {
+    if (options.cacheUrl) {
+      const metadata = {
+        type: "imageBitmap",
+        format
+      };
+      this.#imageCache.setMulti(options.cacheUrl, {
+        metadata,
+        blob
+      });
+    }
+    return this.#client.fromImageBitmapBlob(blob, format, options);
+  }
+  fromTextureData(textureData, options) {
+    if (options.cacheUrl) {
+      const metadata = {
+        type: "textureData",
+        format: textureData.format
+      };
+      this.#imageCache.setMulti(options.cacheUrl, {
+        metadata,
+        arrayBuffer: textureData.arrayBuffer
+      });
+    }
+    return this.#client.fromTextureData(textureData, options);
+  }
+  destroy() {
+    this.#client.destroy();
+  }
+};
+var TextureLoaderBase = class {
+  static {
+    __name(this, "TextureLoaderBase");
+  }
+  #client;
+  #cachingClient;
+  #handlers = {};
+  /**
+   * Must not be called by applications directly.
+   * Create an instance of WebGPUTextureLoader instead.
+   *
+   * @param {object} client - The TextureClient which will upload the texture data to the GPU.
+   */
+  constructor(client, imageCache) {
+    if (imageCache) {
+      this.#client = this.#cachingClient = new CachingClient(client, imageCache);
+    } else {
+      this.#client = client;
+    }
+    for (const extensionHandler of EXTENSION_HANDLERS) {
+      for (const mimeType of extensionHandler.mimeTypes) {
+        this.#handlers[mimeType] = extensionHandler;
+      }
+    }
+    this.#handlers["*"] = EXTENSION_HANDLERS[0];
+  }
+  get isCaching() {
+    return this.#cachingClient != null;
+  }
+  /** Loads a texture from the given URL
+   *
+   * @param url - URL of the file to load.
+   * @param textureOptions - Options for how the loaded texture should be handled.
+   * @returns Promise which resolves to the completed WebTextureResult.
+   */
+  async fromUrl(url, textureOptions = {}) {
+    if (!this.#client) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    TMP_ANCHOR.href = url;
+    if (this.#cachingClient) {
+      try {
+        const cachedTexture = await this.#cachingClient.loadFromCache(TMP_ANCHOR.href, textureOptions);
+        if (cachedTexture) {
+          return cachedTexture;
+        }
+      } catch {
+      }
+    }
+    textureOptions.cacheUrl = TMP_ANCHOR.href;
+    textureOptions.filename = TMP_ANCHOR.href;
+    const response = await fetch(TMP_ANCHOR.href);
+    const blob = await response.blob();
+    return this.fromBlob(blob, textureOptions);
+  }
+  /** Loads a texture from the given blob
+   *
+   * @param blob - Blob containing the texture file data.
+   * @param textureOptions - Options for how the loaded texture should be handled.
+   * @returns Promise which resolves to the completed WebTextureResult.
+   */
+  async fromBlob(blob, textureOptions = {}) {
+    if (!this.#client) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
+    const mimeType = resolveMimeType(options.filename, options.mimeType ?? blob.type);
+    const loader = getMimeTypeLoader(this.#handlers, mimeType);
+    return loader.fromBlob(this.#client, blob, options);
+  }
+  /** Loads a texture from the given blob
+   *
+   * @param buffer - Buffer containing the texture file data.
+   * @param textureOptions - Options for how the loaded texture should be handled.
+   * @returns Promise which resolves to the completed WebTextureResult.
+   */
+  async fromBuffer(buffer, textureOptions = {}) {
+    if (!this.#client) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
+    const mimeType = resolveMimeType(options.filename, options.mimeType);
+    const loader = getMimeTypeLoader(this.#handlers, mimeType);
+    return loader.fromBuffer(this.#client, buffer, options);
+  }
+  /**
+   * Creates a 1x1 texture with the specified color.
+   *
+   * @param r - Red channel value
+   * @param g - Green channel value
+   * @param b - Blue channel value
+   * @param a - Alpha channel value
+   * @param format - Format to create the texture with
+   * @returns Completed WebTextureResult
+   */
+  fromColor(r2, g2, b2, a2 = 1, format = "rgba8unorm") {
+    if (!this.#client) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    if (format != "rgba8unorm" && format != "rgba8unorm-srgb") {
+      throw new Error('fromColor only supports "rgba8unorm" and "rgba8unorm-srgb" formats');
+    }
+    const data = new Uint8Array([r2 * 255, g2 * 255, b2 * 255, a2 * 255]);
+    return this.#client.fromTextureData(new BasicTextureData(format, 1, 1, data), false);
+  }
+  /**
+   * Creates a noise texture with the specified dimensions. (rgba8unorm format)
+   *
+   * @param width - Width of the noise texture
+   * @param height - Height of the noise texture
+   * @returns Completed WebTextureResult
+   */
+  fromNoise(width, height) {
+    if (!this.#client) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    const data = new Uint8Array(width * height * 4);
+    for (let i2 = 0; i2 < data.length; ++i2) {
+      data[i2] = Math.random() * 255;
+    }
+    return this.#client.fromTextureData(new BasicTextureData("rgba8unorm", width, height, data), false);
+  }
+  /**
+   * Destroys the texture tool and stops any in-progress texture loads that have been started.
+   */
+  destroy() {
+    if (this.#client) {
+      this.#client.destroy();
+      this.#client = void 0;
+    }
+  }
+};
+
+// src/loaders/texture/webgpu-texture-loader.ts
+var EXTENSION_FORMATS = {
+  "texture-compression-bc": [
+    "bc1-rgba-unorm",
+    "bc2-rgba-unorm",
+    "bc3-rgba-unorm",
+    "bc7-rgba-unorm"
+  ],
+  "texture-compression-etc2": [
+    "etc2-rgb8unorm",
+    "etc2-rgb8a1unorm",
+    "etc2-rgba8unorm",
+    "eac-r11unorm",
+    "eac-r11snorm",
+    "eac-rg11unorm",
+    "eac-rg11snorm"
+  ],
+  "texture-compression-astc": [
+    "astc-4x4-unorm",
+    "astc-5x4-unorm",
+    "astc-5x5-unorm",
+    "astc-6x5-unorm",
+    "astc-6x6-unorm",
+    "astc-8x5-unorm",
+    "astc-8x6-unorm",
+    "astc-8x8-unorm",
+    "astc-10x5-unorm",
+    "astc-10x6-unorm",
+    "astc-10x8-unorm",
+    "astc-10x10-unorm",
+    "astc-12x10-unorm",
+    "astc-12x12-unorm"
+  ]
+};
+function formatForColorSpace(format, colorSpace) {
+  switch (colorSpace) {
+    case "sRGB":
+      return `${format}-srgb`;
+    default:
+      return format;
+  }
+}
+__name(formatForColorSpace, "formatForColorSpace");
+var WebGpuTextureLoader = class extends TextureLoaderBase {
+  static {
+    __name(this, "WebGpuTextureLoader");
+  }
+  device;
+  mipmapGenerator;
+  /**
+   * Creates a WebTextureTool instance which produces WebGPU textures.
+   *
+   * @param {module:External.GPUDevice} device - WebGPU device to create textures with.
+   */
+  constructor(device, imageCache) {
+    const mipmapGenerator = new WebGPUMipmapGenerator(device);
+    super(new WebGpuTextureClient(device, mipmapGenerator), imageCache);
+    this.device = device;
+    this.mipmapGenerator = mipmapGenerator;
+  }
+};
+var WebGpuTextureClient = class {
+  static {
+    __name(this, "WebGpuTextureClient");
+  }
+  device;
+  mipmapGenerator;
+  supportedFormatList = [
+    "rgba8unorm",
+    "bgra8unorm",
+    "rg11b10ufloat"
+  ];
+  /**
+   * Creates a TextureClient instance which uses WebGPU.
+   * Should not be called outside of the WebGPUTextureLoader constructor.
+   *
+   * @param device - WebGPU device to use.
+   */
+  constructor(device, mipmapGenerator) {
+    this.device = device;
+    this.mipmapGenerator = mipmapGenerator;
+    const featureList = device.features;
+    if (featureList) {
+      for (const feature in EXTENSION_FORMATS) {
+        if (featureList.has(feature)) {
+          const formats = EXTENSION_FORMATS[feature];
+          this.supportedFormatList.push(...formats);
+        }
+      }
+    }
+  }
+  /**
+   * Returns a list of the WebTextureFormats that this client can support.
+   *
+   * @returns {Array<module:WebTextureTool.WebTextureFormat>} - List of supported WebTextureFormats.
+   */
+  supportedFormats() {
+    return this.supportedFormatList;
+  }
+  /**
+   * Creates a GPUTexture from the given ImageBitmap.
+   *
+   * @param imageBitmap - ImageBitmap source for the texture.
+   * @param format - Format to store the texture as on the GPU. Must be an
+   * uncompressed format.
+   * @param generateMipmaps - True if mipmaps are desired.
+   * @returns Completed texture and metadata.
+   */
+  async fromImageBitmapBlob(blob, format, options) {
+    if (!this.device) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    const imageBitmap = await createImageBitmap(blob);
+    const generateMipmaps = options.mipmaps;
+    const mipLevelCount = generateMipmaps ? WebGPUMipmapGenerator.calculateMipLevels(imageBitmap.width, imageBitmap.height) : 1;
+    const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT;
+    const textureDescriptor = {
+      size: { width: imageBitmap.width, height: imageBitmap.height },
+      format: formatForColorSpace(format, options.colorSpace),
+      usage,
+      mipLevelCount
+    };
+    const texture = this.device.createTexture(textureDescriptor);
+    this.device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture }, textureDescriptor.size);
+    if (generateMipmaps) {
+      this.mipmapGenerator.generateMipmap(texture);
+    }
+    return texture;
+  }
+  /**
+   * Creates a GPUTexture from the given texture level data.
+   *
+   * @param textureData - Object containing data and layout for each image and
+   * mip level of the texture.
+   * @param generateMipmaps - True if mipmaps generation is desired. Only applies if a single level is given
+   * and the texture format is renderable.
+   * @returns Completed texture and metadata.
+   */
+  fromTextureData(textureData, options) {
+    if (!this.device) {
+      throw new Error("Cannot create new textures after object has been destroyed.");
+    }
+    const wtFormat = WebTextureFormats[textureData.format];
+    if (!wtFormat) {
+      throw new Error(`Unknown format "${textureData.format}"`);
+    }
+    const blockInfo = wtFormat.compressed || { blockBytes: 4, blockWidth: 1, blockHeight: 1 };
+    const generateMipmaps = options.mipmaps && wtFormat.canGenerateMipmaps;
+    const mipLevelCount = textureData.mipLevelCount > 1 ? textureData.mipLevelCount : generateMipmaps ? WebGPUMipmapGenerator.calculateMipLevels(textureData.width, textureData.height) : 1;
+    const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
+    const textureDescriptor = {
+      size: {
+        width: Math.ceil(textureData.size.width / blockInfo.blockWidth) * blockInfo.blockWidth,
+        height: Math.ceil(textureData.size.height / blockInfo.blockHeight) * blockInfo.blockHeight,
+        depthOrArrayLayers: textureData.size.depthOrArrayLayers
+      },
+      format: formatForColorSpace(textureData.format, options.colorSpace),
+      usage,
+      mipLevelCount
+    };
+    const texture = this.device.createTexture(textureDescriptor);
+    for (const bufferView of textureData.bufferViews) {
+      const bytesPerRow = Math.ceil(bufferView.levelSize.width / blockInfo.blockWidth) * blockInfo.blockBytes;
+      this.device.queue.writeTexture(
+        {
+          texture,
+          mipLevel: bufferView.level,
+          origin: { z: bufferView.layer }
+        },
+        textureData.arrayBuffer,
+        {
+          offset: bufferView.byteOffset,
+          bytesPerRow
+        },
+        {
+          // Copy width and height must be a multiple of the format block size;
+          width: Math.ceil(bufferView.levelSize.width / blockInfo.blockWidth) * blockInfo.blockWidth,
+          height: Math.ceil(bufferView.levelSize.height / blockInfo.blockHeight) * blockInfo.blockHeight
+        }
+      );
+    }
+    if (generateMipmaps) {
+      this.mipmapGenerator.generateMipmap(texture);
+    }
+    return texture;
+  }
+  /**
+   * Destroy this client.
+   * The client is unusable after calling destroy().
+   *
+   * @returns {void}
+   */
+  destroy() {
+    this.device = void 0;
+  }
+};
+
+// src/renderer/pipeline-factory.ts
+var Pipeline = class {
+  static {
+    __name(this, "Pipeline");
+  }
+  #requestedAt;
+  #requestCount = 1;
+  #key;
+  #pipeline;
+  #promise;
+  #resolved = false;
+  constructor(key, pipelinePromise, defaultPipeline) {
+    this.#key = key;
+    this.#requestedAt = performance.now();
+    if (pipelinePromise instanceof Promise) {
+      if (!defaultPipeline) {
+        throw new Error("Must provide a default pipeline when supplying a pipeline promise.");
+      }
+      this.#pipeline = defaultPipeline;
+      this.#promise = pipelinePromise;
+      pipelinePromise.then((pipeline) => {
+        this.pipeline = pipeline;
+      });
+    } else {
+      this.#pipeline = pipelinePromise;
+      this.#resolved = true;
+      this.#promise = Promise.resolve(this.pipeline);
+    }
+  }
+  get promise() {
+    return this.#promise;
+  }
+  get key() {
+    return this.#key;
+  }
+  set pipeline(value) {
+    if (this.#resolved) {
+      return;
+    }
+    this.#pipeline = value;
+    this.#resolved = true;
+  }
+  get pipeline() {
+    return this.#pipeline;
+  }
+  get resolved() {
+    return this.#resolved;
+  }
+  get requestedAt() {
+    return this.#requestedAt;
+  }
+  get requestCount() {
+    return this.#requestCount;
+  }
+  incrementRequestCount() {
+    this.#requestCount++;
+  }
+};
+var RenderPipeline = class extends Pipeline {
+  static {
+    __name(this, "RenderPipeline");
+  }
+  use(renderPass) {
+    renderPass.setPipeline(this.pipeline);
+  }
+};
+var DEFAULT_RENDER_PIPELINES = /* @__PURE__ */ new WeakMap();
+function getDefaultRenderPipeline(device, attachmentLayout) {
+  let devicePipelines = DEFAULT_RENDER_PIPELINES.get(device);
+  if (!devicePipelines) {
+    devicePipelines = /* @__PURE__ */ new Map();
+    DEFAULT_RENDER_PIPELINES.set(device, devicePipelines);
+  }
+  let pipeline = devicePipelines.get(attachmentLayout.id);
+  if (!pipeline) {
+    let outStruct = "struct OutColors { ";
+    for (let i2 = 0; i2 < attachmentLayout.colorFormats.length; ++i2) {
+      const outType = attachmentLayout.colorFormats[i2];
+      outStruct += `@location(${i2}) color_${i2}: ${AttachmentLayout.DefaultOutputType(outType)}, `;
+    }
+    outStruct += "}";
+    const module = device.createShaderModule({
+      label: "Device Default Render",
+      code: wgsl`
+      @vertex fn vertexMain() -> @builtin(position) vec4f {
+        return vec4f(0);
+      }
+
+      #if ${attachmentLayout.colorFormats.length > 0}
+      ${outStruct}
+
+      @fragment fn fragmentMain() -> OutColors {
+        return OutColors();
+      }
+      #else
+      @fragment fn fragmentMain() {}
+      #endif
+      `
+    });
+    let depthStencil = void 0;
+    if (attachmentLayout.depthStencilFormat) {
+      depthStencil = {
+        format: attachmentLayout.depthStencilFormat,
+        depthWriteEnabled: false,
+        depthCompare: "never"
+      };
+    }
+    pipeline = device.createRenderPipeline({
+      label: "Device Default Render",
+      layout: "auto",
+      vertex: { module },
+      depthStencil,
+      multisample: {
+        count: attachmentLayout.sampleCount
+      },
+      fragment: {
+        module,
+        targets: attachmentLayout.colorFormats.map((format) => {
+          return {
+            format
+          };
+        })
+      }
+    });
+    devicePipelines.set(attachmentLayout.id, pipeline);
+  }
+  return pipeline;
+}
+__name(getDefaultRenderPipeline, "getDefaultRenderPipeline");
+var stableStringify = /* @__PURE__ */ __name((key, value) => {
+  return value instanceof Object && !(value instanceof Array) ? Object.keys(value).sort().reduce((sorted, key2) => {
+    sorted[key2] = value[key2];
+    return sorted;
+  }, {}) : value;
+}, "stableStringify");
+var RenderPipelineFactory = class {
+  //#precacheFactory: PipelinePrecacheFactory;
+  constructor(device, config) {
+    this.device = device;
+    if (config) {
+      this.#config = config;
+      this.#config.addEventListener("changed", (event) => {
+        const cache = this.#configCaches.get(config.configRevision);
+        if (!cache) {
+          this.#pipelineCache = /* @__PURE__ */ new Map();
+          this.#configCaches.set(config.configRevision, this.#pipelineCache);
+        } else {
+          this.#pipelineCache = cache;
+        }
+      });
+      this.#configCaches.set(this.#config.configRevision, this.#pipelineCache);
+    }
+  }
+  device;
+  static {
+    __name(this, "RenderPipelineFactory");
+  }
+  #config;
+  #pipelineCache = /* @__PURE__ */ new Map();
+  #configCaches = /* @__PURE__ */ new Map();
+  // Returning as any to avoid type errors when accessing properties
+  get config() {
+    return this.#config;
+  }
+  serializeArgs(args) {
+    return JSON.stringify(args, stableStringify);
+  }
+  deserializeArgs(key) {
+    return JSON.parse(key);
+  }
+  getPipeline(geometryLayout, attachmentLayout, args, forceSync = false) {
+    const key = `${geometryLayout.serializeToString()};${attachmentLayout.serializeToString()};${JSON.stringify(args, stableStringify)}`;
+    return this.#getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync);
+  }
+  #getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync = false) {
+    let pipeline = this.#pipelineCache.get(key);
+    if (pipeline && (pipeline.resolved || !forceSync)) {
+      pipeline.incrementRequestCount();
+      return pipeline;
+    }
+    const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, args);
+    if (pipeline) {
+      pipeline.pipeline = this.device.createRenderPipeline(descriptor);
+    } else if (!pipeline) {
+      if (forceSync) {
+        pipeline = new RenderPipeline(
+          key,
+          this.device.createRenderPipeline(descriptor)
+        );
+      } else {
+        pipeline = new RenderPipeline(
+          key,
+          this.device.createRenderPipelineAsync(descriptor),
+          getDefaultRenderPipeline(this.device, attachmentLayout)
+        );
+      }
+      this.#pipelineCache.set(key, pipeline);
+    }
+    return pipeline;
+  }
+};
+
+// src/renderer/pipelines/common.ts
+var CameraBindings = (
+  /* wgsl */
+  `
+  struct Camera {
+    projection: mat4x4f,
+    invProjection: mat4x4f,
+    view: mat4x4f,
+    viewPos: vec3f,
+    time: f32,
+    outputSize: vec2f,
+    zNear: f32,
+    zFar: f32,
+  };
+
+  @group(0) @binding(0) var<uniform> camera: Camera;
+`
+);
+var FrameBindings = (
+  /* wgsl */
+  `
+  ${CameraBindings}
+
+  struct Instance {
+    model: mat4x4f,
+    normal: mat3x3f,
+  }
+  @group(0) @binding(1) var<storage> instances: array<Instance>;
+  @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
+
+  @group(0) @binding(3) var defaultSampler: sampler;
+  @group(0) @binding(4) var environmentTexture: texture_cube<f32>;
+`
+);
+var DecalFrameBindings = (
+  /* wgsl */
+  `
+  ${FrameBindings}
+
+  struct Decal {
+    id: u32,
+    textureIndex: u32,
+    highlight: u32,
+    baseColorFactor: vec4f,
+    origin: vec3f,
+    decalProj: mat4x4f,
+  };
+  struct SceneDecals {
+    decalCount: u32,
+    decal: array<Decal>,
+  };
+  @group(0) @binding(5) var<storage> decals: SceneDecals;
+  @group(0) @binding(6) var decalTexture: texture_2d_array<f32>;
+  @group(0) @binding(7) var causticsTexture: texture_2d<f32>;
+`
+);
+var SRGBConversions = (
+  /* wgsl */
+  `
+  const GAMMA = 2.2f;
+  fn sRGBToLinear(srgb : vec3f) -> vec3f {
+    return pow(srgb, vec3(GAMMA));
+  }
+
+  const INV_GAMMA = 1.0f / GAMMA;
+  fn linearTosRGB(linear : vec3f) -> vec3f {
+    return pow(linear, vec3(INV_GAMMA));
+  }
+`
+);
+
+// src/renderer/pipelines/clusters.ts
+var TILE_COUNT = [32, 18, 48];
+var TOTAL_TILES = TILE_COUNT[0] * TILE_COUNT[1] * TILE_COUNT[2];
+var WORKGROUP_SIZE = [4, 2, 4];
+var ClusterBoundsUpdateSource = (
+  /*wgsl*/
+  `
+  ${CameraBindings}
+
+  struct ClusterBounds {
+    minAABB : vec3<f32>,
+    maxAABB : vec3<f32>,
+  };
+  struct Clusters {
+    bounds : array<ClusterBounds, ${TOTAL_TILES}>
+  };
+  @group(0) @binding(1) var<storage, read_write> clusters : Clusters;
+
+  fn lineIntersectionToZPlane(a: vec3f, b: vec3f, zDistance: f32) -> vec3f {
+    let normal = vec3f(0, 0, 1);
+    let ab =  b - a;
+    let t = (zDistance - dot(normal, a)) / dot(normal, ab);
+    return a + t * ab;
+  }
+
+  fn clipToView(clip : vec4f) -> vec4f {
+    let view = camera.invProjection * clip;
+    return view / vec4f(view.w, view.w, view.w, view.w);
+  }
+
+  fn screen2View(screen : vec4f) -> vec4f {
+    let texCoord = screen.xy / camera.outputSize.xy;
+    let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
+    return clipToView(clip);
+  }
+
+  const tileCount = vec3u(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+  const eyePos = vec3(0.0);
+
+  @compute @workgroup_size(${WORKGROUP_SIZE[0]}, ${WORKGROUP_SIZE[1]}, ${WORKGROUP_SIZE[2]})
+  fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
+    let tileIndex : u32 = global_id.x +
+                          global_id.y * tileCount.x +
+                          global_id.z * tileCount.x * tileCount.y;
+
+    let tileSize = vec2(camera.outputSize.x / f32(tileCount.x),
+                        camera.outputSize.y / f32(tileCount.y));
+
+    let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
+    let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
+
+    let maxPoint_vS = screen2View(maxPoint_sS).xyz;
+    let minPoint_vS = screen2View(minPoint_sS).xyz;
+
+    let tileNear : f32 = -camera.zNear * pow(camera.zFar/camera.zNear, f32(global_id.z)/f32(tileCount.z));
+    let tileFar : f32 = -camera.zNear * pow(camera.zFar/camera.zNear, f32(global_id.z+1u)/f32(tileCount.z));
+
+    let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
+    let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);
+    let maxPointNear = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileNear);
+    let maxPointFar = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileFar);
+
+    clusters.bounds[tileIndex].minAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
+    clusters.bounds[tileIndex].maxAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
+  }
+`
+);
+var TileFunctions = (
+  /*wgsl*/
+  `
+const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
+
+fn linearDepth(depthSample : f32) -> f32 {
+  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
+}
+
+fn getTile(fragCoord : vec4f) -> vec3u {
+  // TODO: scale and bias calculation can be moved outside the shader to save cycles.
+  let sliceScale = f32(tileCount.z) / log2(camera.zFar / camera.zNear);
+  let sliceBias = -(f32(tileCount.z) * log2(camera.zNear) / log2(camera.zFar / camera.zNear));
+  let zTile = u32(max(log2(linearDepth(fragCoord.z)) * sliceScale + sliceBias, 0.0));
+
+  return vec3(u32(fragCoord.x / (camera.outputSize.x / f32(tileCount.x))),
+              u32(fragCoord.y / (camera.outputSize.y / f32(tileCount.y))),
+              zTile);
+}
+
+fn getClusterIndex(fragCoord : vec4f) -> u32 {
+  let tile = getTile(fragCoord);
+  return tile.x +
+         tile.y * tileCount.x +
+         tile.z * tileCount.x * tileCount.y;
+}
+`
+);
+
+// src/renderer/pipelines/unlit.ts
+var UnlitPipelineFactory = class extends RenderPipelineFactory {
+  static {
+    __name(this, "UnlitPipelineFactory");
+  }
+  materialBGL;
+  pipelineLayout;
+  constructor(gpu) {
+    const config = gpu.config.watch();
+    super(gpu.device, config);
+    this.materialBGL = gpu.device.createBindGroupLayout({
+      label: "Unlit Material",
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.FRAGMENT,
+        buffer: {}
+      }, {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 2,
+        visibility: GPUShaderStage.FRAGMENT,
+        sampler: {}
+      }]
+    });
+    this.pipelineLayout = gpu.device.createPipelineLayout({
+      bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
+    });
+  }
+  getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
+    const module = this.device.createShaderModule({
+      label: "Unlit Material",
+      code: wgsl`
+          ${DecalFrameBindings}
+
+          struct Material {
+            baseColorFactor: vec4f,
+            baseAlbedo: vec3f,
+          };
+
+          @group(1) @binding(0) var<uniform> material: Material;
+          @group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
+          @group(1) @binding(2) var texSampler: sampler;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+          };
+
+          @vertex
+          fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
+            let instanceId = instanceIndices[instanceIdx];
+            let instance = instances[instanceId];
+            let worldPos = instance.model * in.position;
+            let pos = camera.projection * camera.view * worldPos;
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.normal)}
+            let n = normalize(instance.normal * in.normal);
+          #else
+            let n = normalize(instance.normal * vec3f(0, 0, 1));
+          #endif
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.texcoord0)}
+            let texCoord = in.texcoord0;
+          #else
+            let texCoord = vec2f(0);
+          #endif
+
+            return VertexOut(pos, texCoord, n, worldPos);
+          }
+
+          ${SRGBConversions}
+
+          ${TileFunctions}
+
+          const projBias = mat4x4f(
+            0.5, 0, 0, 0,
+            0, -0.5, 0, 0,
+            0, 0, 0.5, 0,
+            0.5, 0.5, 0.5, 1,
+          );
+
+          struct FragOut {
+            @location(0) color: vec4f,
+            @location(1) decalId: u32,
+          }
+
+          @fragment
+          fn fragMain(in: VertexOut) -> FragOut {
+            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
+
+            var out: FragOut;
+
+          #if ${args.canDecal}
+            let estAlbedo = material.baseAlbedo;
+            let lightEst = baseColor.rgb / estAlbedo;
+
+            let causticsUv = (in.pos.xy / vec2f(textureDimensions(causticsTexture)));
+
+            let causticsA = textureSample(causticsTexture, defaultSampler, causticsUv + vec2(camera.time * 0.25, 0));
+            let causticsB = textureSample(causticsTexture, defaultSampler, -causticsUv - vec2(0, camera.time * 0.1));
+            let caustics = (causticsA + causticsB) * 0.5;
+
+            var decalAccumColor = vec4f(0);
+            for (var i = 0u; i < decals.decalCount; i++) {
+              let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
+              let decalUv = decalProjCoord.xyz / decalProjCoord.w;
+              var decalColor = decals.decal[i].baseColorFactor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
+
+              // TODO: Check to ensure in.normal is facing towards the decal.
+              let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
+              let nDotO = dot(in.normal, originToPoint);
+
+              if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
+                let decalAlpha = decalColor.a;
+                decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
+
+                if (decals.decal[i].highlight == 1) {
+                  decalAccumColor += caustics * decalAlpha;
+                }
+
+                decalAccumColor.a = min(decalAccumColor.a, 1);
+
+                if (decalAlpha > 0.2) {
+                  out.decalId = decals.decal[i].id;
+                }
+              }
+            }
+
+            let color = (baseColor.rgb * (1.0 - decalAccumColor.a)) + ((decalAccumColor.rgb * lightEst) * decalAccumColor.a);
+          #else
+            let color = baseColor.rgb;
+          #endif
+            //let tileColor = vec3f(getTile(in.pos)) / vec3f(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+
+            out.color = vec4(linearTosRGB(color), baseColor.a);
+
+            return out;
+          }
+        `
+    });
+    return {
+      label: "Unlit Material",
+      layout: this.pipelineLayout,
+      vertex: { module, buffers: geometryLayout.buffers },
+      primitive: {
+        topology: geometryLayout.topology,
+        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
+      },
+      depthStencil: {
+        format: attachmentLayout.depthStencilFormat,
+        depthWriteEnabled: true,
+        depthCompare: args.depthTest ? "greater" : "always"
+      },
+      fragment: {
+        module,
+        targets: attachmentLayout.colorFormats.map((format, index) => {
+          const target = {
+            format
+          };
+          if (args.transparent) {
+            if (index == 0) {
+              target.blend = {
+                color: {
+                  srcFactor: "src-alpha",
+                  dstFactor: "one-minus-src-alpha"
+                },
+                alpha: {
+                  srcFactor: "one",
+                  dstFactor: "one"
+                }
+              };
+            } else {
+              target.writeMask = 0;
+            }
+          }
+          return target;
+        })
+      }
+    };
+  }
+};
+
+// src/renderer/emoji-renderer.ts
+var EmojiRenderer = class {
+  static {
+    __name(this, "EmojiRenderer");
+  }
+  textureLoader;
+  canvas;
+  ctx;
+  emojiFontLoaded;
+  constructor(textureLoader) {
+    this.textureLoader = textureLoader;
+    this.canvas = document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    const emojiFontPromises = [];
+    document.fonts.forEach((font) => {
+      if (font.family === "Noto Color Emoji") {
+        emojiFontPromises.push(font.loaded);
+        font.load();
+      }
+    });
+    this.emojiFontLoaded = Promise.all(emojiFontPromises);
+  }
+  loadCustomEmojiImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve(img);
+      };
+      img.onerror = (err) => {
+        reject(err);
+      };
+      img.src = url;
+    });
+  }
+  async renderEmoji(emoji, texture, layer = 0) {
+    const width = this.canvas.width = texture.width;
+    const height = this.canvas.height = texture.height;
+    if (emoji.unicode) {
+      await this.emojiFontLoaded;
+      this.ctx.clearRect(0, 0, width, height);
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
+      this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
+      this.ctx.fillText(emoji.unicode, width * 0.5, height * 0.55, width);
+    } else if (emoji.emoji.url) {
+      const img = await this.loadCustomEmojiImage(emoji.emoji.url);
+      const aspect = img.naturalWidth / img.naturalHeight;
+      const imgWidth = aspect > 1 ? width : width * aspect;
+      const imgHeight = aspect > 1 ? height / aspect : height;
+      this.ctx.clearRect(0, 0, width, height);
+      this.ctx.drawImage(img, (width - imgWidth) * 0.5, (height - imgHeight) * 0.5, imgWidth, imgHeight);
+    }
+    const device = this.textureLoader.device;
+    device.queue.copyExternalImageToTexture({
+      source: this.canvas
+    }, {
+      texture,
+      origin: [0, 0, layer],
+      premultipliedAlpha: true
+    }, [texture.width, texture.height, 1]);
+    this.textureLoader.mipmapGenerator.generateMipmap(texture, layer);
+  }
+};
+
+// src/renderer/decal-manager.ts
+var MAX_DECALS = 1024;
+var MAX_DECAL_TEXTURES = 256;
+var DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH * 3;
+var DecalManager = class {
+  static {
+    __name(this, "DecalManager");
+  }
+  gpu;
+  emojiRenderer;
+  decalTextureArray;
+  decalArray = new ArrayBuffer(DECAL_BYTE_SIZE * MAX_DECALS + Vec4.BYTE_LENGTH);
+  decalUintArray = new Uint32Array(this.decalArray);
+  decalFloatArray = new Float32Array(this.decalArray);
+  decalBuffer;
+  selectedDecal = 0;
+  nextTextureIndex = 0;
+  decalKeyMapping = /* @__PURE__ */ new Map();
+  decalCache = [];
+  constructor(gpu) {
+    this.gpu = gpu;
+    this.emojiRenderer = new EmojiRenderer(this.gpu.textureLoader);
+    this.decalBuffer = gpu.device.createBuffer({
+      label: "Decal",
+      size: this.decalArray.byteLength,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
+    });
+    const emojiSize = this.gpu.config.emojiTextureSize;
+    this.decalTextureArray = gpu.device.createTexture({
+      label: "Decal",
+      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+      mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+      format: "rgba8unorm-srgb"
+    });
+  }
+  #getEmojiKey(emoji) {
+    return emoji.unicode ?? emoji.emoji?.url;
+  }
+  async getDecal(emoji) {
+    const decalKey = this.#getEmojiKey(emoji);
+    let decalIndex = this.decalKeyMapping.get(decalKey);
+    if (decalIndex !== void 0) {
+      return this.decalCache[decalIndex];
+    }
+    decalIndex = this.nextTextureIndex;
+    this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
+    let decal = this.decalCache[decalIndex];
+    if (decal) {
+      decal.textureIndex = -1;
+      this.decalKeyMapping.delete(this.#getEmojiKey(decal.emoji));
+    }
+    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, decalIndex);
+    decal = new Decal(emoji, decalIndex);
+    this.decalCache[decalIndex] = decal;
+    this.decalKeyMapping.set(decalKey, decalIndex);
+    return decal;
+  }
+  getTextureDecal(url) {
+    const emoji = { emoji: { url } };
+    return this.getDecal(emoji);
+  }
+  updateDecals(stage) {
+    const textureProj = new Mat4();
+    let offset = 4;
+    let decalCount = 0;
+    stage.query(Decal).forEach((actor, decal) => {
+      if (decal.textureIndex == -1) {
+        actor.remove(Decal);
+        return;
+      }
+      if (decalCount >= MAX_DECALS) {
+        return;
+      }
+      const placing = actor.has(Tag("placing-decal"));
+      const selected = decalCount + 1 == this.selectedDecal;
+      Mat4.invert(textureProj, actor.worldTransform.matrix);
+      Mat4.multiply(textureProj, decal.projection, textureProj);
+      this.decalUintArray[offset] = decalCount + 1;
+      this.decalUintArray[offset + 1] = decal.textureIndex;
+      this.decalUintArray[offset + 2] = placing || selected ? 1 : 0;
+      this.decalFloatArray.set(decal.baseColorFactor, offset + 4);
+      this.decalFloatArray.set(actor.worldTransform.translation, offset + 8);
+      this.decalFloatArray.set(textureProj, offset + 12);
+      offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
+      decalCount++;
+    });
+    this.decalUintArray[0] = decalCount;
+    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * decalCount + Vec4.BYTE_LENGTH);
+  }
+};
+
+// src/renderer/selection-manager.ts
+var SelectionManager = class {
+  static {
+    __name(this, "SelectionManager");
+  }
+  gpu;
+  selectionPipeline;
+  selectionTexture;
+  selectionBindGroupLayout;
+  selectionBindGroup;
+  selectionBuffer;
+  selectionReadbackBuffers = [];
+  immediateArray = new Uint32Array(2);
+  constructor(gpu) {
+    this.gpu = gpu;
+    this.selectionBindGroupLayout = gpu.device.createBindGroupLayout({
+      label: "Decal Selection",
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        texture: { sampleType: "uint" }
+      }, {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "storage" }
+      }]
+    });
+    this.selectionBuffer = gpu.device.createBuffer({
+      label: "Decal Selection",
+      size: Vec4.BYTE_LENGTH,
+      usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE
+    });
+    const module = gpu.device.createShaderModule({
+      label: "Decal Selection",
+      code: `
+        var<immediate> selectCoord: vec2u;
+
+        @group(0) @binding(0) var selectionTexture: texture_2d<u32>;
+        @group(0) @binding(1) var<storage, read_write> selection: u32;
+
+        @compute @workgroup_size(1, 1, 1)
+        fn computeMain() {
+          selection = textureLoad(selectionTexture, selectCoord, 0).x;
+        }
+      `
+    });
+    this.selectionPipeline = gpu.device.createComputePipeline({
+      label: "Decal Selection",
+      layout: gpu.device.createPipelineLayout({
+        bindGroupLayouts: [this.selectionBindGroupLayout],
+        // @ts-expect-error TypeScript defs for immediates not available yet.
+        immediateSize: Vec2.BYTE_LENGTH
+      }),
+      compute: {
+        module
+      }
+    });
+  }
+  onResize(width, height) {
+    const device = this.gpu.device;
+    if (this.selectionTexture) {
+      this.selectionTexture.destroy();
+    }
+    this.selectionTexture = device.createTexture({
+      label: "Decal Selection",
+      size: { width, height },
+      sampleCount: this.gpu.config.sampleCount,
+      format: this.gpu.config.selectionFormat,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+    });
+    this.selectionBindGroup = device.createBindGroup({
+      label: "Decal Selection",
+      layout: this.selectionBindGroupLayout,
+      entries: [{
+        binding: 0,
+        resource: this.selectionTexture
+      }, {
+        binding: 1,
+        resource: this.selectionBuffer
+      }]
+    });
+  }
+  #getSelectionReadbackBuffer() {
+    if (this.selectionReadbackBuffers.length) {
+      return this.selectionReadbackBuffers.pop();
+    }
+    const buffer = this.gpu.device.createBuffer({
+      label: "Decal Selection Readback",
+      size: this.selectionBuffer.size,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+    });
+    return buffer;
+  }
+  async getDecalIdAtPoint(x2, y2) {
+    const device = this.gpu.device;
+    const readbackBuffer = this.#getSelectionReadbackBuffer();
+    const commandEncoder = device.createCommandEncoder();
+    const computePass = commandEncoder.beginComputePass({});
+    computePass.setPipeline(this.selectionPipeline);
+    computePass.setBindGroup(0, this.selectionBindGroup);
+    this.immediateArray[0] = x2;
+    this.immediateArray[1] = y2;
+    computePass.setImmediates(0, this.immediateArray);
+    computePass.dispatchWorkgroups(1);
+    computePass.end();
+    commandEncoder.copyBufferToBuffer(this.selectionBuffer, readbackBuffer);
+    device.queue.submit([commandEncoder.finish()]);
+    await readbackBuffer.mapAsync(GPUMapMode.READ);
+    const selectionArray = new Uint32Array(readbackBuffer.getMappedRange());
+    const selection = selectionArray[0];
+    readbackBuffer.unmap();
+    this.selectionReadbackBuffers.push(readbackBuffer);
+    return selection;
+  }
+};
+
+// src/renderer/pipelines/pbr-common.ts
+var SurfaceInfoStruct = `
+  struct SurfaceInfo {
+    worldPos: vec3f,
+    fragPos: vec2f,
+    V: vec3f, // normalized vector from the shading location to the eye
+    N: vec3f, // surface normal in the world space
+    specularColor: vec3f,
+    diffuseColor: vec3f,
+    metal: f32,
+    rough: f32,
+    f0: vec3f,
+    ao: f32,
+    alpha: f32,
+  };
+`;
+var PBRFunctions = (
+  /* wgsl */
+  `
+  const PI = ${Math.PI};
+  const MIN_ROUGHNESS = 0.045;
+
+  fn getSpecularLightColor(R: vec3f, roughness: f32) -> vec3f {
+    let envLevels = f32(textureNumLevels(environmentTexture));
+
+    let rough = envLevels * roughness * (2.0 - roughness);
+
+    return textureSampleLevel(environmentTexture, defaultSampler, R, rough).rgb;
+  }
+
+  fn getDiffuseLightColor(N: vec3f) -> vec3f {
+    let diffuseLevel = f32(textureNumLevels(environmentTexture) - 1);
+    return textureSampleLevel(environmentTexture, defaultSampler, N, diffuseLevel).rgb;
+  }
+
+  fn FresnelSchlickRoughness(cosTheta: f32, F0: vec3f, roughness: f32) -> vec3f {
+    return F0 + (max(vec3f(1 - roughness), F0) - F0) * pow(clamp(1 - cosTheta, 0, 1), 5);
+  }
+
+  // From https://www.unrealengine.com/en-US/blog/physically-based-shading-on-mobile
+  fn envBRDFApprox(roughness: f32, NdotV: f32) -> vec2f {
+    let c0 = vec4f(-1, -0.0275, -0.572, 0.022);
+    let c1 = vec4f(1, 0.0425, 1.04, -0.04);
+    let r = roughness * c0 + c1;
+    let a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    return vec2f(-1.04, 1.04) * a004 + r.zw;
+  }
+
+  fn pbrSurfaceColorIbl(surface: SurfaceInfo) -> vec3f {
+    let NdotV = max(dot(surface.N, surface.V), 0);
+    let R = reflect(-surface.V, surface.N);
+
+    let kS = FresnelSchlickRoughness(NdotV, surface.f0, surface.rough);
+    let kD = (1 - kS) * (1 - surface.metal);
+    let irradiance = getDiffuseLightColor(surface.N);
+    let diffuse    = vec3f(0); //irradiance * surface.diffuseColor;
+
+    let prefilteredColor = getSpecularLightColor(R, surface.rough);
+    let envBrdf = envBRDFApprox(surface.rough, NdotV);
+    let specular = prefilteredColor * (surface.specularColor * envBrdf.x + envBrdf.y);
+
+    let ambient    = (kD * diffuse + specular) * surface.ao;
+    return ambient;
+  }
+`
+);
+
+// src/renderer/pipelines/pbr.ts
+var PBRPipelineFactory = class extends RenderPipelineFactory {
+  static {
+    __name(this, "PBRPipelineFactory");
+  }
+  materialBGL;
+  pipelineLayout;
+  constructor(gpu) {
+    const config = gpu.config.watch();
+    super(gpu.device, config);
+    this.materialBGL = gpu.device.createBindGroupLayout({
+      label: "PBR Material",
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.FRAGMENT,
+        buffer: {}
+      }, {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT,
+        sampler: {}
+      }, {
+        binding: 2,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 5,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        binding: 6,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }]
+    });
+    this.pipelineLayout = gpu.device.createPipelineLayout({
+      bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
+    });
+  }
+  getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
+    const module = this.device.createShaderModule({
+      label: "PBR Material",
+      code: wgsl`
+          ${FrameBindings}
+
+          struct Material {
+            baseColorFactor: vec4f,
+            metallicRoughnessFactor: vec2f,
+            emissiveFactor: vec4f,
+          };
+
+          @group(1) @binding(0) var<uniform> material: Material;
+          @group(1) @binding(1) var materialSampler: sampler;
+          @group(1) @binding(2) var baseColorTexture: texture_2d<f32>;
+          @group(1) @binding(3) var normalTexture: texture_2d<f32>;
+          @group(1) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
+          @group(1) @binding(5) var occlusionTexture: texture_2d<f32>;
+          @group(1) @binding(6) var emissiveTexture: texture_2d<f32>;
+
+          ${geometryLayout.getStandardVertexInStruct()}
+
+          struct VertexOut {
+            @builtin(position) pos: vec4f,
+            @location(0) texCoord: vec2f,
+            @location(1) normal: vec3f,
+            @location(2) worldPos: vec4f,
+            @location(3) color: vec4f,
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            @location(4) tangent: vec3f,
+            @location(5) bitangent: vec3f,
+          #endif
+          };
+
+          @vertex
+          fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
+            let instanceId = instanceIndices[instanceIdx];
+            let instance = instances[instanceId];
+
+            var out: VertexOut;
+
+            out.worldPos = instance.model * in.position;
+            out.pos = camera.projection * camera.view * out.worldPos;
+            out.texCoord = in.texcoord0;
+            out.normal = normalize(instance.normal * in.normal);
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.color)}
+            out.color = in.color;
+          #else
+            out.color = vec4f(1);
+          #endif
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            out.tangent = normalize(instance.normal * in.tangent.xyz);
+            out.bitangent = cross(out.normal, out.tangent) * in.tangent.w;
+          #endif
+
+            return out;
+          }
+
+          ${SRGBConversions}
+
+          ${SurfaceInfoStruct}
+
+          ${PBRFunctions}
+
+          struct FragOut {
+            @location(0) color: vec4f,
+            @location(1) decalId: u32,
+          }
+
+          @fragment
+          fn fragMain(in: VertexOut) -> FragOut {
+
+            var surface: SurfaceInfo;
+            surface.worldPos = in.worldPos.xyz;
+            surface.fragPos = in.pos.xy;
+            surface.V = normalize(camera.viewPos - surface.worldPos);
+
+          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
+            let tbn = mat3x3f(in.tangent, in.bitangent, in.normal);
+            let texNormal = textureSample(normalTexture, materialSampler, in.texCoord).rgb;
+            surface.N = normalize(tbn * (texNormal * 2 - 1));
+          #else
+            surface.N = normalize(in.normal);
+          #endif
+
+            let environment = textureSample(environmentTexture, materialSampler, surface.N);
+
+            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
+            surface.alpha = baseColor.a;
+            let color = in.color.rgb * baseColor.rgb;
+
+            let metalRough = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, materialSampler, in.texCoord).bg;
+            surface.metal = metalRough.r;
+            surface.rough = clamp(metalRough.g, MIN_ROUGHNESS, 1.0);
+
+            surface.diffuseColor = color * (1 - surface.metal);
+            surface.specularColor = color * surface.metal;
+
+            let dielectricSpec = vec3f(0.04);
+            surface.f0 = mix(dielectricSpec, color.rgb, vec3f(surface.metal));
+
+            surface.ao = textureSample(occlusionTexture, materialSampler, in.texCoord).r;
+
+            let emmisive = material.emissiveFactor.rgb * textureSample(emissiveTexture, materialSampler, in.texCoord).rgb;
+
+            var Lo = pbrSurfaceColorIbl(surface);
+
+            // Punctual lights would go here.
+
+            Lo += (surface.diffuseColor * surface.ao) + emmisive;
+
+            var out: FragOut;
+            out.decalId = 0;
+            out.color = vec4(linearTosRGB(Lo), surface.alpha);
+            return out;
+          }
+        `
+    });
+    return {
+      label: "PBR Material",
+      layout: this.pipelineLayout,
+      vertex: { module, buffers: geometryLayout.buffers },
+      primitive: {
+        topology: geometryLayout.topology,
+        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
+      },
+      depthStencil: {
+        format: attachmentLayout.depthStencilFormat,
+        depthWriteEnabled: true,
+        depthCompare: "greater"
+      },
+      fragment: {
+        module,
+        targets: attachmentLayout.colorFormats.map((format, index) => {
+          const target = {
+            format
+          };
+          if (args.transparent) {
+            if (index == 0) {
+              target.blend = {
+                color: {
+                  srcFactor: "src-alpha",
+                  dstFactor: "one-minus-src-alpha"
+                },
+                alpha: {
+                  srcFactor: "one",
+                  dstFactor: "one"
+                }
+              };
+            } else {
+              target.writeMask = 0;
+            }
+          }
+          return target;
+        })
+      }
+    };
+  }
+};
+
+// src/renderer/camera-manager.ts
+var CameraManager = class {
+  static {
+    __name(this, "CameraManager");
+  }
+  gpu;
+  #cameraArray = new Float32Array(16 * 3 + 8);
+  #projMat = new Mat4(this.#cameraArray.buffer, 0);
+  #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
+  #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
+  #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
+  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
+  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
+  cameraBuffer;
+  constructor(gpu) {
+    this.gpu = gpu;
+    const device = gpu.device;
+    this.cameraBuffer = device.createBuffer({
+      label: "Camera",
+      size: this.#cameraArray.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
+  }
+  updateCamera(cameraActor, timestamp) {
+    const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
+    if (!camera) {
+      throw new Error("cameraActor passed to WebGPURenderer.render() must have a camera component");
+    }
+    camera.getProjection(this.#projMat);
+    Mat4.invert(this.#inverseProjMat, this.#projMat);
+    Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
+    this.#viewPos.set(cameraActor.worldTransform.translation);
+    this.#cameraArray[51] = timestamp / 1e3;
+    this.#outputSize[0] = this.gpu.canvas.width;
+    this.#outputSize[1] = this.gpu.canvas.height;
+    this.#zRange[0] = camera.zNear;
+    this.#zRange[1] = camera.zFar;
+    this.gpu.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
+  }
+};
+
+// src/renderer/cluster-manager.ts
+var DISPATCH_SIZE = [
+  TILE_COUNT[0] / WORKGROUP_SIZE[0],
+  TILE_COUNT[1] / WORKGROUP_SIZE[1],
+  TILE_COUNT[2] / WORKGROUP_SIZE[2]
+];
+var CLUSTER_BOUNDS_SIZE = TOTAL_TILES * 32;
+var ClusterManager = class {
+  static {
+    __name(this, "ClusterManager");
+  }
+  gpu;
+  clusterBoundsUpdateBGL;
+  clusterBoundsUpdateBindGroup;
+  clusterBoundsBuffer;
+  boundsPipeline;
+  constructor(gpu) {
+    this.gpu = gpu;
+    const device = gpu.device;
+    this.clusterBoundsUpdateBGL = device.createBindGroupLayout({
+      label: "Cluster Bounds",
+      entries: [{
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "uniform" }
+      }, {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "storage" }
+      }]
+    });
+    this.clusterBoundsBuffer = device.createBuffer({
+      label: "Cluster Bounds",
+      size: CLUSTER_BOUNDS_SIZE,
+      usage: GPUBufferUsage.STORAGE
+    });
+    this.clusterBoundsUpdateBindGroup = device.createBindGroup({
+      label: "Cluster Bounds Update",
+      layout: this.clusterBoundsUpdateBGL,
+      entries: [{
+        binding: 0,
+        resource: gpu.cameraManager.cameraBuffer
+      }, {
+        binding: 1,
+        resource: this.clusterBoundsBuffer
+      }]
+    });
+    device.createComputePipelineAsync({
+      label: "Cluster Bounds Update",
+      layout: device.createPipelineLayout({
+        bindGroupLayouts: [
+          this.clusterBoundsUpdateBGL
+        ]
+      }),
+      compute: {
+        module: device.createShaderModule({
+          label: "Cluster Bounds Update",
+          code: ClusterBoundsUpdateSource
+        })
+      }
+    }).then((pipeline) => {
+      this.boundsPipeline = pipeline;
+    });
+  }
+  updateClusterBounds(commandEncoder) {
+    if (!this.boundsPipeline) {
+      return;
+    }
+    const passEncoder = commandEncoder.beginComputePass({ label: "Cluster Bounds Compute Pass" });
+    passEncoder.setPipeline(this.boundsPipeline);
+    passEncoder.setBindGroup(0, this.clusterBoundsUpdateBindGroup);
+    passEncoder.dispatchWorkgroups(DISPATCH_SIZE[0], DISPATCH_SIZE[1], DISPATCH_SIZE[2]);
+    passEncoder.end();
+  }
+};
+
+// src/renderer/webgpu-renderer.ts
+var WebGPURenderer = class {
+  static {
+    __name(this, "WebGPURenderer");
+  }
+  device;
+  canvas;
+  context;
+  config;
+  textureLoader;
+  depthStencilTexture;
+  msaaColorTexture;
+  attachmentLayout;
+  frameBGL;
+  #frameBindGroup;
+  cameraManager;
+  clusterManager;
+  instanceManager;
+  decalManager;
+  selectionManager;
+  unlitPipelineFactory;
+  pbrPipelineFactory;
+  defaultSampler;
+  whiteTexture;
+  blackTexture;
+  normalTexture;
+  whiteCubeTexture;
+  #environmentTexture;
+  causticsTexture;
+  constructor(device, options) {
+    this.device = device;
+    this.canvas = options.canvas ?? document.createElement("canvas");
+    this.context = this.canvas.getContext("webgpu");
+    this.config = Config.Create(RenderConfig, device);
+    this.context.configure({
+      device: this.device,
+      format: this.config.colorFormat
+    });
+    this.textureLoader = new WebGpuTextureLoader(device);
+    this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
+    this.blackTexture = this.textureLoader.fromColor(0, 0, 0, 0);
+    this.normalTexture = this.textureLoader.fromColor(0.5, 0.5, 1, 1);
+    this.textureLoader.fromUrl("./media/textures/caustics.jpg").then((texture) => {
+      this.causticsTexture = texture;
+      this.frameBindingsDirty();
+    });
+    this.whiteCubeTexture = this.device.createTexture({
+      label: "Temp Environment",
+      size: [1, 1, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING
+    });
+    this.attachmentLayout = new AttachmentLayout(
+      [this.config.colorFormat, this.config.selectionFormat],
+      this.config.depthStencilFormat,
+      this.config.sampleCount
+    );
+    this.frameBGL = device.createBindGroupLayout({
+      label: "Frame",
+      entries: [{
+        // Camera Uniforms
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: {}
+      }, {
+        // Instance Data
+        binding: 1,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: { type: "read-only-storage" }
+      }, {
+        // Instance Index
+        binding: 2,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+        buffer: { type: "read-only-storage" }
+      }, {
+        // Default Sampler
+        binding: 3,
+        visibility: GPUShaderStage.FRAGMENT,
+        sampler: {}
+      }, {
+        // Environment Texture
+        binding: 4,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: { viewDimension: "cube" }
+      }, {
+        // Decal Data
+        binding: 5,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: { type: "read-only-storage" }
+      }, {
+        // Decal Array Texture
+        binding: 6,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: { viewDimension: "2d-array" }
+      }, {
+        // Caustics Texture
+        binding: 7,
+        visibility: GPUShaderStage.FRAGMENT,
+        texture: {}
+      }, {
+        // Cluster Bounds
+        binding: 8,
+        visibility: GPUShaderStage.FRAGMENT,
+        buffer: { type: "read-only-storage" }
+      }]
+    });
+    this.defaultSampler = device.createSampler({
+      label: "Default",
+      addressModeU: "repeat",
+      addressModeV: "repeat",
+      minFilter: "linear",
+      magFilter: "linear",
+      mipmapFilter: "linear"
+    });
+    this.cameraManager = new CameraManager(this);
+    this.clusterManager = new ClusterManager(this);
+    this.instanceManager = new InstanceManager(this);
+    this.decalManager = new DecalManager(this);
+    this.selectionManager = new SelectionManager(this);
+    this.unlitPipelineFactory = new UnlitPipelineFactory(this);
+    this.pbrPipelineFactory = new PBRPipelineFactory(this);
+  }
+  get environmentTexture() {
+    return this.#environmentTexture;
+  }
+  set environmentTexture(value) {
+    this.#environmentTexture = value;
+    this.frameBindingsDirty();
+  }
+  onResize(width, height) {
+    width = Math.floor(width * this.config.outputScale);
+    height = Math.floor(height * this.config.outputScale);
+    this.canvas.width = width;
+    this.canvas.height = height;
+    if (this.depthStencilTexture) {
+      this.depthStencilTexture.destroy();
+    }
+    this.depthStencilTexture = this.device.createTexture({
+      label: "WebGPURenderer depthStencil",
+      size: { width, height },
+      sampleCount: this.config.sampleCount,
+      format: this.config.depthStencilFormat,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    });
+    if (this.config.sampleCount > 1) {
+      if (this.msaaColorTexture) {
+        this.msaaColorTexture.destroy();
+      }
+      this.msaaColorTexture = this.device.createTexture({
+        label: "WebGPURenderer msaaColor",
+        size: { width, height },
+        sampleCount: this.config.sampleCount,
+        format: this.config.colorFormat,
+        usage: GPUTextureUsage.RENDER_ATTACHMENT
+      });
+    }
+    this.selectionManager.onResize(width, height);
+  }
+  #rebuildFrameBindings = true;
+  frameBindingsDirty() {
+    this.#rebuildFrameBindings = true;
+  }
+  get frameBindings() {
+    if (this.#rebuildFrameBindings) {
+      this.#rebuildFrameBindings = false;
+      this.#frameBindGroup = this.device.createBindGroup({
+        label: "Frame",
+        layout: this.frameBGL,
+        entries: [{
+          binding: 0,
+          resource: this.cameraManager.cameraBuffer
+        }, {
+          binding: 1,
+          resource: this.instanceManager.instanceBuffers.instanceTransformBuffer
+        }, {
+          binding: 2,
+          resource: this.instanceManager.instanceBuffers.instanceIndexBuffer
+        }, {
+          binding: 3,
+          resource: this.defaultSampler
+        }, {
+          binding: 4,
+          resource: (this.environmentTexture ? this.environmentTexture : this.whiteCubeTexture).createView({ dimension: "cube" })
+        }, {
+          binding: 5,
+          resource: this.decalManager.decalBuffer
+        }, {
+          binding: 6,
+          resource: this.decalManager.decalTextureArray.createView({
+            label: "Decal",
+            dimension: "2d-array"
+          })
+        }, {
+          binding: 7,
+          resource: this.causticsTexture ?? this.whiteTexture
+        }, {
+          binding: 8,
+          resource: this.clusterManager.clusterBoundsBuffer
+        }]
+      });
+    }
+    return this.#frameBindGroup;
+  }
+  render(stage, cameraActor, timestamp = performance.now()) {
+    this.cameraManager.updateCamera(cameraActor, timestamp);
+    this.instanceManager.updateInstances(stage);
+    this.decalManager.updateDecals(stage);
+    if (this.instanceManager.instanceCount == 0) {
+      return;
+    }
+    const colorTexture = this.context.getCurrentTexture();
+    const commandEncoder = this.device.createCommandEncoder();
+    this.clusterManager.updateClusterBounds(commandEncoder);
+    const renderPass = commandEncoder.beginRenderPass({
+      colorAttachments: [{
+        view: colorTexture,
+        loadOp: "clear",
+        clearValue: [0.1, 0.1, 0.2, 1],
+        storeOp: "store"
+      }, {
+        view: this.selectionManager.selectionTexture,
+        loadOp: "clear",
+        clearValue: [0, 0, 0, 0],
+        storeOp: "store"
+      }],
+      depthStencilAttachment: {
+        view: this.depthStencilTexture,
+        depthLoadOp: "clear",
+        depthClearValue: 0,
+        depthStoreOp: "discard"
+      }
+    });
+    renderPass.setBindGroup(0, this.frameBindings);
+    for (let materialGeometries of this.instanceManager.materials.values()) {
+      if (materialGeometries.material instanceof UnlitMaterial) {
+        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
+        for (let geometryInstances of materialGeometries.geometries.values()) {
+          const args = {
+            canDecal: materialGeometries.material.canDecal,
+            depthTest: materialGeometries.material.depthTest,
+            doubleSided: materialGeometries.material.doubleSided,
+            transparent: materialGeometries.material.transparent,
+            mirrored: false
+          };
+          if (geometryInstances.instances.length) {
+            const pipeline = this.unlitPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              args
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+          }
+          if (geometryInstances.mirroredInstances.length) {
+            args.mirrored = true;
+            const pipeline = this.unlitPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              args
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+          }
+        }
+      } else if (materialGeometries.material instanceof PBRMaterial) {
+        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
+        for (let geometryInstances of materialGeometries.geometries.values()) {
+          const args = {
+            doubleSided: materialGeometries.material.doubleSided,
+            transparent: materialGeometries.material.transparent,
+            mirrored: false
+          };
+          if (geometryInstances.instances.length) {
+            const pipeline = this.pbrPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              args
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+          }
+          if (geometryInstances.mirroredInstances.length) {
+            args.mirrored = true;
+            const pipeline = this.pbrPipelineFactory.getPipeline(
+              geometryInstances.geometry.layout,
+              this.attachmentLayout,
+              args
+            );
+            pipeline.use(renderPass);
+            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+          }
+        }
+      }
+    }
+    renderPass.end();
+    this.device.queue.submit([commandEncoder.finish()]);
+  }
+};
+
+// src/renderer/webgpu-app.ts
+var ResizeHandler = class {
+  static {
+    __name(this, "ResizeHandler");
+  }
+  static #observer;
+  static #elementCallbacks;
+  static observe(element, callback) {
+    if (!this.#observer) {
+      this.#elementCallbacks = /* @__PURE__ */ new WeakMap();
+      this.#observer = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          const element2 = entry.target;
+          const callback2 = this.#elementCallbacks.get(element2);
+          if (!callback2) {
+            continue;
+          }
+          if (entry.devicePixelContentBoxSize) {
+            callback2(
+              entry.devicePixelContentBoxSize[0].inlineSize,
+              entry.devicePixelContentBoxSize[0].blockSize,
+              element2
+            );
+          } else {
+            callback2(
+              entry.contentBoxSize[0].inlineSize * devicePixelRatio,
+              entry.contentBoxSize[0].blockSize * devicePixelRatio,
+              element2
+            );
+          }
+        }
+      });
+    }
+    if (element.clientWidth != 0 && element.clientHeight != 0) {
+      callback(
+        Math.floor(element.clientWidth * devicePixelRatio),
+        Math.floor(element.clientHeight * devicePixelRatio),
+        element
+      );
+    }
+    this.#elementCallbacks.set(element, callback);
+    this.#observer.observe(element);
+  }
+  static unobserve(element) {
+    this.#observer?.unobserve(element);
+    this.#elementCallbacks?.delete(element);
+  }
+};
+var WebGPUApp = class {
+  constructor(gpu) {
+    this.gpu = gpu;
+  }
+  gpu;
+  static {
+    __name(this, "WebGPUApp");
+  }
+  static async Begin(appType, options = {}) {
+    document.body.classList.add("loading");
+    const adapter = await navigator.gpu?.requestAdapter();
+    const device = await adapter?.requestDevice();
+    if (!device) {
+      console.log("Unable to create WebGPU device.");
+      return;
+    }
+    const gpu = new WebGPURenderer(device, options);
+    const app = new appType(gpu);
+    await app.onInit(gpu);
+    document.body.classList.remove("loading");
+    ResizeHandler.observe(gpu.canvas, (width, height) => {
+      gpu.onResize(width, height);
+      app.onResize(gpu, width, height);
+    });
+    let lastFrame = performance.now();
+    const rafCallback = /* @__PURE__ */ __name((timestamp) => {
+      requestAnimationFrame(rafCallback);
+      const delta = timestamp - lastFrame;
+      lastFrame = timestamp;
+      if (delta > 1e3) {
+        return;
+      }
+      app.onFrame(gpu, timestamp, delta);
+    }, "rafCallback");
+    requestAnimationFrame(rafCallback);
+  }
+  async onInit(gpu) {
+  }
+  onResize(gpu, width, height) {
+  }
+  onFrame(gpu, timestamp, delta) {
+  }
+};
+
+// src/controllers/controller-input.ts
+var ControllerInput = class {
+  static {
+    __name(this, "ControllerInput");
+  }
+  #element;
+  #registerElement;
+  #keyPressed = {};
+  #mousePressed = [];
+  constructor(element) {
+    let lastX;
+    let lastY;
+    window.addEventListener("keydown", (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+      this.#keyPressed[event.code] = true;
+    });
+    window.addEventListener("keyup", (event) => {
+      this.#keyPressed[event.code] = false;
+    });
+    window.addEventListener("blur", (event) => {
+      this.#keyPressed = {};
+    });
+    const downCallback = /* @__PURE__ */ __name((event) => {
+      lastX = event.pageX;
+      lastY = event.pageY;
+    }, "downCallback");
+    const moveCallback = /* @__PURE__ */ __name((event) => {
+      this.#mousePressed[0] = (event.buttons & 1) != 0 || event.pointerType == "touch";
+      this.#mousePressed[1] = (event.buttons & 2) != 0;
+      this.#mousePressed[3] = (event.buttons & 4) != 0;
+      this.#mousePressed[4] = (event.buttons & 8) != 0;
+      this.#mousePressed[5] = (event.buttons & 16) != 0;
+      if (document.pointerLockElement !== null) {
+        this.onMouseMove(event.movementX, event.movementY);
+      } else {
+        this.onMouseMove(event.pageX - lastX, event.pageY - lastY);
+      }
+      lastX = event.pageX;
+      lastY = event.pageY;
+    }, "moveCallback");
+    const wheelCallback = /* @__PURE__ */ __name((event) => {
+      this.onScroll(event.deltaY);
+      event.preventDefault();
+    }, "wheelCallback");
+    this.#registerElement = (value) => {
+      if (this.#element && this.#element != value) {
+        this.#element.removeEventListener("pointerdown", downCallback);
+        this.#element.removeEventListener("pointermove", moveCallback);
+        this.#element.removeEventListener("wheel", wheelCallback);
+      }
+      this.#element = value;
+      if (this.#element) {
+        this.#element.addEventListener("pointerdown", downCallback);
+        this.#element.addEventListener("pointermove", moveCallback);
+        this.#element.addEventListener("wheel", wheelCallback);
+      }
+    };
+    this.#registerElement(element);
+  }
+  set element(value) {
+    this.#registerElement(value);
+  }
+  get element() {
+    return this.#element;
+  }
+  onMouseMove(xDelta, yDelta) {
+  }
+  onScroll(delta) {
+  }
+  keyPressed(keycode) {
+    return !!this.#keyPressed[keycode];
+  }
+  mousePressed(button) {
+    return !!this.#mousePressed[button];
+  }
+};
+
+// src/controllers/physics-fps-controller.ts
+var tmpDir = new Vec3();
+var tmpQuat = new Quat();
+var PhysicsFPSController = class extends ControllerInput {
+  static {
+    __name(this, "PhysicsFPSController");
+  }
+  speed = 0.01;
+  angles = new Vec2();
+  rotation = new Quat();
+  flying = false;
+  #onGround = false;
+  #yVelocity = 0;
+  gravity = -1;
+  //-9.81;
+  jumpVelocity = 0.3;
+  #physicsController;
+  #collider;
+  #rigidBody;
+  #walking = false;
+  constructor(element) {
+    super(element);
+  }
+  setAngles(x2, y2) {
+    this.angles[0] = x2;
+    this.angles[1] = y2;
+    const q2 = this.rotation;
+    q2.identity();
+    Quat.rotateY(q2, q2, -this.angles[1]);
+    Quat.rotateX(q2, q2, -this.angles[0]);
+  }
+  onMouseMove(xDelta, yDelta) {
+    if (this.mousePressed(0)) {
+      this.angles[1] = (this.angles[1] + xDelta * 0.025) % (Math.PI * 2);
+      this.angles[0] += yDelta * 0.025;
+      this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI * 0.5), Math.PI * 0.5);
+      const q2 = this.rotation;
+      q2.identity();
+      Quat.rotateY(q2, q2, -this.angles[1]);
+      Quat.rotateX(q2, q2, -this.angles[0]);
+    }
+  }
+  get walking() {
+    return this.#walking;
+  }
+  #ensurePhysicsController(actor) {
+    if (this.#physicsController) {
+      return this.#physicsController;
+    }
+    if (!actor.stage) {
+      return void 0;
+    }
+    const stagePhysics = actor.stage?.get(StagePhysics);
+    if (!stagePhysics) {
+      return void 0;
+    }
+    this.#physicsController = stagePhysics.world.createCharacterController(0.1);
+    this.#rigidBody = stagePhysics.world.createRigidBody(zg.RigidBodyDesc.kinematicPositionBased());
+    const playerHalfHeight = 0.75;
+    const capsule = zg.ColliderDesc.capsule(playerHalfHeight, 0.4);
+    this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
+    this.#collider.setTranslationWrtParent({ x: 0, y: -playerHalfHeight, z: 0 });
+    this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
+  }
+  addToStage(stage, actor) {
+    this.#ensurePhysicsController(actor);
+  }
+  removeFromStage(stage, actor) {
+    if (!this.#physicsController) {
+      return;
+    }
+    let stagePhysics = stage.get(StagePhysics);
+    if (!stagePhysics) {
+      return;
+    }
+    stagePhysics.world.removeCharacterController(this.#physicsController);
+    this.#physicsController = void 0;
+  }
+  static TickOrder = 1;
+  onTick(tickData, actor) {
+    let controller = this.#ensurePhysicsController(actor);
+    if (!controller) {
+      return;
+    }
+    if (!this.#rigidBody || !this.#collider) {
+      console.warn("PhysicsFPSController has no RigidBody or Collider");
+      return;
+    }
+    if (!this.flying) {
+      this.#yVelocity += this.#onGround ? 0 : this.gravity / 1e3 * tickData.delta;
+    } else {
+      this.#yVelocity = 0;
+    }
+    Vec3.set(tmpDir, 0, 0, 0);
+    if (this.keyPressed("KeyW")) {
+      tmpDir[2] -= 1;
+    }
+    if (this.keyPressed("KeyS")) {
+      tmpDir[2] += 1;
+    }
+    if (this.keyPressed("KeyA")) {
+      tmpDir[0] -= 1;
+    }
+    if (this.keyPressed("KeyD")) {
+      tmpDir[0] += 1;
+    }
+    if (this.keyPressed("Space")) {
+      if (this.flying) {
+        tmpDir[1] += 1;
+      } else if (this.#onGround) {
+        this.#yVelocity = this.jumpVelocity;
+      }
+    }
+    if (this.keyPressed("ShiftLeft")) {
+      if (this.flying) {
+        tmpDir[1] -= 1;
+      } else {
+      }
+    }
+    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0 || this.#yVelocity !== 0) {
+      if (this.flying) {
+        Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
+      } else {
+        tmpQuat.identity();
+        tmpQuat.rotateY(-this.angles[1]);
+        Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
+      }
+      tmpDir.normalize();
+      tmpDir.scale(this.speed * tickData.delta);
+      if (!this.flying) {
+        tmpDir[1] += this.#yVelocity;
+      }
+      controller.computeColliderMovement(this.#collider, tmpDir);
+      const correctedMovement = controller.computedMovement();
+      tmpDir[0] = correctedMovement.x;
+      tmpDir[1] = correctedMovement.y;
+      tmpDir[2] = correctedMovement.z;
+      this.#onGround = controller.computedGrounded();
+      if (this.#onGround) {
+        this.#walking = correctedMovement.x !== 0 || correctedMovement.z !== 0;
+        this.#yVelocity = 0;
+      }
+      actor.transform.translationRef.add(tmpDir);
+      this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
+    } else {
+      this.#walking = false;
+    }
+    actor.transform.rotation = this.rotation;
   }
 };
 
@@ -24124,7 +27271,7 @@ var PhysicsDebugRenderer = class {
       return;
     }
     const debugBuffers = stagePhysics.world.debugRender();
-    this.debugRenderGeometry = new Geometry(this.gpu.device, {
+    this.debugRenderGeometry = new Geometry(this.gpu, {
       label: "PhysicsDebugRenderer Geometry",
       position: debugBuffers.vertices,
       color: debugBuffers.colors,
@@ -24134,3152 +27281,163 @@ var PhysicsDebugRenderer = class {
   }
 };
 
-// src/util/query-args.ts
-var searchParams = void 0;
-function clearArgsCache() {
-  searchParams = void 0;
-}
-__name(clearArgsCache, "clearArgsCache");
-window.addEventListener("popstate", clearArgsCache);
-window.addEventListener("hashchange", clearArgsCache);
-function ensureArgsCached() {
-  if (!searchParams) {
-    searchParams = new URLSearchParams(window.location.search);
-  }
-}
-__name(ensureArgsCached, "ensureArgsCached");
-var QueryArgs = class {
+// src/debug-menu.ts
+var DebugMenu = class {
   static {
-    __name(this, "QueryArgs");
+    __name(this, "DebugMenu");
   }
-  static hasQueryArgs() {
-    ensureArgsCached();
-    return searchParams.size != 0;
+  appState;
+  pane;
+  constructor(appState) {
+    this.appState = appState;
+    this.pane = new Pane({
+      title: document.title.split("-")[0]
+    });
+    this.pane.addButton({
+      title: "Save"
+    }).on("click", () => {
+      const json = this.appState.serializeDecalLayout();
+      const blob = new Blob([json], { type: "text/json" });
+      const link = document.createElement("a");
+      link.download = "decalLayout.json";
+      link.href = window.URL.createObjectURL(blob);
+      link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
+      link.click();
+      link.remove();
+    });
+    this.pane.addButton({
+      title: "Load"
+    }).on("click", () => {
+      let input = document.createElement("input");
+      input.type = "file";
+      input.onchange = async () => {
+        let file = input.files?.item(0);
+        if (file) {
+          this.appState.deserializeDecalLayoutFromString(await file.text());
+        }
+      };
+      input.click();
+    });
+    this.pane.addBinding(this.appState.config, "physicsDebugRendering").on("change", (ev) => {
+      this.#updatePhysicsDebugRendering();
+    });
+    this.pane.addBinding(this.appState.config, "flying").on("change", (ev) => {
+      this.#updateFlying();
+    });
+    this.#updatePhysicsDebugRendering();
+    this.#updateFlying();
   }
-  static getString(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.get(name) ?? (defaultValue ?? "");
+  #updatePhysicsDebugRendering() {
+    if (this.appState.config.physicsDebugRendering) {
+      this.appState.stage.add(new PhysicsDebugRenderer(this.appState.gpu));
+    } else {
+      this.appState.stage.remove(PhysicsDebugRenderer);
+    }
   }
-  static getInt(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
-  }
-  static getFloat(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
-  }
-  static getBool(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
+  #updateFlying() {
+    this.appState.stage.query(PhysicsFPSController).forEach((actor, controller) => {
+      controller.flying = this.appState.config.flying;
+    });
   }
 };
 
-// src/renderer/render-config.ts
-var RenderConfig = class _RenderConfig extends Config {
+// src/app-config.ts
+var AppConfig = class _AppConfig extends Config {
   static {
-    __name(this, "RenderConfig");
+    __name(this, "AppConfig");
   }
-  colorFormat = navigator.gpu?.getPreferredCanvasFormat() ?? "bgra8unorm";
-  depthStencilFormat = "depth24plus";
-  selectionFormat = "r32uint";
-  sampleCount = 1;
-  // How large the render targets are compared to the screen resolution.
-  // (Canvas render target size will always be 1:1 to allow for better UI)
-  outputScale = 1;
-  emojiTextureSize = 512;
-  static SetDefaults(isMobile, device) {
-    const defaults = isMobile ? new MobileRenderConfig() : new _RenderConfig();
+  emoji;
+  sprayCooldown = 500;
+  physicsDebugRendering = false;
+  flying = false;
+  static SetDefaults(isMobile) {
+    const defaults = isMobile ? new MobileAppConfig() : new _AppConfig();
+    defaults.emoji = {
+      emoji: { name: "Firefox Logo", shortcodes: Array(1), url: "./media/emoji/firefox.svg" },
+      name: "Firefox Logo",
+      skinTone: 0
+    };
     return defaults;
   }
 };
-var MobileRenderConfig = class extends RenderConfig {
+var MobileAppConfig = class extends AppConfig {
   static {
-    __name(this, "MobileRenderConfig");
+    __name(this, "MobileAppConfig");
   }
-  depthStencilFormat = "depth16unorm";
-  sampleCount = 1;
-  outputScale = 0.6;
-  emojiTextureSize = 256;
+  emojiTextureSize = 128;
 };
 
-// src/renderer/attachment-layout.ts
-var RenderableFormatValue = /* @__PURE__ */ ((RenderableFormatValue2) => {
-  RenderableFormatValue2[RenderableFormatValue2["r8unorm"] = 1] = "r8unorm";
-  RenderableFormatValue2[RenderableFormatValue2["r8uint"] = 2] = "r8uint";
-  RenderableFormatValue2[RenderableFormatValue2["r8sint"] = 3] = "r8sint";
-  RenderableFormatValue2[RenderableFormatValue2["rg8unorm"] = 4] = "rg8unorm";
-  RenderableFormatValue2[RenderableFormatValue2["rg8uint"] = 5] = "rg8uint";
-  RenderableFormatValue2[RenderableFormatValue2["rg8sint"] = 6] = "rg8sint";
-  RenderableFormatValue2[RenderableFormatValue2["rgba8unorm"] = 7] = "rgba8unorm";
-  RenderableFormatValue2[RenderableFormatValue2["rgba8unorm-srgb"] = 8] = "rgba8unorm-srgb";
-  RenderableFormatValue2[RenderableFormatValue2["rgba8uint"] = 9] = "rgba8uint";
-  RenderableFormatValue2[RenderableFormatValue2["rgba8sint"] = 10] = "rgba8sint";
-  RenderableFormatValue2[RenderableFormatValue2["bgra8unorm"] = 11] = "bgra8unorm";
-  RenderableFormatValue2[RenderableFormatValue2["bgra8unorm-srgb"] = 12] = "bgra8unorm-srgb";
-  RenderableFormatValue2[RenderableFormatValue2["r16uint"] = 13] = "r16uint";
-  RenderableFormatValue2[RenderableFormatValue2["r16sint"] = 14] = "r16sint";
-  RenderableFormatValue2[RenderableFormatValue2["r16float"] = 15] = "r16float";
-  RenderableFormatValue2[RenderableFormatValue2["rg16uint"] = 16] = "rg16uint";
-  RenderableFormatValue2[RenderableFormatValue2["rg16sint"] = 17] = "rg16sint";
-  RenderableFormatValue2[RenderableFormatValue2["rg16float"] = 18] = "rg16float";
-  RenderableFormatValue2[RenderableFormatValue2["rgba16uint"] = 19] = "rgba16uint";
-  RenderableFormatValue2[RenderableFormatValue2["rgba16sint"] = 20] = "rgba16sint";
-  RenderableFormatValue2[RenderableFormatValue2["rgba16float"] = 21] = "rgba16float";
-  RenderableFormatValue2[RenderableFormatValue2["r32uint"] = 22] = "r32uint";
-  RenderableFormatValue2[RenderableFormatValue2["r32sint"] = 23] = "r32sint";
-  RenderableFormatValue2[RenderableFormatValue2["r32float"] = 24] = "r32float";
-  RenderableFormatValue2[RenderableFormatValue2["rg32uint"] = 25] = "rg32uint";
-  RenderableFormatValue2[RenderableFormatValue2["rg32sint"] = 26] = "rg32sint";
-  RenderableFormatValue2[RenderableFormatValue2["rg32float"] = 27] = "rg32float";
-  RenderableFormatValue2[RenderableFormatValue2["rgba32uint"] = 28] = "rgba32uint";
-  RenderableFormatValue2[RenderableFormatValue2["rgba32sint"] = 29] = "rgba32sint";
-  RenderableFormatValue2[RenderableFormatValue2["rgba32float"] = 30] = "rgba32float";
-  RenderableFormatValue2[RenderableFormatValue2["rgb10a2uint"] = 31] = "rgb10a2uint";
-  RenderableFormatValue2[RenderableFormatValue2["rgb10a2unorm"] = 32] = "rgb10a2unorm";
-  RenderableFormatValue2[RenderableFormatValue2["rg11b10ufloat"] = 33] = "rg11b10ufloat";
-  return RenderableFormatValue2;
-})(RenderableFormatValue || {});
-var DepthStencilFormatValue = /* @__PURE__ */ ((DepthStencilFormatValue2) => {
-  DepthStencilFormatValue2[DepthStencilFormatValue2["stencil8"] = 1] = "stencil8";
-  DepthStencilFormatValue2[DepthStencilFormatValue2["depth16unorm"] = 2] = "depth16unorm";
-  DepthStencilFormatValue2[DepthStencilFormatValue2["depth24plus"] = 3] = "depth24plus";
-  DepthStencilFormatValue2[DepthStencilFormatValue2["depth24plus-stencil8"] = 4] = "depth24plus-stencil8";
-  DepthStencilFormatValue2[DepthStencilFormatValue2["depth32float"] = 5] = "depth32float";
-  DepthStencilFormatValue2[DepthStencilFormatValue2["depth32float-stencil8"] = 6] = "depth32float-stencil8";
-  return DepthStencilFormatValue2;
-})(DepthStencilFormatValue || {});
-var AttachmentLayout = class _AttachmentLayout {
+// src/app-state.ts
+var AppState = class {
   static {
-    __name(this, "AttachmentLayout");
+    __name(this, "AppState");
   }
-  // Caching
-  static #nextId = 1;
-  static #keyMap = /* @__PURE__ */ new Map();
-  // Map of the given key to an ID
-  static #cache = /* @__PURE__ */ new Map();
-  // Map of ID to cached resource
-  static GetById(id) {
-    return this.#cache.get(id);
-  }
-  static #AddToCache(layout, key) {
-    Object.freeze(layout);
-    this.#keyMap.set(key, layout.id);
-    this.#cache.set(layout.id, layout);
-    return layout;
-  }
-  static Deserialize(value) {
-    const id = this.#keyMap.get(value);
-    if (id !== void 0) {
-      return this.#cache.get(id);
-    }
-    const buffer = HexStringToBuffer(value);
-    const layout = _AttachmentLayout.#DeserializeFromBuffer(buffer);
-    layout.#serializedBuffer = buffer;
-    layout.#serializedString = value;
-    return this.#AddToCache(layout, value);
-  }
-  static #DeserializeFromBuffer(inBuffer, bufferOffest, bufferLength) {
-    const dataView = new DataView(inBuffer, bufferOffest, bufferLength);
-    const sampleCount = dataView.getUint8(0);
-    const depthStencilFormat = DepthStencilFormatValue[dataView.getUint8(1)];
-    const colorFormatCount = dataView.getUint8(2);
-    const colorFormats = [];
-    for (let i2 = 0; i2 < colorFormatCount; ++i2) {
-      colorFormats.push(RenderableFormatValue[dataView.getUint8(3 + i2)]);
-    }
-    return new _AttachmentLayout(colorFormats, depthStencilFormat, sampleCount);
-  }
-  static DefaultOutputType(format) {
-    switch (format) {
-      case "r8unorm":
-      case "rg8unorm":
-      case "rgba8unorm":
-      case "rgba8unorm-srgb":
-      case "bgra8unorm":
-      case "bgra8unorm-srgb":
-      case "r16float":
-      case "rg16float":
-      case "rgba16float":
-      case "r32float":
-      case "rg32float":
-      case "rgba32float":
-      case "rgb10a2unorm":
-      case "rg11b10ufloat":
-        return "vec4f";
-      case "r8uint":
-      case "rg8uint":
-      case "rgba8uint":
-      case "r16uint":
-      case "rg16uint":
-      case "rgba16uint":
-      case "r32uint":
-      case "rg32uint":
-      case "rgba32uint":
-      case "rgb10a2uint":
-        return "vec4u";
-      case "r8sint":
-      case "rg8sint":
-      case "rgba8sint":
-      case "r16sint":
-      case "rg16sint":
-      case "rgba16sint":
-      case "r32sint":
-      case "rg32sint":
-      case "rgba32sint":
-        return "vec4i";
-      default:
-        throw new Error(`Unsupported Renderable Format ${format}`);
-    }
-  }
-  // Layout
-  id;
-  colorFormats;
-  depthStencilFormat;
-  sampleCount;
-  #serializedBuffer;
-  #serializedString;
-  constructor(colorFormats, depthStencilFormat, sampleCount = 1) {
-    const formats = [];
-    if (Array.isArray(colorFormats)) {
-      for (const format of colorFormats) {
-        if (RenderableFormatValue[format] == void 0) {
-          throw new Error(`${format} is not a renderable format`);
-        }
-        formats.push(format);
-      }
-    } else {
-      if (RenderableFormatValue[colorFormats] == void 0) {
-        throw new Error(`${colorFormats} is not a renderable format`);
-      }
-      formats.push(colorFormats);
-    }
-    if (depthStencilFormat && DepthStencilFormatValue[depthStencilFormat] == void 0) {
-      throw new Error(`${depthStencilFormat} is not a depth/stencil format`);
-    }
-    this.id = 0;
-    this.colorFormats = formats;
-    this.depthStencilFormat = depthStencilFormat;
-    this.sampleCount = sampleCount;
-    const key = this.serializeToString();
-    const id = _AttachmentLayout.#keyMap.get(key);
-    if (id !== void 0) {
-      return _AttachmentLayout.#cache.get(id);
-    }
-    this.id = _AttachmentLayout.#nextId++;
-    _AttachmentLayout.#AddToCache(this, key);
-  }
-  // The AttachmentLayout's binary serialized format is:
-  //  - Byte 0: Sample Count
-  //  - Byte 1: DepthStencilFormat
-  //  - Byte 3: Color Format Count (N)
-  //  - Byte 4-N: RenderableFormat
-  serializeToBuffer() {
-    if (this.#serializedBuffer) {
-      return this.#serializedBuffer;
-    }
-    const byteLength = 3 + this.colorFormats.length;
-    const outBuffer = new ArrayBuffer(byteLength);
-    const dataView = new DataView(outBuffer);
-    dataView.setUint8(0, this.sampleCount);
-    dataView.setUint8(1, this.depthStencilFormat ? DepthStencilFormatValue[this.depthStencilFormat] : 0);
-    dataView.setUint8(2, this.colorFormats.length);
-    for (let i2 = 0; i2 < this.colorFormats.length; ++i2) {
-      dataView.setUint8(i2 + 3, RenderableFormatValue[this.colorFormats[i2]]);
-    }
-    this.#serializedBuffer = outBuffer;
-    return outBuffer;
-  }
-  // The string format is the same as the binary format, written in hex pairs.
-  serializeToString() {
-    if (!this.#serializedString) {
-      this.#serializedString = BufferToHexString(this.serializeToBuffer());
-    }
-    return this.#serializedString;
-  }
-};
-
-// src/renderer/instance-manager.ts
-function nextMultipleOf2(multiple, value) {
-  return Math.ceil(value / multiple) * multiple;
-}
-__name(nextMultipleOf2, "nextMultipleOf");
-var GeometryInstances = class {
-  static {
-    __name(this, "GeometryInstances");
-  }
-  geometry;
-  instances = [];
-  mirroredInstances = [];
-  indexOffset = -1;
-  mirroredIndexOffset = -1;
-  constructor(geometry) {
-    this.geometry = geometry;
-  }
-  addInstance(actor) {
-    if (actor.worldTransform.mirrored) {
-      this.mirroredInstances.push(actor);
-    } else {
-      this.instances.push(actor);
-    }
-  }
-  get instanceCount() {
-    return this.instances.length;
-  }
-  get mirroredInstanceCount() {
-    return this.mirroredInstances.length;
-  }
-};
-var MaterialGeometries = class {
-  static {
-    __name(this, "MaterialGeometries");
-  }
-  material;
-  geometries = /* @__PURE__ */ new Map();
-  instanceCount = 0;
-  constructor(material) {
-    this.material = material;
-  }
-  addInstance(geometry, actor) {
-    let geometryInstances = this.geometries.get(geometry);
-    if (!geometryInstances) {
-      geometryInstances = new GeometryInstances(geometry);
-      this.geometries.set(geometry, geometryInstances);
-    }
-    geometryInstances.addInstance(actor);
-    this.instanceCount++;
-  }
-};
-var InstanceBuffers = class {
-  static {
-    __name(this, "InstanceBuffers");
-  }
-  gpu;
-  maxInstanceCount;
-  instanceTransformArray;
-  instanceIndexArray;
-  instanceTransformBuffer;
-  instanceIndexBuffer;
-  constructor(gpu, maxInstanceCount) {
-    this.gpu = gpu;
-    this.maxInstanceCount = maxInstanceCount;
-    this.instanceTransformArray = new Float32Array(maxInstanceCount * 28);
-    this.instanceIndexArray = new Uint32Array(maxInstanceCount);
-    this.instanceTransformBuffer = gpu.device.createBuffer({
-      label: "Instance Transform Buffer",
-      size: this.instanceTransformArray.byteLength,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
-    });
-    this.instanceIndexBuffer = gpu.device.createBuffer({
-      label: "Instance Index Buffer",
-      size: this.instanceIndexArray.byteLength,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
-    });
-  }
-  update(materials) {
-    let transformOffset = 0;
-    let indexOffset = 0;
-    const setNormalMat = /* @__PURE__ */ __name((normal, offset) => {
-      this.instanceTransformArray[offset + 0] = normal[0];
-      this.instanceTransformArray[offset + 1] = normal[1];
-      this.instanceTransformArray[offset + 2] = normal[2];
-      this.instanceTransformArray[offset + 4] = normal[3];
-      this.instanceTransformArray[offset + 5] = normal[4];
-      this.instanceTransformArray[offset + 6] = normal[5];
-      this.instanceTransformArray[offset + 8] = normal[6];
-      this.instanceTransformArray[offset + 9] = normal[7];
-      this.instanceTransformArray[offset + 10] = normal[8];
-    }, "setNormalMat");
-    for (let materialGeometries of materials.values()) {
-      for (let geometryInstances of materialGeometries.geometries.values()) {
-        if (geometryInstances.instances.length) {
-          geometryInstances.indexOffset = indexOffset;
-          for (let instance of geometryInstances.instances) {
-            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-            this.instanceIndexArray[indexOffset] = indexOffset++;
-            transformOffset += 28;
-          }
-        }
-        if (geometryInstances.mirroredInstances) {
-          geometryInstances.mirroredIndexOffset = indexOffset;
-          for (let instance of geometryInstances.mirroredInstances) {
-            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-            this.instanceIndexArray[indexOffset] = indexOffset++;
-            transformOffset += 28;
-          }
-        }
-      }
-    }
-    this.gpu.device.queue.writeBuffer(this.instanceTransformBuffer, 0, this.instanceTransformArray, 0, transformOffset);
-    this.gpu.device.queue.writeBuffer(this.instanceIndexBuffer, 0, this.instanceIndexArray, 0, indexOffset);
-  }
-};
-var InstanceManager = class {
-  static {
-    __name(this, "InstanceManager");
-  }
-  gpu;
-  materials = /* @__PURE__ */ new Map();
-  instanceCount = 0;
-  instanceBuffers;
-  constructor(gpu) {
-    this.gpu = gpu;
-  }
-  #clear() {
-    this.materials.clear();
-    this.instanceCount = 0;
-  }
-  #addInstance(material, geometry, actor) {
-    let materialGeometries = this.materials.get(material);
-    if (!materialGeometries) {
-      materialGeometries = new MaterialGeometries(material);
-      this.materials.set(material, materialGeometries);
-    }
-    materialGeometries.addInstance(geometry, actor);
-    this.instanceCount++;
-  }
-  updateInstances(stage) {
-    this.#clear();
-    stage.query(Geometry, ActorMaterial).forEach((actor, geometry, material) => {
-      this.#addInstance(material.material, geometry, actor);
-    });
-    let buffersUpdated = false;
-    if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
-      this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf2(128, this.instanceCount));
-      this.gpu.frameBindingsDirty();
-    }
-    this.instanceBuffers.update(this.materials);
-  }
-};
-
-// src/loaders/texture/mipmap-generator.ts
-var mipmapShader = (
-  /* wgsl */
-  `
-  var<private> pos : array<vec2f, 3> = array<vec2f, 3>(
-    vec2f(-1, -1), vec2f(-1, 3), vec2f(3, -1));
-
-  struct VertexOutput {
-    @builtin(position) position : vec4f,
-    @location(0) texCoord : vec2f,
-  };
-
-  @vertex
-  fn vertexMain(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
-    return VertexOutput(
-      vec4(pos[vertexIndex], 0.0, 1.0), // position
-      pos[vertexIndex] * vec2f(0.5, -0.5) + vec2f(0.5) // texCoord
-    );
-  }
-
-  @group(0) @binding(0) var imgSampler : sampler;
-  @group(0) @binding(1) var img : texture_2d<f32>;
-
-  @fragment
-  fn fragmentMain(@location(0) texCoord : vec2f) -> @location(0) vec4f {
-    return textureSample(img, imgSampler, texCoord);
-  }
-`
-);
-var WebGPUMipmapGenerator = class {
-  constructor(device) {
-    this.device = device;
-  }
-  device;
-  static {
-    __name(this, "WebGPUMipmapGenerator");
-  }
-  #resources;
-  // We'll need a new pipeline for every texture format used.
-  #pipelines = /* @__PURE__ */ new Map();
-  /**
-   * Determines the number of mip levels needed for a full mip chain given the width and height of texture level 0.
-   *
-   * @param width of texture level 0.
-   * @param height of texture level 0.
-   * @returns Ideal number of mip levels.
-   */
-  static calculateMipLevels(width, height) {
-    return Math.floor(Math.log2(Math.max(width, height))) + 1;
-  }
-  #ensureSharedResources() {
-    if (!this.#resources) {
-      const bindGroupLayout = this.device.createBindGroupLayout({
-        label: "Mipmap Generator Bind Group Layout",
-        entries: [{
-          binding: 0,
-          visibility: GPUShaderStage.FRAGMENT,
-          sampler: {}
-        }, {
-          binding: 1,
-          visibility: GPUShaderStage.FRAGMENT,
-          texture: {}
-        }]
-      });
-      this.#resources = {
-        module: this.device.createShaderModule({
-          label: "Mipmap Generator Shader",
-          code: mipmapShader
-        }),
-        sampler: this.device.createSampler({
-          label: "Mipmap Generator Sampler",
-          minFilter: "linear"
-        }),
-        bindGroupLayout,
-        pipelineLayout: this.device.createPipelineLayout({
-          label: "Mipmap Generator Pipeline Layout",
-          bindGroupLayouts: [bindGroupLayout]
-        })
-      };
-    }
-    return this.#resources;
-  }
-  #getMipmapPipeline(format) {
-    let pipeline = this.#pipelines.get(format);
-    if (!pipeline) {
-      const { pipelineLayout, module } = this.#ensureSharedResources();
-      pipeline = this.device.createRenderPipeline({
-        label: `Mipmap Generator ${format} Render Pipeline`,
-        layout: pipelineLayout,
-        vertex: { module },
-        fragment: {
-          module,
-          targets: [{ format }]
-        }
-      });
-      this.#pipelines.set(format, pipeline);
-    }
-    return pipeline;
-  }
-  /**
-   * Generates mipmaps for the given GPUTexture from the data in level 0.
-   *
-   * @param texture - Texture to generate mipmaps for.
-   */
-  generateMipmap(texture, layer) {
-    if (texture.dimension == "3d" || texture.dimension == "1d") {
-      throw new Error("Generating mipmaps for non-2d textures is currently unsupported!");
-    }
-    const pipeline = this.#getMipmapPipeline(texture.format);
-    const { bindGroupLayout, sampler } = this.#ensureSharedResources();
-    let mipTexture = texture;
-    const baseArrayLayer = layer ?? 0;
-    const arrayLayerCount = layer !== void 0 ? 1 : texture.depthOrArrayLayers;
-    const renderToSource = texture.usage & GPUTextureUsage.RENDER_ATTACHMENT;
-    if (!renderToSource) {
-      const mipTextureDescriptor = {
-        size: {
-          width: Math.max(texture.width >> 1, 1),
-          height: Math.max(texture.height >> 1, 1),
-          depthOrArrayLayers: arrayLayerCount
-        },
-        format: texture.format,
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
-        mipLevelCount: texture.mipLevelCount - 1
-      };
-      mipTexture = this.device.createTexture(mipTextureDescriptor);
-    }
-    const commandEncoder = this.device.createCommandEncoder({});
-    for (let arrayLayer = baseArrayLayer; arrayLayer < baseArrayLayer + arrayLayerCount; ++arrayLayer) {
-      let srcView = texture.createView({
-        baseMipLevel: 0,
-        mipLevelCount: 1,
-        dimension: "2d",
-        baseArrayLayer: arrayLayer,
-        arrayLayerCount: 1
-      });
-      let dstMipLevel = renderToSource ? 1 : 0;
-      for (let i2 = 1; i2 < texture.mipLevelCount; ++i2) {
-        const dstView = mipTexture.createView({
-          baseMipLevel: dstMipLevel++,
-          mipLevelCount: 1,
-          dimension: "2d",
-          baseArrayLayer: arrayLayer,
-          arrayLayerCount: 1
-        });
-        const bindGroup = this.device.createBindGroup({
-          layout: bindGroupLayout,
-          entries: [{
-            binding: 0,
-            resource: sampler
-          }, {
-            binding: 1,
-            resource: srcView
-          }]
-        });
-        const passEncoder = commandEncoder.beginRenderPass({
-          colorAttachments: [{
-            view: dstView,
-            loadOp: "clear",
-            storeOp: "store"
-          }]
-        });
-        passEncoder.setPipeline(pipeline);
-        passEncoder.setBindGroup(0, bindGroup);
-        passEncoder.draw(3);
-        passEncoder.end();
-        srcView = dstView;
-      }
-    }
-    if (!renderToSource) {
-      const mipLevelSize = {
-        width: Math.max(texture.width >> 1, 1),
-        height: Math.max(texture.height >> 1, 1),
-        depthOrArrayLayers: arrayLayerCount
-      };
-      for (let i2 = 1; i2 < texture.mipLevelCount; ++i2) {
-        commandEncoder.copyTextureToTexture({
-          texture: mipTexture,
-          mipLevel: i2 - 1
-        }, {
-          texture,
-          mipLevel: i2
-        }, mipLevelSize);
-        mipLevelSize.width = Math.max(mipLevelSize.width >> 1, 1);
-        mipLevelSize.height = Math.max(mipLevelSize.height >> 1, 1);
-      }
-    }
-    this.device.queue.submit([commandEncoder.finish()]);
-    if (!renderToSource) {
-      mipTexture.destroy();
-    }
-    return texture;
-  }
-};
-
-// src/util/worker-pool.ts
-var WORKER_DIR = import.meta.url.replace(/[^\/]*$/, "../../workers/");
-var WorkerPool = class {
-  static {
-    __name(this, "WorkerPool");
-  }
-  #workerPath;
-  #maxWorkerPoolSize;
-  #onMessage;
-  #pendingWorkItems = /* @__PURE__ */ new Map();
-  #nextWorkItemId = 1;
-  #workerPool = [];
-  #nextWorker = 0;
-  constructor(workerPath, maxWorkerPoolSize = void 0) {
-    this.#workerPath = WORKER_DIR + workerPath;
-    this.#maxWorkerPoolSize = maxWorkerPoolSize ?? Math.min(4, navigator.hardwareConcurrency);
-    this.#onMessage = (msg) => {
-      const id = msg.data.id;
-      const workItem = this.#pendingWorkItems.get(id);
-      if (!workItem) {
-        console.error(`Got a result for unknown work item ${id}`);
-        return;
-      }
-      this.#pendingWorkItems.delete(id);
-      if (msg.data.error) {
-        workItem.reject(msg.data.error);
-        return;
-      }
-      workItem.resolve(msg.data.result);
-    };
-  }
-  #selectWorker(id, resolver) {
-    this.#pendingWorkItems.set(id, resolver);
-    if (this.#pendingWorkItems.size >= this.#workerPool.length && this.#workerPool.length < this.#maxWorkerPoolSize) {
-      const worker = new Worker(this.#workerPath);
-      worker.addEventListener("message", this.#onMessage);
-      this.#workerPool.push(worker);
-      return worker;
-    }
-    return this.#workerPool[this.#nextWorker++ % this.#workerPool.length];
-  }
-  dispatch(args, transfer) {
-    return new Promise((resolve, reject) => {
-      const id = this.#nextWorkItemId++;
-      this.#selectWorker(id, { resolve, reject }).postMessage({
-        id,
-        args
-      }, transfer ?? []);
-    });
-  }
-};
-
-// src/util/cache-helper.ts
-var CacheHelper = class {
-  constructor(cache) {
-    this.cache = cache;
-  }
-  cache;
-  static {
-    __name(this, "CacheHelper");
-  }
-  setMulti(url, values) {
-    const description = {};
-    for (const key in values) {
-      const value = values[key];
-      const valueUrl = `${url}__${key}__`;
-      if (value instanceof ArrayBuffer) {
-        this.cache.put(valueUrl, new Response(value));
-        description[key] = { type: "arrayBuffer", url: valueUrl };
-      } else if (value instanceof Blob) {
-        this.cache.put(valueUrl, new Response(value));
-        description[key] = { type: "blob", url: valueUrl };
-      } else {
-        description[key] = { type: "literal", value };
-      }
-    }
-    this.cache.put(url, new Response(JSON.stringify(description)));
-  }
-  async getMulti(url) {
-    const response = await this.cache.match(url);
-    if (!response) {
-      return null;
-    }
-    const description = await response.json();
-    const values = {};
-    for (const key in description) {
-      const entry = description[key];
-      if (entry.type == "literal") {
-        values[key] = entry.value;
-      } else {
-        const valueResponse = await this.cache.match(entry.url);
-        if (!valueResponse) {
-          this.cache.delete(url);
-          return null;
-        }
-        values[key] = await valueResponse[entry.type]();
-      }
-    }
-    return values;
-  }
-};
-
-// src/loaders/texture/texture-loader-base.ts
-var WebTextureFormats = {
-  // Uncompressed formats
-  "rgb8unorm": { canGenerateMipmaps: true },
-  "rgba8unorm": { canGenerateMipmaps: true },
-  "rgb8unorm-srgb": { canGenerateMipmaps: true },
-  "rgba8unorm-srgb": { canGenerateMipmaps: true },
-  "rgb565unorm": { canGenerateMipmaps: true },
-  "rgba4unorm": { canGenerateMipmaps: true },
-  "rgba5551unorm": { canGenerateMipmaps: true },
-  "bgra8unorm": { canGenerateMipmaps: true },
-  "bgra8unorm-srgb": { canGenerateMipmaps: true },
-  // Floating point textures
-  "rg11b10ufloat": { canGenerateMipmaps: false },
-  // Compressed formats
-  "bc1-rgb-unorm": {
-    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
-  },
-  "bc2-rgba-unorm": {
-    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
-  },
-  "bc3-rgba-unorm": {
-    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
-  },
-  "bc7-rgba-unorm": {
-    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
-  },
-  "etc1-rgb-unorm": {
-    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
-  },
-  "etc2-rgba8unorm": {
-    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
-  },
-  "astc-4x4-rgba-unorm": {
-    compressed: { blockBytes: 16, blockWidth: 4, blockHeight: 4 }
-  },
-  "pvrtc1-4bpp-rgb-unorm": {
-    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
-  },
-  "pvrtc1-4bpp-rgba-unorm": {
-    compressed: { blockBytes: 8, blockWidth: 4, blockHeight: 4 }
-  }
-};
-var EXTENSION_MIME_TYPES = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  apng: "image/apng",
-  gif: "image/gif",
-  bmp: "image/bmp",
-  webp: "image/webp",
-  ico: "image/x-icon",
-  cur: "image/x-icon",
-  svg: "image/svg+xml",
-  basis: "image/basis",
-  ktx: "image/ktx",
-  ktx2: "image/ktx2",
-  dds: "image/vnd.ms-dds",
-  hdr: "image/vnd.radiance",
-  none: ""
-};
-var BasicTextureData = class {
-  static {
-    __name(this, "BasicTextureData");
-  }
-  type = "2d";
-  format;
-  size;
-  arrayBuffer;
-  mipLevelCount;
-  bufferViews = [];
-  constructor(format, width, height, imageData) {
-    this.format = format;
-    this.size = { width: Math.max(1, width), height: Math.max(1, height) };
-    this.mipLevelCount = 0;
-    this.arrayBuffer = imageData.buffer;
-    this.bufferViews = [{
-      levelSize: this.size,
-      level: 0,
-      layer: 0,
-      face: 0,
-      byteOffset: imageData.byteOffset,
-      byteLength: imageData.byteLength
-    }];
-  }
-};
-var ExtensionHandler = class {
-  static {
-    __name(this, "ExtensionHandler");
-  }
-  mimeTypes;
-  callback;
-  loader = void 0;
-  /**
-   * Creates an ExtensionHandler.
-   *
-   * @param {Array<string>} extensions - List of extensions that this loader can handle.
-   * @param {Function} callback - Callback which returns an instance of the loader.
-   */
-  constructor(mimeTypes, callback) {
-    this.mimeTypes = mimeTypes;
-    this.callback = callback;
-  }
-  /**
-   * Gets the loader associated with this extension set. Creates an instance by calling the callback if one hasn't been
-   * instantiated previously.
-   *
-   * @returns {object} Texture Loader instance.
-   */
-  getLoader() {
-    if (!this.loader) {
-      this.loader = this.callback();
-    }
-    return this.loader;
-  }
-};
-var ImageLoader = class {
-  static {
-    __name(this, "ImageLoader");
-  }
-  static supportedMIMETypes() {
-    return [
-      "image/jpeg",
-      "image/png",
-      "image/apng",
-      "image/gif",
-      "image/bmp",
-      "image/webp",
-      "image/x-icon",
-      "image/svg+xml"
-    ];
-  }
-  async fromBlob(client, blob, options) {
-    return client.fromImageBitmapBlob(blob, "rgba8unorm", options);
-  }
-  async fromBuffer(client, buffer, options) {
-    const blob = new Blob([buffer], { type: options.mimeType });
-    return this.fromBlob(client, blob, options);
-  }
-};
-var WorkerLoader = class extends WorkerPool {
-  static {
-    __name(this, "WorkerLoader");
-  }
-  /**
-   * Creates a WorkerLoader instance.
-   *
-   * @param relativeWorkerPath - Path to the worker script to load, relative to this file.
-   */
-  constructor(relativeWorkerPath) {
-    super(relativeWorkerPath);
-  }
-  async fromBlob(client, blob, options) {
-    const arrayBuffer = await blob.arrayBuffer();
-    const textureData = await this.dispatch({
-      arrayBuffer,
-      supportedFormats: client.supportedFormats(),
-      mipmaps: options.mipmaps,
-      extension: options.extension
-    }, [arrayBuffer]);
-    return client.fromTextureData(textureData, options);
-  }
-  async fromBuffer(client, arrayBuffer, options) {
-    const textureData = await this.dispatch({
-      arrayBuffer,
-      supportedFormats: client.supportedFormats(),
-      mipmaps: options.mipmaps,
-      extension: options.extension
-    });
-    return client.fromTextureData(textureData, options);
-  }
-};
-var EXTENSION_HANDLERS = [
-  new ExtensionHandler(ImageLoader.supportedMIMETypes(), () => new ImageLoader()),
-  new ExtensionHandler(["image/ktx", "image/ktx2"], () => new WorkerLoader("ktx/ktx-worker.js"))
-];
-var TMP_ANCHOR = document.createElement("a");
-var DEFAULT_URL_OPTIONS = {
-  mimeType: void 0,
-  mipmaps: true,
-  colorSpace: "linear"
-};
-function resolveMimeType(filename, mimeType) {
-  if (mimeType && mimeType != "application/octet-stream") {
-    return mimeType;
-  }
-  if (filename) {
-    const extIndex = filename.lastIndexOf(".");
-    const extension = extIndex > -1 ? filename.substring(extIndex + 1).toLowerCase() : "none";
-    mimeType = EXTENSION_MIME_TYPES[extension];
-    if (!mimeType) {
-      throw new Error(`Could not predict MIME type from filename "${filename}" with extension of "${extension}".`);
-    }
-  }
-  return mimeType;
-}
-__name(resolveMimeType, "resolveMimeType");
-function getMimeTypeLoader(handlers, mimeType) {
-  if (!mimeType) {
-    throw new Error("A valid MIME type must be specified.");
-  }
-  let typeHandler = handlers[mimeType];
-  if (!typeHandler) {
-    typeHandler = handlers["*"];
-  }
-  const loader = typeHandler.getLoader();
-  if (!loader) {
-    throw new Error(`Failed to get loader for MIME type "${mimeType}"`);
-  }
-  return loader;
-}
-__name(getMimeTypeLoader, "getMimeTypeLoader");
-var CachingClient = class {
-  static {
-    __name(this, "CachingClient");
-  }
-  #client;
-  #imageCache;
-  constructor(client, imageCache) {
-    this.#client = client;
-    this.#imageCache = new CacheHelper(imageCache);
-  }
-  async loadFromCache(uri, textureOptions) {
-    const image = await this.#imageCache.getMulti(uri);
-    if (image) {
-      const metadata = image.metadata;
-      if (metadata["type"] === "imageBitmap") {
-        return this.#client.fromImageBitmapBlob(image.blob, metadata["format"], textureOptions);
-      } else {
-        const textureData = {
-          ...metadata,
-          arrayBuffer: image.arrayBuffer
-        };
-        return this.#client.fromTextureData(textureData, textureOptions);
-      }
-    }
-    throw new Error("Image not in Cache");
-  }
-  supportedFormats() {
-    return this.#client.supportedFormats();
-  }
-  fromImageBitmapBlob(blob, format, options) {
-    if (options.cacheUrl) {
-      const metadata = {
-        type: "imageBitmap",
-        format
-      };
-      this.#imageCache.setMulti(options.cacheUrl, {
-        metadata,
-        blob
-      });
-    }
-    return this.#client.fromImageBitmapBlob(blob, format, options);
-  }
-  fromTextureData(textureData, options) {
-    if (options.cacheUrl) {
-      const metadata = {
-        type: "textureData",
-        format: textureData.format
-      };
-      this.#imageCache.setMulti(options.cacheUrl, {
-        metadata,
-        arrayBuffer: textureData.arrayBuffer
-      });
-    }
-    return this.#client.fromTextureData(textureData, options);
-  }
-  destroy() {
-    this.#client.destroy();
-  }
-};
-var TextureLoaderBase = class {
-  static {
-    __name(this, "TextureLoaderBase");
-  }
-  #client;
-  #cachingClient;
-  #handlers = {};
-  /**
-   * Must not be called by applications directly.
-   * Create an instance of WebGPUTextureLoader instead.
-   *
-   * @param {object} client - The TextureClient which will upload the texture data to the GPU.
-   */
-  constructor(client, imageCache) {
-    if (imageCache) {
-      this.#client = this.#cachingClient = new CachingClient(client, imageCache);
-    } else {
-      this.#client = client;
-    }
-    for (const extensionHandler of EXTENSION_HANDLERS) {
-      for (const mimeType of extensionHandler.mimeTypes) {
-        this.#handlers[mimeType] = extensionHandler;
-      }
-    }
-    this.#handlers["*"] = EXTENSION_HANDLERS[0];
-  }
-  get isCaching() {
-    return this.#cachingClient != null;
-  }
-  /** Loads a texture from the given URL
-   *
-   * @param url - URL of the file to load.
-   * @param textureOptions - Options for how the loaded texture should be handled.
-   * @returns Promise which resolves to the completed WebTextureResult.
-   */
-  async fromUrl(url, textureOptions = {}) {
-    if (!this.#client) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    TMP_ANCHOR.href = url;
-    if (this.#cachingClient) {
-      try {
-        const cachedTexture = await this.#cachingClient.loadFromCache(TMP_ANCHOR.href, textureOptions);
-        if (cachedTexture) {
-          return cachedTexture;
-        }
-      } catch {
-      }
-    }
-    textureOptions.cacheUrl = TMP_ANCHOR.href;
-    textureOptions.filename = TMP_ANCHOR.href;
-    const response = await fetch(TMP_ANCHOR.href);
-    const blob = await response.blob();
-    return this.fromBlob(blob, textureOptions);
-  }
-  /** Loads a texture from the given blob
-   *
-   * @param blob - Blob containing the texture file data.
-   * @param textureOptions - Options for how the loaded texture should be handled.
-   * @returns Promise which resolves to the completed WebTextureResult.
-   */
-  async fromBlob(blob, textureOptions = {}) {
-    if (!this.#client) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
-    const mimeType = resolveMimeType(options.filename, options.mimeType ?? blob.type);
-    const loader = getMimeTypeLoader(this.#handlers, mimeType);
-    return loader.fromBlob(this.#client, blob, options);
-  }
-  /** Loads a texture from the given blob
-   *
-   * @param buffer - Buffer containing the texture file data.
-   * @param textureOptions - Options for how the loaded texture should be handled.
-   * @returns Promise which resolves to the completed WebTextureResult.
-   */
-  async fromBuffer(buffer, textureOptions = {}) {
-    if (!this.#client) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    const options = Object.assign({}, DEFAULT_URL_OPTIONS, textureOptions);
-    const mimeType = resolveMimeType(options.filename, options.mimeType);
-    const loader = getMimeTypeLoader(this.#handlers, mimeType);
-    return loader.fromBuffer(this.#client, buffer, options);
-  }
-  /**
-   * Creates a 1x1 texture with the specified color.
-   *
-   * @param r - Red channel value
-   * @param g - Green channel value
-   * @param b - Blue channel value
-   * @param a - Alpha channel value
-   * @param format - Format to create the texture with
-   * @returns Completed WebTextureResult
-   */
-  fromColor(r2, g2, b2, a2 = 1, format = "rgba8unorm") {
-    if (!this.#client) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    if (format != "rgba8unorm" && format != "rgba8unorm-srgb") {
-      throw new Error('fromColor only supports "rgba8unorm" and "rgba8unorm-srgb" formats');
-    }
-    const data = new Uint8Array([r2 * 255, g2 * 255, b2 * 255, a2 * 255]);
-    return this.#client.fromTextureData(new BasicTextureData(format, 1, 1, data), false);
-  }
-  /**
-   * Creates a noise texture with the specified dimensions. (rgba8unorm format)
-   *
-   * @param width - Width of the noise texture
-   * @param height - Height of the noise texture
-   * @returns Completed WebTextureResult
-   */
-  fromNoise(width, height) {
-    if (!this.#client) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    const data = new Uint8Array(width * height * 4);
-    for (let i2 = 0; i2 < data.length; ++i2) {
-      data[i2] = Math.random() * 255;
-    }
-    return this.#client.fromTextureData(new BasicTextureData("rgba8unorm", width, height, data), false);
-  }
-  /**
-   * Destroys the texture tool and stops any in-progress texture loads that have been started.
-   */
-  destroy() {
-    if (this.#client) {
-      this.#client.destroy();
-      this.#client = void 0;
-    }
-  }
-};
-
-// src/loaders/texture/webgpu-texture-loader.ts
-var EXTENSION_FORMATS = {
-  "texture-compression-bc": [
-    "bc1-rgba-unorm",
-    "bc2-rgba-unorm",
-    "bc3-rgba-unorm",
-    "bc7-rgba-unorm"
-  ],
-  "texture-compression-etc2": [
-    "etc2-rgb8unorm",
-    "etc2-rgb8a1unorm",
-    "etc2-rgba8unorm",
-    "eac-r11unorm",
-    "eac-r11snorm",
-    "eac-rg11unorm",
-    "eac-rg11snorm"
-  ],
-  "texture-compression-astc": [
-    "astc-4x4-unorm",
-    "astc-5x4-unorm",
-    "astc-5x5-unorm",
-    "astc-6x5-unorm",
-    "astc-6x6-unorm",
-    "astc-8x5-unorm",
-    "astc-8x6-unorm",
-    "astc-8x8-unorm",
-    "astc-10x5-unorm",
-    "astc-10x6-unorm",
-    "astc-10x8-unorm",
-    "astc-10x10-unorm",
-    "astc-12x10-unorm",
-    "astc-12x12-unorm"
-  ]
-};
-function formatForColorSpace(format, colorSpace) {
-  switch (colorSpace) {
-    case "sRGB":
-      return `${format}-srgb`;
-    default:
-      return format;
-  }
-}
-__name(formatForColorSpace, "formatForColorSpace");
-var WebGpuTextureLoader = class extends TextureLoaderBase {
-  static {
-    __name(this, "WebGpuTextureLoader");
-  }
-  device;
-  mipmapGenerator;
-  /**
-   * Creates a WebTextureTool instance which produces WebGPU textures.
-   *
-   * @param {module:External.GPUDevice} device - WebGPU device to create textures with.
-   */
-  constructor(device, imageCache) {
-    const mipmapGenerator = new WebGPUMipmapGenerator(device);
-    super(new WebGpuTextureClient(device, mipmapGenerator), imageCache);
-    this.device = device;
-    this.mipmapGenerator = mipmapGenerator;
-  }
-};
-var WebGpuTextureClient = class {
-  static {
-    __name(this, "WebGpuTextureClient");
-  }
-  device;
-  mipmapGenerator;
-  supportedFormatList = [
-    "rgba8unorm",
-    "bgra8unorm",
-    "rg11b10ufloat"
-  ];
-  /**
-   * Creates a TextureClient instance which uses WebGPU.
-   * Should not be called outside of the WebGPUTextureLoader constructor.
-   *
-   * @param device - WebGPU device to use.
-   */
-  constructor(device, mipmapGenerator) {
-    this.device = device;
-    this.mipmapGenerator = mipmapGenerator;
-    const featureList = device.features;
-    if (featureList) {
-      for (const feature in EXTENSION_FORMATS) {
-        if (featureList.has(feature)) {
-          const formats = EXTENSION_FORMATS[feature];
-          this.supportedFormatList.push(...formats);
-        }
-      }
-    }
-  }
-  /**
-   * Returns a list of the WebTextureFormats that this client can support.
-   *
-   * @returns {Array<module:WebTextureTool.WebTextureFormat>} - List of supported WebTextureFormats.
-   */
-  supportedFormats() {
-    return this.supportedFormatList;
-  }
-  /**
-   * Creates a GPUTexture from the given ImageBitmap.
-   *
-   * @param imageBitmap - ImageBitmap source for the texture.
-   * @param format - Format to store the texture as on the GPU. Must be an
-   * uncompressed format.
-   * @param generateMipmaps - True if mipmaps are desired.
-   * @returns Completed texture and metadata.
-   */
-  async fromImageBitmapBlob(blob, format, options) {
-    if (!this.device) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    const imageBitmap = await createImageBitmap(blob);
-    const generateMipmaps = options.mipmaps;
-    const mipLevelCount = generateMipmaps ? WebGPUMipmapGenerator.calculateMipLevels(imageBitmap.width, imageBitmap.height) : 1;
-    const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT;
-    const textureDescriptor = {
-      size: { width: imageBitmap.width, height: imageBitmap.height },
-      format: formatForColorSpace(format, options.colorSpace),
-      usage,
-      mipLevelCount
-    };
-    const texture = this.device.createTexture(textureDescriptor);
-    this.device.queue.copyExternalImageToTexture({ source: imageBitmap }, { texture }, textureDescriptor.size);
-    if (generateMipmaps) {
-      this.mipmapGenerator.generateMipmap(texture);
-    }
-    return texture;
-  }
-  /**
-   * Creates a GPUTexture from the given texture level data.
-   *
-   * @param textureData - Object containing data and layout for each image and
-   * mip level of the texture.
-   * @param generateMipmaps - True if mipmaps generation is desired. Only applies if a single level is given
-   * and the texture format is renderable.
-   * @returns Completed texture and metadata.
-   */
-  fromTextureData(textureData, options) {
-    if (!this.device) {
-      throw new Error("Cannot create new textures after object has been destroyed.");
-    }
-    const wtFormat = WebTextureFormats[textureData.format];
-    if (!wtFormat) {
-      throw new Error(`Unknown format "${textureData.format}"`);
-    }
-    const blockInfo = wtFormat.compressed || { blockBytes: 4, blockWidth: 1, blockHeight: 1 };
-    const generateMipmaps = options.mipmaps && wtFormat.canGenerateMipmaps;
-    const mipLevelCount = textureData.mipLevelCount > 1 ? textureData.mipLevelCount : generateMipmaps ? WebGPUMipmapGenerator.calculateMipLevels(textureData.width, textureData.height) : 1;
-    const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
-    const textureDescriptor = {
-      size: {
-        width: Math.ceil(textureData.size.width / blockInfo.blockWidth) * blockInfo.blockWidth,
-        height: Math.ceil(textureData.size.height / blockInfo.blockHeight) * blockInfo.blockHeight,
-        depthOrArrayLayers: textureData.size.depthOrArrayLayers
-      },
-      format: formatForColorSpace(textureData.format, options.colorSpace),
-      usage,
-      mipLevelCount
-    };
-    const texture = this.device.createTexture(textureDescriptor);
-    for (const bufferView of textureData.bufferViews) {
-      const bytesPerRow = Math.ceil(bufferView.levelSize.width / blockInfo.blockWidth) * blockInfo.blockBytes;
-      this.device.queue.writeTexture(
-        {
-          texture,
-          mipLevel: bufferView.level,
-          origin: { z: bufferView.layer }
-        },
-        textureData.arrayBuffer,
-        {
-          offset: bufferView.byteOffset,
-          bytesPerRow
-        },
-        {
-          // Copy width and height must be a multiple of the format block size;
-          width: Math.ceil(bufferView.levelSize.width / blockInfo.blockWidth) * blockInfo.blockWidth,
-          height: Math.ceil(bufferView.levelSize.height / blockInfo.blockHeight) * blockInfo.blockHeight
-        }
-      );
-    }
-    if (generateMipmaps) {
-      this.mipmapGenerator.generateMipmap(texture);
-    }
-    return texture;
-  }
-  /**
-   * Destroy this client.
-   * The client is unusable after calling destroy().
-   *
-   * @returns {void}
-   */
-  destroy() {
-    this.device = void 0;
-  }
-};
-
-// src/renderer/pipeline-factory.ts
-var Pipeline = class {
-  static {
-    __name(this, "Pipeline");
-  }
-  #requestedAt;
-  #requestCount = 1;
-  #key;
-  #pipeline;
-  #promise;
-  #resolved = false;
-  constructor(key, pipelinePromise, defaultPipeline) {
-    this.#key = key;
-    this.#requestedAt = performance.now();
-    if (pipelinePromise instanceof Promise) {
-      if (!defaultPipeline) {
-        throw new Error("Must provide a default pipeline when supplying a pipeline promise.");
-      }
-      this.#pipeline = defaultPipeline;
-      this.#promise = pipelinePromise;
-      pipelinePromise.then((pipeline) => {
-        this.pipeline = pipeline;
-      });
-    } else {
-      this.#pipeline = pipelinePromise;
-      this.#resolved = true;
-      this.#promise = Promise.resolve(this.pipeline);
-    }
-  }
-  get promise() {
-    return this.#promise;
-  }
-  get key() {
-    return this.#key;
-  }
-  set pipeline(value) {
-    if (this.#resolved) {
-      return;
-    }
-    this.#pipeline = value;
-    this.#resolved = true;
-  }
-  get pipeline() {
-    return this.#pipeline;
-  }
-  get resolved() {
-    return this.#resolved;
-  }
-  get requestedAt() {
-    return this.#requestedAt;
-  }
-  get requestCount() {
-    return this.#requestCount;
-  }
-  incrementRequestCount() {
-    this.#requestCount++;
-  }
-};
-var RenderPipeline = class extends Pipeline {
-  static {
-    __name(this, "RenderPipeline");
-  }
-  use(renderPass) {
-    renderPass.setPipeline(this.pipeline);
-  }
-};
-var DEFAULT_RENDER_PIPELINES = /* @__PURE__ */ new WeakMap();
-function getDefaultRenderPipeline(device, attachmentLayout) {
-  let devicePipelines = DEFAULT_RENDER_PIPELINES.get(device);
-  if (!devicePipelines) {
-    devicePipelines = /* @__PURE__ */ new Map();
-    DEFAULT_RENDER_PIPELINES.set(device, devicePipelines);
-  }
-  let pipeline = devicePipelines.get(attachmentLayout.id);
-  if (!pipeline) {
-    let outStruct = "struct OutColors { ";
-    for (let i2 = 0; i2 < attachmentLayout.colorFormats.length; ++i2) {
-      const outType = attachmentLayout.colorFormats[i2];
-      outStruct += `@location(${i2}) color_${i2}: ${AttachmentLayout.DefaultOutputType(outType)}, `;
-    }
-    outStruct += "}";
-    const module = device.createShaderModule({
-      label: "Device Default Render",
-      code: wgsl`
-      @vertex fn vertexMain() -> @builtin(position) vec4f {
-        return vec4f(0);
-      }
-
-      #if ${attachmentLayout.colorFormats.length > 0}
-      ${outStruct}
-
-      @fragment fn fragmentMain() -> OutColors {
-        return OutColors();
-      }
-      #else
-      @fragment fn fragmentMain() {}
-      #endif
-      `
-    });
-    let depthStencil = void 0;
-    if (attachmentLayout.depthStencilFormat) {
-      depthStencil = {
-        format: attachmentLayout.depthStencilFormat,
-        depthWriteEnabled: false,
-        depthCompare: "never"
-      };
-    }
-    pipeline = device.createRenderPipeline({
-      label: "Device Default Render",
-      layout: "auto",
-      vertex: { module },
-      depthStencil,
-      multisample: {
-        count: attachmentLayout.sampleCount
-      },
-      fragment: {
-        module,
-        targets: attachmentLayout.colorFormats.map((format) => {
-          return {
-            format
-          };
-        })
-      }
-    });
-    devicePipelines.set(attachmentLayout.id, pipeline);
-  }
-  return pipeline;
-}
-__name(getDefaultRenderPipeline, "getDefaultRenderPipeline");
-var stableStringify = /* @__PURE__ */ __name((key, value) => {
-  return value instanceof Object && !(value instanceof Array) ? Object.keys(value).sort().reduce((sorted, key2) => {
-    sorted[key2] = value[key2];
-    return sorted;
-  }, {}) : value;
-}, "stableStringify");
-var RenderPipelineFactory = class {
-  //#precacheFactory: PipelinePrecacheFactory;
-  constructor(device, config) {
-    this.device = device;
-    if (config) {
-      this.#config = config;
-      this.#config.addEventListener("changed", (event) => {
-        const cache = this.#configCaches.get(config.configRevision);
-        if (!cache) {
-          this.#pipelineCache = /* @__PURE__ */ new Map();
-          this.#configCaches.set(config.configRevision, this.#pipelineCache);
-        } else {
-          this.#pipelineCache = cache;
-        }
-      });
-      this.#configCaches.set(this.#config.configRevision, this.#pipelineCache);
-    }
-  }
-  device;
-  static {
-    __name(this, "RenderPipelineFactory");
-  }
-  #config;
-  #pipelineCache = /* @__PURE__ */ new Map();
-  #configCaches = /* @__PURE__ */ new Map();
-  // Returning as any to avoid type errors when accessing properties
-  get config() {
-    return this.#config;
-  }
-  serializeArgs(args) {
-    return JSON.stringify(args, stableStringify);
-  }
-  deserializeArgs(key) {
-    return JSON.parse(key);
-  }
-  getPipeline(geometryLayout, attachmentLayout, args, forceSync = false) {
-    const key = `${geometryLayout.serializeToString()};${attachmentLayout.serializeToString()};${JSON.stringify(args, stableStringify)}`;
-    return this.#getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync);
-  }
-  #getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync = false) {
-    let pipeline = this.#pipelineCache.get(key);
-    if (pipeline && (pipeline.resolved || !forceSync)) {
-      pipeline.incrementRequestCount();
-      return pipeline;
-    }
-    const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, args);
-    if (pipeline) {
-      pipeline.pipeline = this.device.createRenderPipeline(descriptor);
-    } else if (!pipeline) {
-      if (forceSync) {
-        pipeline = new RenderPipeline(
-          key,
-          this.device.createRenderPipeline(descriptor)
-        );
-      } else {
-        pipeline = new RenderPipeline(
-          key,
-          this.device.createRenderPipelineAsync(descriptor),
-          getDefaultRenderPipeline(this.device, attachmentLayout)
-        );
-      }
-      this.#pipelineCache.set(key, pipeline);
-    }
-    return pipeline;
-  }
-};
-
-// src/renderer/pipelines/common.ts
-var CameraBindings = (
-  /* wgsl */
-  `
-  struct Camera {
-    projection: mat4x4f,
-    invProjection: mat4x4f,
-    view: mat4x4f,
-    viewPos: vec3f,
-    time: f32,
-    outputSize: vec2f,
-    zNear: f32,
-    zFar: f32,
-  };
-
-  @group(0) @binding(0) var<uniform> camera: Camera;
-`
-);
-var FrameBindings = (
-  /* wgsl */
-  `
-  ${CameraBindings}
-
-  struct Instance {
-    model: mat4x4f,
-    normal: mat3x3f,
-  }
-  @group(0) @binding(1) var<storage> instances: array<Instance>;
-  @group(0) @binding(2) var<storage> instanceIndices: array<u32>;
-
-  @group(0) @binding(3) var defaultSampler: sampler;
-  @group(0) @binding(4) var environmentTexture: texture_cube<f32>;
-`
-);
-var DecalFrameBindings = (
-  /* wgsl */
-  `
-  ${FrameBindings}
-
-  struct Decal {
-    id: u32,
-    textureIndex: u32,
-    highlight: u32,
-    baseColorFactor: vec4f,
-    origin: vec3f,
-    decalProj: mat4x4f,
-  };
-  struct SceneDecals {
-    decalCount: u32,
-    decal: array<Decal>,
-  };
-  @group(0) @binding(5) var<storage> decals: SceneDecals;
-  @group(0) @binding(6) var decalTexture: texture_2d_array<f32>;
-  @group(0) @binding(7) var causticsTexture: texture_2d<f32>;
-`
-);
-var SRGBConversions = (
-  /* wgsl */
-  `
-  const GAMMA = 2.2f;
-  fn sRGBToLinear(srgb : vec3f) -> vec3f {
-    return pow(srgb, vec3(GAMMA));
-  }
-
-  const INV_GAMMA = 1.0f / GAMMA;
-  fn linearTosRGB(linear : vec3f) -> vec3f {
-    return pow(linear, vec3(INV_GAMMA));
-  }
-`
-);
-
-// src/renderer/pipelines/clusters.ts
-var TILE_COUNT = [32, 18, 48];
-var TOTAL_TILES = TILE_COUNT[0] * TILE_COUNT[1] * TILE_COUNT[2];
-var WORKGROUP_SIZE = [4, 2, 4];
-var ClusterBoundsUpdateSource = (
-  /*wgsl*/
-  `
-  ${CameraBindings}
-
-  struct ClusterBounds {
-    minAABB : vec3<f32>,
-    maxAABB : vec3<f32>,
-  };
-  struct Clusters {
-    bounds : array<ClusterBounds, ${TOTAL_TILES}>
-  };
-  @group(0) @binding(1) var<storage, read_write> clusters : Clusters;
-
-  fn lineIntersectionToZPlane(a: vec3f, b: vec3f, zDistance: f32) -> vec3f {
-    let normal = vec3f(0, 0, 1);
-    let ab =  b - a;
-    let t = (zDistance - dot(normal, a)) / dot(normal, ab);
-    return a + t * ab;
-  }
-
-  fn clipToView(clip : vec4f) -> vec4f {
-    let view = camera.invProjection * clip;
-    return view / vec4f(view.w, view.w, view.w, view.w);
-  }
-
-  fn screen2View(screen : vec4f) -> vec4f {
-    let texCoord = screen.xy / camera.outputSize.xy;
-    let clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y) * 2.0 - vec2(1.0, 1.0), screen.z, screen.w);
-    return clipToView(clip);
-  }
-
-  const tileCount = vec3u(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
-  const eyePos = vec3(0.0);
-
-  @compute @workgroup_size(${WORKGROUP_SIZE[0]}, ${WORKGROUP_SIZE[1]}, ${WORKGROUP_SIZE[2]})
-  fn computeMain(@builtin(global_invocation_id) global_id : vec3<u32>) {
-    let tileIndex : u32 = global_id.x +
-                          global_id.y * tileCount.x +
-                          global_id.z * tileCount.x * tileCount.y;
-
-    let tileSize = vec2(camera.outputSize.x / f32(tileCount.x),
-                        camera.outputSize.y / f32(tileCount.y));
-
-    let maxPoint_sS = vec4(vec2(f32(global_id.x+1u), f32(global_id.y+1u)) * tileSize, 0.0, 1.0);
-    let minPoint_sS = vec4(vec2(f32(global_id.x), f32(global_id.y)) * tileSize, 0.0, 1.0);
-
-    let maxPoint_vS = screen2View(maxPoint_sS).xyz;
-    let minPoint_vS = screen2View(minPoint_sS).xyz;
-
-    let tileNear : f32 = -camera.zNear * pow(camera.zFar/camera.zNear, f32(global_id.z)/f32(tileCount.z));
-    let tileFar : f32 = -camera.zNear * pow(camera.zFar/camera.zNear, f32(global_id.z+1u)/f32(tileCount.z));
-
-    let minPointNear = lineIntersectionToZPlane(eyePos, minPoint_vS, tileNear);
-    let minPointFar = lineIntersectionToZPlane(eyePos, minPoint_vS, tileFar);
-    let maxPointNear = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileNear);
-    let maxPointFar = lineIntersectionToZPlane(eyePos, maxPoint_vS, tileFar);
-
-    clusters.bounds[tileIndex].minAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
-    clusters.bounds[tileIndex].maxAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
-  }
-`
-);
-var TileFunctions = (
-  /*wgsl*/
-  `
-const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
-
-fn linearDepth(depthSample : f32) -> f32 {
-  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
-}
-
-fn getTile(fragCoord : vec4f) -> vec3u {
-  // TODO: scale and bias calculation can be moved outside the shader to save cycles.
-  let sliceScale = f32(tileCount.z) / log2(camera.zFar / camera.zNear);
-  let sliceBias = -(f32(tileCount.z) * log2(camera.zNear) / log2(camera.zFar / camera.zNear));
-  let zTile = u32(max(log2(linearDepth(fragCoord.z)) * sliceScale + sliceBias, 0.0));
-
-  return vec3(u32(fragCoord.x / (camera.outputSize.x / f32(tileCount.x))),
-              u32(fragCoord.y / (camera.outputSize.y / f32(tileCount.y))),
-              zTile);
-}
-
-fn getClusterIndex(fragCoord : vec4f) -> u32 {
-  let tile = getTile(fragCoord);
-  return tile.x +
-         tile.y * tileCount.x +
-         tile.z * tileCount.x * tileCount.y;
-}
-`
-);
-
-// src/renderer/pipelines/unlit.ts
-var UnlitPipelineFactory = class extends RenderPipelineFactory {
-  static {
-    __name(this, "UnlitPipelineFactory");
-  }
-  materialBGL;
-  pipelineLayout;
-  constructor(gpu) {
-    const config = gpu.config.watch();
-    super(gpu.device, config);
-    this.materialBGL = gpu.device.createBindGroupLayout({
-      label: "Unlit Material",
-      entries: [{
-        binding: 0,
-        visibility: GPUShaderStage.FRAGMENT,
-        buffer: {}
-      }, {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        binding: 2,
-        visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
-      }]
-    });
-    this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
-    });
-  }
-  getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
-    const module = this.device.createShaderModule({
-      label: "Unlit Material",
-      code: wgsl`
-          ${DecalFrameBindings}
-
-          struct Material {
-            baseColorFactor: vec4f,
-            baseAlbedo: vec3f,
-          };
-
-          @group(1) @binding(0) var<uniform> material: Material;
-          @group(1) @binding(1) var baseColorTexture: texture_2d<f32>;
-          @group(1) @binding(2) var texSampler: sampler;
-
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-          };
-
-          @vertex
-          fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
-            let instanceId = instanceIndices[instanceIdx];
-            let instance = instances[instanceId];
-            let worldPos = instance.model * in.position;
-            let pos = camera.projection * camera.view * worldPos;
-
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.normal)}
-            let n = normalize(instance.normal * in.normal);
-          #else
-            let n = normalize(instance.normal * vec3f(0, 0, 1));
-          #endif
-
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.texcoord0)}
-            let texCoord = in.texcoord0;
-          #else
-            let texCoord = vec2f(0);
-          #endif
-
-            return VertexOut(pos, texCoord, n, worldPos);
-          }
-
-          ${SRGBConversions}
-
-          ${TileFunctions}
-
-          const projBias = mat4x4f(
-            0.5, 0, 0, 0,
-            0, -0.5, 0, 0,
-            0, 0, 0.5, 0,
-            0.5, 0.5, 0.5, 1,
-          );
-
-          struct FragOut {
-            @location(0) color: vec4f,
-            @location(1) decalId: u32,
-          }
-
-          @fragment
-          fn fragMain(in: VertexOut) -> FragOut {
-            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
-
-            var out: FragOut;
-
-          #if ${args.canDecal}
-            let estAlbedo = material.baseAlbedo;
-            let lightEst = baseColor.rgb / estAlbedo;
-
-            let causticsUv = (in.pos.xy / vec2f(textureDimensions(causticsTexture)));
-
-            let causticsA = textureSample(causticsTexture, defaultSampler, causticsUv + vec2(camera.time * 0.25, 0));
-            let causticsB = textureSample(causticsTexture, defaultSampler, -causticsUv - vec2(0, camera.time * 0.1));
-            let caustics = (causticsA + causticsB) * 0.5;
-
-            var decalAccumColor = vec4f(0);
-            for (var i = 0u; i < decals.decalCount; i++) {
-              let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
-              let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = decals.decal[i].baseColorFactor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
-
-              // TODO: Check to ensure in.normal is facing towards the decal.
-              let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
-              let nDotO = dot(in.normal, originToPoint);
-
-              if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
-                let decalAlpha = decalColor.a;
-                decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
-
-                if (decals.decal[i].highlight == 1) {
-                  decalAccumColor += caustics * decalAlpha;
-                }
-
-                decalAccumColor.a = min(decalAccumColor.a, 1);
-
-                if (decalAlpha > 0.2) {
-                  out.decalId = decals.decal[i].id;
-                }
-              }
-            }
-
-            let color = (baseColor.rgb * (1.0 - decalAccumColor.a)) + ((decalAccumColor.rgb * lightEst) * decalAccumColor.a);
-          #else
-            let color = baseColor.rgb;
-          #endif
-            //let tileColor = vec3f(getTile(in.pos)) / vec3f(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
-
-            out.color = vec4(linearTosRGB(color), baseColor.a);
-
-            return out;
-          }
-        `
-    });
-    return {
-      label: "Unlit Material",
-      layout: this.pipelineLayout,
-      vertex: { module, buffers: geometryLayout.buffers },
-      primitive: {
-        topology: geometryLayout.topology,
-        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
-      },
-      depthStencil: {
-        format: attachmentLayout.depthStencilFormat,
-        depthWriteEnabled: true,
-        depthCompare: args.depthTest ? "greater" : "always"
-      },
-      fragment: {
-        module,
-        targets: attachmentLayout.colorFormats.map((format, index) => {
-          const target = {
-            format
-          };
-          if (args.transparent) {
-            if (index == 0) {
-              target.blend = {
-                color: {
-                  srcFactor: "src-alpha",
-                  dstFactor: "one-minus-src-alpha"
-                },
-                alpha: {
-                  srcFactor: "one",
-                  dstFactor: "one"
-                }
-              };
-            } else {
-              target.writeMask = 0;
-            }
-          }
-          return target;
-        })
-      }
-    };
-  }
-};
-
-// src/renderer/emoji-renderer.ts
-var EmojiRenderer = class {
-  static {
-    __name(this, "EmojiRenderer");
-  }
-  textureLoader;
-  canvas;
-  ctx;
-  emojiFontLoaded;
-  constructor(textureLoader) {
-    this.textureLoader = textureLoader;
-    this.canvas = document.createElement("canvas");
-    this.ctx = this.canvas.getContext("2d");
-    const emojiFontPromises = [];
-    document.fonts.forEach((font) => {
-      if (font.family === "Noto Color Emoji") {
-        emojiFontPromises.push(font.loaded);
-        font.load();
-      }
-    });
-    this.emojiFontLoaded = Promise.all(emojiFontPromises);
-  }
-  loadCustomEmojiImage(url) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve(img);
-      };
-      img.onerror = (err) => {
-        reject(err);
-      };
-      img.src = url;
-    });
-  }
-  async renderEmoji(emoji, texture, layer = 0) {
-    const width = this.canvas.width = texture.width;
-    const height = this.canvas.height = texture.height;
-    this.ctx.clearRect(0, 0, width, height);
-    if (emoji.unicode) {
-      await this.emojiFontLoaded;
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
-      this.ctx.fillText(emoji.unicode, width * 0.5, height * 0.55, width);
-    } else if (emoji.emoji.url) {
-      const img = await this.loadCustomEmojiImage(emoji.emoji.url);
-      const aspect = img.naturalWidth / img.naturalHeight;
-      const imgWidth = aspect > 1 ? width : width * aspect;
-      const imgHeight = aspect > 1 ? height / aspect : height;
-      this.ctx.drawImage(img, (width - imgWidth) * 0.5, (height - imgHeight) * 0.5, imgWidth, imgHeight);
-    }
-    const device = this.textureLoader.device;
-    device.queue.copyExternalImageToTexture({
-      source: this.canvas
-    }, {
-      texture,
-      origin: [0, 0, layer],
-      premultipliedAlpha: true
-    }, [texture.width, texture.height, 1]);
-    this.textureLoader.mipmapGenerator.generateMipmap(texture, layer);
-  }
-};
-
-// src/renderer/decal-manager.ts
-var MAX_DECALS = 1024;
-var MAX_DECAL_TEXTURES = 256;
-var DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH * 3;
-var DecalManager = class {
-  static {
-    __name(this, "DecalManager");
-  }
-  gpu;
-  emojiRenderer;
-  decalTextureArray;
-  decalArray = new ArrayBuffer(DECAL_BYTE_SIZE * MAX_DECALS + Vec4.BYTE_LENGTH);
-  decalUintArray = new Uint32Array(this.decalArray);
-  decalFloatArray = new Float32Array(this.decalArray);
-  decalBuffer;
-  selectedDecal = 0;
-  nextTextureIndex = 0;
-  decalKeyMapping = /* @__PURE__ */ new Map();
-  decalCache = [];
-  constructor(gpu) {
-    this.gpu = gpu;
-    this.emojiRenderer = new EmojiRenderer(this.gpu.textureLoader);
-    this.decalBuffer = gpu.device.createBuffer({
-      label: "Decal",
-      size: this.decalArray.byteLength,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
-    });
-    const emojiSize = this.gpu.config.emojiTextureSize;
-    this.decalTextureArray = gpu.device.createTexture({
-      label: "Decal",
-      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
-      mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-      format: "rgba8unorm-srgb"
-    });
-  }
-  #getEmojiKey(emoji) {
-    return emoji.unicode ?? emoji.emoji?.url;
-  }
-  async getDecal(emoji) {
-    const decalKey = this.#getEmojiKey(emoji);
-    let decalIndex = this.decalKeyMapping.get(decalKey);
-    if (decalIndex !== void 0) {
-      return this.decalCache[decalIndex];
-    }
-    decalIndex = this.nextTextureIndex;
-    this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
-    let decal = this.decalCache[decalIndex];
-    if (decal) {
-      decal.textureIndex = -1;
-      this.decalKeyMapping.delete(this.#getEmojiKey(decal.emoji));
-    }
-    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, decalIndex);
-    decal = new Decal(emoji, decalIndex);
-    this.decalCache[decalIndex] = decal;
-    this.decalKeyMapping.set(decalKey, decalIndex);
-    return decal;
-  }
-  getTextureDecal(url) {
-    const emoji = { emoji: { url } };
-    return this.getDecal(emoji);
-  }
-  updateDecals(stage) {
-    const textureProj = new Mat4();
-    let offset = 4;
-    let decalCount = 0;
-    stage.query(Decal).forEach((actor, decal) => {
-      if (decal.textureIndex == -1) {
-        actor.remove(Decal);
-        return;
-      }
-      if (decalCount >= MAX_DECALS) {
-        return;
-      }
-      const placing = actor.has(Tag("placing-decal"));
-      const selected = decalCount + 1 == this.selectedDecal;
-      Mat4.invert(textureProj, actor.worldTransform.matrix);
-      Mat4.multiply(textureProj, decal.projection, textureProj);
-      this.decalUintArray[offset] = decalCount + 1;
-      this.decalUintArray[offset + 1] = decal.textureIndex;
-      this.decalUintArray[offset + 2] = placing || selected ? 1 : 0;
-      this.decalFloatArray.set(decal.baseColorFactor, offset + 4);
-      this.decalFloatArray.set(actor.worldTransform.translation, offset + 8);
-      this.decalFloatArray.set(textureProj, offset + 12);
-      offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
-      decalCount++;
-    });
-    this.decalUintArray[0] = decalCount;
-    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * decalCount + Vec4.BYTE_LENGTH);
-  }
-};
-
-// src/renderer/selection-manager.ts
-var SelectionManager = class {
-  static {
-    __name(this, "SelectionManager");
-  }
-  gpu;
-  selectionPipeline;
-  selectionTexture;
-  selectionBindGroupLayout;
-  selectionBindGroup;
-  selectionBuffer;
-  selectionReadbackBuffers = [];
-  immediateArray = new Uint32Array(2);
-  constructor(gpu) {
-    this.gpu = gpu;
-    this.selectionBindGroupLayout = gpu.device.createBindGroupLayout({
-      label: "Decal Selection",
-      entries: [{
-        binding: 0,
-        visibility: GPUShaderStage.COMPUTE,
-        texture: { sampleType: "uint" }
-      }, {
-        binding: 1,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "storage" }
-      }]
-    });
-    this.selectionBuffer = gpu.device.createBuffer({
-      label: "Decal Selection",
-      size: Vec4.BYTE_LENGTH,
-      usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.STORAGE
-    });
-    const module = gpu.device.createShaderModule({
-      label: "Decal Selection",
-      code: `
-        var<immediate> selectCoord: vec2u;
-
-        @group(0) @binding(0) var selectionTexture: texture_2d<u32>;
-        @group(0) @binding(1) var<storage, read_write> selection: u32;
-
-        @compute @workgroup_size(1, 1, 1)
-        fn computeMain() {
-          selection = textureLoad(selectionTexture, selectCoord, 0).x;
-        }
-      `
-    });
-    this.selectionPipeline = gpu.device.createComputePipeline({
-      label: "Decal Selection",
-      layout: gpu.device.createPipelineLayout({
-        bindGroupLayouts: [this.selectionBindGroupLayout],
-        // @ts-expect-error TypeScript defs for immediates not available yet.
-        immediateSize: Vec2.BYTE_LENGTH
-      }),
-      compute: {
-        module
-      }
-    });
-  }
-  onResize(width, height) {
-    const device = this.gpu.device;
-    if (this.selectionTexture) {
-      this.selectionTexture.destroy();
-    }
-    this.selectionTexture = device.createTexture({
-      label: "Decal Selection",
-      size: { width, height },
-      sampleCount: this.gpu.config.sampleCount,
-      format: this.gpu.config.selectionFormat,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
-    });
-    this.selectionBindGroup = device.createBindGroup({
-      label: "Decal Selection",
-      layout: this.selectionBindGroupLayout,
-      entries: [{
-        binding: 0,
-        resource: this.selectionTexture
-      }, {
-        binding: 1,
-        resource: this.selectionBuffer
-      }]
-    });
-  }
-  #getSelectionReadbackBuffer() {
-    if (this.selectionReadbackBuffers.length) {
-      return this.selectionReadbackBuffers.pop();
-    }
-    const buffer = this.gpu.device.createBuffer({
-      label: "Decal Selection Readback",
-      size: this.selectionBuffer.size,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-    });
-    return buffer;
-  }
-  async getDecalIdAtPoint(x2, y2) {
-    const device = this.gpu.device;
-    const readbackBuffer = this.#getSelectionReadbackBuffer();
-    const commandEncoder = device.createCommandEncoder();
-    const computePass = commandEncoder.beginComputePass({});
-    computePass.setPipeline(this.selectionPipeline);
-    computePass.setBindGroup(0, this.selectionBindGroup);
-    this.immediateArray[0] = x2;
-    this.immediateArray[1] = y2;
-    computePass.setImmediates(0, this.immediateArray);
-    computePass.dispatchWorkgroups(1);
-    computePass.end();
-    commandEncoder.copyBufferToBuffer(this.selectionBuffer, readbackBuffer);
-    device.queue.submit([commandEncoder.finish()]);
-    await readbackBuffer.mapAsync(GPUMapMode.READ);
-    const selectionArray = new Uint32Array(readbackBuffer.getMappedRange());
-    const selection = selectionArray[0];
-    readbackBuffer.unmap();
-    this.selectionReadbackBuffers.push(readbackBuffer);
-    return selection;
-  }
-};
-
-// src/renderer/pipelines/pbr-common.ts
-var SurfaceInfoStruct = `
-  struct SurfaceInfo {
-    worldPos: vec3f,
-    fragPos: vec2f,
-    V: vec3f, // normalized vector from the shading location to the eye
-    N: vec3f, // surface normal in the world space
-    specularColor: vec3f,
-    diffuseColor: vec3f,
-    metal: f32,
-    rough: f32,
-    f0: vec3f,
-    ao: f32,
-    alpha: f32,
-  };
-`;
-var PBRFunctions = (
-  /* wgsl */
-  `
-  const PI = ${Math.PI};
-  const MIN_ROUGHNESS = 0.045;
-
-  fn getSpecularLightColor(R: vec3f, roughness: f32) -> vec3f {
-    let envLevels = f32(textureNumLevels(environmentTexture));
-
-    let rough = envLevels * roughness * (2.0 - roughness);
-
-    return textureSampleLevel(environmentTexture, defaultSampler, R, rough).rgb;
-  }
-
-  fn getDiffuseLightColor(N: vec3f) -> vec3f {
-    let diffuseLevel = f32(textureNumLevels(environmentTexture) - 1);
-    return textureSampleLevel(environmentTexture, defaultSampler, N, diffuseLevel).rgb;
-  }
-
-  fn FresnelSchlickRoughness(cosTheta: f32, F0: vec3f, roughness: f32) -> vec3f {
-    return F0 + (max(vec3f(1 - roughness), F0) - F0) * pow(clamp(1 - cosTheta, 0, 1), 5);
-  }
-
-  // From https://www.unrealengine.com/en-US/blog/physically-based-shading-on-mobile
-  fn envBRDFApprox(roughness: f32, NdotV: f32) -> vec2f {
-    let c0 = vec4f(-1, -0.0275, -0.572, 0.022);
-    let c1 = vec4f(1, 0.0425, 1.04, -0.04);
-    let r = roughness * c0 + c1;
-    let a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
-    return vec2f(-1.04, 1.04) * a004 + r.zw;
-  }
-
-  fn pbrSurfaceColorIbl(surface: SurfaceInfo) -> vec3f {
-    let NdotV = max(dot(surface.N, surface.V), 0);
-    let R = reflect(-surface.V, surface.N);
-
-    let kS = FresnelSchlickRoughness(NdotV, surface.f0, surface.rough);
-    let kD = (1 - kS) * (1 - surface.metal);
-    let irradiance = getDiffuseLightColor(surface.N);
-    let diffuse    = vec3f(0); //irradiance * surface.diffuseColor;
-
-    let prefilteredColor = getSpecularLightColor(R, surface.rough);
-    let envBrdf = envBRDFApprox(surface.rough, NdotV);
-    let specular = prefilteredColor * (surface.specularColor * envBrdf.x + envBrdf.y);
-
-    let ambient    = (kD * diffuse + specular) * surface.ao;
-    return ambient;
-  }
-`
-);
-
-// src/renderer/pipelines/pbr.ts
-var PBRPipelineFactory = class extends RenderPipelineFactory {
-  static {
-    __name(this, "PBRPipelineFactory");
-  }
-  materialBGL;
-  pipelineLayout;
-  constructor(gpu) {
-    const config = gpu.config.watch();
-    super(gpu.device, config);
-    this.materialBGL = gpu.device.createBindGroupLayout({
-      label: "PBR Material",
-      entries: [{
-        binding: 0,
-        visibility: GPUShaderStage.FRAGMENT,
-        buffer: {}
-      }, {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
-      }, {
-        binding: 2,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        binding: 3,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        binding: 4,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        binding: 5,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        binding: 6,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }]
-    });
-    this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
-    });
-  }
-  getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
-    const module = this.device.createShaderModule({
-      label: "PBR Material",
-      code: wgsl`
-          ${FrameBindings}
-
-          struct Material {
-            baseColorFactor: vec4f,
-            metallicRoughnessFactor: vec2f,
-            emissiveFactor: vec4f,
-          };
-
-          @group(1) @binding(0) var<uniform> material: Material;
-          @group(1) @binding(1) var materialSampler: sampler;
-          @group(1) @binding(2) var baseColorTexture: texture_2d<f32>;
-          @group(1) @binding(3) var normalTexture: texture_2d<f32>;
-          @group(1) @binding(4) var metallicRoughnessTexture: texture_2d<f32>;
-          @group(1) @binding(5) var occlusionTexture: texture_2d<f32>;
-          @group(1) @binding(6) var emissiveTexture: texture_2d<f32>;
-
-          ${geometryLayout.getStandardVertexInStruct()}
-
-          struct VertexOut {
-            @builtin(position) pos: vec4f,
-            @location(0) texCoord: vec2f,
-            @location(1) normal: vec3f,
-            @location(2) worldPos: vec4f,
-            @location(3) color: vec4f,
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
-            @location(4) tangent: vec3f,
-            @location(5) bitangent: vec3f,
-          #endif
-          };
-
-          @vertex
-          fn vertMain(in: VertexIn, @builtin(instance_index) instanceIdx: u32) -> VertexOut {
-            let instanceId = instanceIndices[instanceIdx];
-            let instance = instances[instanceId];
-
-            var out: VertexOut;
-
-            out.worldPos = instance.model * in.position;
-            out.pos = camera.projection * camera.view * out.worldPos;
-            out.texCoord = in.texcoord0;
-            out.normal = normalize(instance.normal * in.normal);
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.color)}
-            out.color = in.color;
-          #else
-            out.color = vec4f(1);
-          #endif
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
-            out.tangent = normalize(instance.normal * in.tangent.xyz);
-            out.bitangent = cross(out.normal, out.tangent) * in.tangent.w;
-          #endif
-
-            return out;
-          }
-
-          ${SRGBConversions}
-
-          ${SurfaceInfoStruct}
-
-          ${PBRFunctions}
-
-          struct FragOut {
-            @location(0) color: vec4f,
-            @location(1) decalId: u32,
-          }
-
-          @fragment
-          fn fragMain(in: VertexOut) -> FragOut {
-
-            var surface: SurfaceInfo;
-            surface.worldPos = in.worldPos.xyz;
-            surface.fragPos = in.pos.xy;
-            surface.V = normalize(camera.viewPos - surface.worldPos);
-
-          #if ${geometryLayout.locationsUsed.has(AttribLocation.tangent)}
-            let tbn = mat3x3f(in.tangent, in.bitangent, in.normal);
-            let texNormal = textureSample(normalTexture, materialSampler, in.texCoord).rgb;
-            surface.N = normalize(tbn * (texNormal * 2 - 1));
-          #else
-            surface.N = normalize(in.normal);
-          #endif
-
-            let environment = textureSample(environmentTexture, materialSampler, surface.N);
-
-            let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
-            surface.alpha = baseColor.a;
-            let color = in.color.rgb * baseColor.rgb;
-
-            let metalRough = material.metallicRoughnessFactor * textureSample(metallicRoughnessTexture, materialSampler, in.texCoord).bg;
-            surface.metal = metalRough.r;
-            surface.rough = clamp(metalRough.g, MIN_ROUGHNESS, 1.0);
-
-            surface.diffuseColor = color * (1 - surface.metal);
-            surface.specularColor = color * surface.metal;
-
-            let dielectricSpec = vec3f(0.04);
-            surface.f0 = mix(dielectricSpec, color.rgb, vec3f(surface.metal));
-
-            surface.ao = textureSample(occlusionTexture, materialSampler, in.texCoord).r;
-
-            let emmisive = material.emissiveFactor.rgb * textureSample(emissiveTexture, materialSampler, in.texCoord).rgb;
-
-            var Lo = pbrSurfaceColorIbl(surface);
-
-            // Punctual lights would go here.
-
-            Lo += (surface.diffuseColor * surface.ao) + emmisive;
-
-            var out: FragOut;
-            out.decalId = 0;
-            out.color = vec4(linearTosRGB(Lo), surface.alpha);
-            return out;
-          }
-        `
-    });
-    return {
-      label: "PBR Material",
-      layout: this.pipelineLayout,
-      vertex: { module, buffers: geometryLayout.buffers },
-      primitive: {
-        topology: geometryLayout.topology,
-        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
-      },
-      depthStencil: {
-        format: attachmentLayout.depthStencilFormat,
-        depthWriteEnabled: true,
-        depthCompare: "greater"
-      },
-      fragment: {
-        module,
-        targets: attachmentLayout.colorFormats.map((format, index) => {
-          const target = {
-            format
-          };
-          if (args.transparent) {
-            if (index == 0) {
-              target.blend = {
-                color: {
-                  srcFactor: "src-alpha",
-                  dstFactor: "one-minus-src-alpha"
-                },
-                alpha: {
-                  srcFactor: "one",
-                  dstFactor: "one"
-                }
-              };
-            } else {
-              target.writeMask = 0;
-            }
-          }
-          return target;
-        })
-      }
-    };
-  }
-};
-
-// src/renderer/camera-manager.ts
-var CameraManager = class {
-  static {
-    __name(this, "CameraManager");
-  }
-  gpu;
-  #cameraArray = new Float32Array(16 * 3 + 8);
-  #projMat = new Mat4(this.#cameraArray.buffer, 0);
-  #inverseProjMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH);
-  #viewMat = new Mat4(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 2);
-  #viewPos = new Vec3(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3);
-  #outputSize = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH);
-  #zRange = new Vec2(this.#cameraArray.buffer, Mat4.BYTE_LENGTH * 3 + Vec4.BYTE_LENGTH + Vec2.BYTE_LENGTH);
-  cameraBuffer;
-  constructor(gpu) {
-    this.gpu = gpu;
-    const device = gpu.device;
-    this.cameraBuffer = device.createBuffer({
-      label: "Camera",
-      size: this.#cameraArray.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    });
-  }
-  updateCamera(cameraActor, timestamp) {
-    const camera = cameraActor.get(PerspectiveCamera) ?? cameraActor.get(OrthographicCamera);
-    if (!camera) {
-      throw new Error("cameraActor passed to WebGPURenderer.render() must have a camera component");
-    }
-    camera.getProjection(this.#projMat);
-    Mat4.invert(this.#inverseProjMat, this.#projMat);
-    Mat4.invert(this.#viewMat, cameraActor.worldTransform.matrix);
-    this.#viewPos.set(cameraActor.worldTransform.translation);
-    this.#cameraArray[51] = timestamp / 1e3;
-    this.#outputSize[0] = this.gpu.canvas.width;
-    this.#outputSize[1] = this.gpu.canvas.height;
-    this.#zRange[0] = camera.zNear;
-    this.#zRange[1] = camera.zFar;
-    this.gpu.device.queue.writeBuffer(this.cameraBuffer, 0, this.#cameraArray);
-  }
-};
-
-// src/renderer/cluster-manager.ts
-var DISPATCH_SIZE = [
-  TILE_COUNT[0] / WORKGROUP_SIZE[0],
-  TILE_COUNT[1] / WORKGROUP_SIZE[1],
-  TILE_COUNT[2] / WORKGROUP_SIZE[2]
-];
-var CLUSTER_BOUNDS_SIZE = TOTAL_TILES * 32;
-var ClusterManager = class {
-  static {
-    __name(this, "ClusterManager");
-  }
-  gpu;
-  clusterBoundsUpdateBGL;
-  clusterBoundsUpdateBindGroup;
-  clusterBoundsBuffer;
-  boundsPipeline;
-  constructor(gpu) {
-    this.gpu = gpu;
-    const device = gpu.device;
-    this.clusterBoundsUpdateBGL = device.createBindGroupLayout({
-      label: "Cluster Bounds",
-      entries: [{
-        binding: 0,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "uniform" }
-      }, {
-        binding: 1,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "storage" }
-      }]
-    });
-    this.clusterBoundsBuffer = device.createBuffer({
-      label: "Cluster Bounds",
-      size: CLUSTER_BOUNDS_SIZE,
-      usage: GPUBufferUsage.STORAGE
-    });
-    this.clusterBoundsUpdateBindGroup = device.createBindGroup({
-      label: "Cluster Bounds Update",
-      layout: this.clusterBoundsUpdateBGL,
-      entries: [{
-        binding: 0,
-        resource: gpu.cameraManager.cameraBuffer
-      }, {
-        binding: 1,
-        resource: this.clusterBoundsBuffer
-      }]
-    });
-    device.createComputePipelineAsync({
-      label: "Cluster Bounds Update",
-      layout: device.createPipelineLayout({
-        bindGroupLayouts: [
-          this.clusterBoundsUpdateBGL
-        ]
-      }),
-      compute: {
-        module: device.createShaderModule({
-          label: "Cluster Bounds Update",
-          code: ClusterBoundsUpdateSource
-        })
-      }
-    }).then((pipeline) => {
-      this.boundsPipeline = pipeline;
-    });
-  }
-  updateClusterBounds(commandEncoder) {
-    if (!this.boundsPipeline) {
-      return;
-    }
-    const passEncoder = commandEncoder.beginComputePass({ label: "Cluster Bounds Compute Pass" });
-    passEncoder.setPipeline(this.boundsPipeline);
-    passEncoder.setBindGroup(0, this.clusterBoundsUpdateBindGroup);
-    passEncoder.dispatchWorkgroups(DISPATCH_SIZE[0], DISPATCH_SIZE[1], DISPATCH_SIZE[2]);
-    passEncoder.end();
-  }
-};
-
-// src/renderer/webgpu-renderer.ts
-var WebGPURenderer = class {
-  static {
-    __name(this, "WebGPURenderer");
-  }
-  device;
-  canvas;
-  context;
+  stage;
   config;
-  textureLoader;
-  depthStencilTexture;
-  msaaColorTexture;
-  attachmentLayout;
-  frameBGL;
-  #frameBindGroup;
-  cameraManager;
-  clusterManager;
-  instanceManager;
-  decalManager;
-  selectionManager;
-  unlitPipelineFactory;
-  pbrPipelineFactory;
-  defaultSampler;
-  whiteTexture;
-  blackTexture;
-  normalTexture;
-  whiteCubeTexture;
-  #environmentTexture;
-  causticsTexture;
-  constructor(device, options) {
-    this.device = device;
-    this.canvas = options.canvas ?? document.createElement("canvas");
-    this.context = this.canvas.getContext("webgpu");
-    this.config = Config.Create(RenderConfig, device);
-    this.context.configure({
-      device: this.device,
-      format: this.config.colorFormat
-    });
-    this.textureLoader = new WebGpuTextureLoader(device);
-    this.whiteTexture = this.textureLoader.fromColor(1, 1, 1, 1);
-    this.blackTexture = this.textureLoader.fromColor(0, 0, 0, 0);
-    this.normalTexture = this.textureLoader.fromColor(0.5, 0.5, 1, 1);
-    this.textureLoader.fromUrl("./media/textures/caustics.jpg").then((texture) => {
-      this.causticsTexture = texture;
-      this.frameBindingsDirty();
-    });
-    this.whiteCubeTexture = this.device.createTexture({
-      label: "Temp Environment",
-      size: [1, 1, 6],
-      format: "rgba8unorm",
-      usage: GPUTextureUsage.TEXTURE_BINDING
-    });
-    this.attachmentLayout = new AttachmentLayout(
-      [this.config.colorFormat, this.config.selectionFormat],
-      this.config.depthStencilFormat,
-      this.config.sampleCount
-    );
-    this.frameBGL = device.createBindGroupLayout({
-      label: "Frame",
-      entries: [{
-        // Camera Uniforms
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: {}
-      }, {
-        // Instance Data
-        binding: 1,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: { type: "read-only-storage" }
-      }, {
-        // Instance Index
-        binding: 2,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: { type: "read-only-storage" }
-      }, {
-        // Default Sampler
-        binding: 3,
-        visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
-      }, {
-        // Environment Texture
-        binding: 4,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: { viewDimension: "cube" }
-      }, {
-        // Decal Data
-        binding: 5,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        buffer: { type: "read-only-storage" }
-      }, {
-        // Decal Array Texture
-        binding: 6,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: { viewDimension: "2d-array" }
-      }, {
-        // Caustics Texture
-        binding: 7,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        // Cluster Bounds
-        binding: 8,
-        visibility: GPUShaderStage.FRAGMENT,
-        buffer: { type: "read-only-storage" }
-      }]
-    });
-    this.defaultSampler = device.createSampler({
-      label: "Default",
-      addressModeU: "repeat",
-      addressModeV: "repeat",
-      minFilter: "linear",
-      magFilter: "linear",
-      mipmapFilter: "linear"
-    });
-    this.cameraManager = new CameraManager(this);
-    this.clusterManager = new ClusterManager(this);
-    this.instanceManager = new InstanceManager(this);
-    this.decalManager = new DecalManager(this);
-    this.selectionManager = new SelectionManager(this);
-    this.unlitPipelineFactory = new UnlitPipelineFactory(this);
-    this.pbrPipelineFactory = new PBRPipelineFactory(this);
-  }
-  get environmentTexture() {
-    return this.#environmentTexture;
-  }
-  set environmentTexture(value) {
-    this.#environmentTexture = value;
-    this.frameBindingsDirty();
-  }
-  onResize(width, height) {
-    width = Math.floor(width * this.config.outputScale);
-    height = Math.floor(height * this.config.outputScale);
-    this.canvas.width = width;
-    this.canvas.height = height;
-    if (this.depthStencilTexture) {
-      this.depthStencilTexture.destroy();
-    }
-    this.depthStencilTexture = this.device.createTexture({
-      label: "WebGPURenderer depthStencil",
-      size: { width, height },
-      sampleCount: this.config.sampleCount,
-      format: this.config.depthStencilFormat,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT
-    });
-    if (this.config.sampleCount > 1) {
-      if (this.msaaColorTexture) {
-        this.msaaColorTexture.destroy();
-      }
-      this.msaaColorTexture = this.device.createTexture({
-        label: "WebGPURenderer msaaColor",
-        size: { width, height },
-        sampleCount: this.config.sampleCount,
-        format: this.config.colorFormat,
-        usage: GPUTextureUsage.RENDER_ATTACHMENT
-      });
-    }
-    this.selectionManager.onResize(width, height);
-  }
-  #rebuildFrameBindings = true;
-  frameBindingsDirty() {
-    this.#rebuildFrameBindings = true;
-  }
-  get frameBindings() {
-    if (this.#rebuildFrameBindings) {
-      this.#rebuildFrameBindings = false;
-      this.#frameBindGroup = this.device.createBindGroup({
-        label: "Frame",
-        layout: this.frameBGL,
-        entries: [{
-          binding: 0,
-          resource: this.cameraManager.cameraBuffer
-        }, {
-          binding: 1,
-          resource: this.instanceManager.instanceBuffers.instanceTransformBuffer
-        }, {
-          binding: 2,
-          resource: this.instanceManager.instanceBuffers.instanceIndexBuffer
-        }, {
-          binding: 3,
-          resource: this.defaultSampler
-        }, {
-          binding: 4,
-          resource: (this.environmentTexture ? this.environmentTexture : this.whiteCubeTexture).createView({ dimension: "cube" })
-        }, {
-          binding: 5,
-          resource: this.decalManager.decalBuffer
-        }, {
-          binding: 6,
-          resource: this.decalManager.decalTextureArray.createView({
-            label: "Decal",
-            dimension: "2d-array"
-          })
-        }, {
-          binding: 7,
-          resource: this.causticsTexture ?? this.whiteTexture
-        }, {
-          binding: 8,
-          resource: this.clusterManager.clusterBoundsBuffer
-        }]
-      });
-    }
-    return this.#frameBindGroup;
-  }
-  render(stage, cameraActor, timestamp = performance.now()) {
-    this.cameraManager.updateCamera(cameraActor, timestamp);
-    this.instanceManager.updateInstances(stage);
-    this.decalManager.updateDecals(stage);
-    if (this.instanceManager.instanceCount == 0) {
-      return;
-    }
-    const colorTexture = this.context.getCurrentTexture();
-    const commandEncoder = this.device.createCommandEncoder();
-    this.clusterManager.updateClusterBounds(commandEncoder);
-    const renderPass = commandEncoder.beginRenderPass({
-      colorAttachments: [{
-        view: colorTexture,
-        loadOp: "clear",
-        clearValue: [0.1, 0.1, 0.2, 1],
-        storeOp: "store"
-      }, {
-        view: this.selectionManager.selectionTexture,
-        loadOp: "clear",
-        clearValue: [0, 0, 0, 0],
-        storeOp: "store"
-      }],
-      depthStencilAttachment: {
-        view: this.depthStencilTexture,
-        depthLoadOp: "clear",
-        depthClearValue: 0,
-        depthStoreOp: "discard"
-      }
-    });
-    renderPass.setBindGroup(0, this.frameBindings);
-    for (let materialGeometries of this.instanceManager.materials.values()) {
-      if (materialGeometries.material instanceof UnlitMaterial) {
-        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
-        for (let geometryInstances of materialGeometries.geometries.values()) {
-          const args = {
-            canDecal: materialGeometries.material.canDecal,
-            depthTest: materialGeometries.material.depthTest,
-            doubleSided: materialGeometries.material.doubleSided,
-            transparent: materialGeometries.material.transparent,
-            mirrored: false
-          };
-          if (geometryInstances.instances.length) {
-            const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-          }
-          if (geometryInstances.mirroredInstances.length) {
-            args.mirrored = true;
-            const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-          }
-        }
-      } else if (materialGeometries.material instanceof PBRMaterial) {
-        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
-        for (let geometryInstances of materialGeometries.geometries.values()) {
-          const args = {
-            doubleSided: materialGeometries.material.doubleSided,
-            transparent: materialGeometries.material.transparent,
-            mirrored: false
-          };
-          if (geometryInstances.instances.length) {
-            const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-          }
-          if (geometryInstances.mirroredInstances.length) {
-            args.mirrored = true;
-            const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-          }
-        }
-      }
-    }
-    renderPass.end();
-    this.device.queue.submit([commandEncoder.finish()]);
-  }
-};
-
-// src/renderer/webgpu-app.ts
-var ResizeHandler = class {
-  static {
-    __name(this, "ResizeHandler");
-  }
-  static #observer;
-  static #elementCallbacks;
-  static observe(element, callback) {
-    if (!this.#observer) {
-      this.#elementCallbacks = /* @__PURE__ */ new WeakMap();
-      this.#observer = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-          const element2 = entry.target;
-          const callback2 = this.#elementCallbacks.get(element2);
-          if (!callback2) {
-            continue;
-          }
-          if (entry.devicePixelContentBoxSize) {
-            callback2(
-              entry.devicePixelContentBoxSize[0].inlineSize,
-              entry.devicePixelContentBoxSize[0].blockSize,
-              element2
-            );
-          } else {
-            callback2(
-              entry.contentBoxSize[0].inlineSize * devicePixelRatio,
-              entry.contentBoxSize[0].blockSize * devicePixelRatio,
-              element2
-            );
-          }
-        }
-      });
-    }
-    if (element.clientWidth != 0 && element.clientHeight != 0) {
-      callback(
-        Math.floor(element.clientWidth * devicePixelRatio),
-        Math.floor(element.clientHeight * devicePixelRatio),
-        element
-      );
-    }
-    this.#elementCallbacks.set(element, callback);
-    this.#observer.observe(element);
-  }
-  static unobserve(element) {
-    this.#observer?.unobserve(element);
-    this.#elementCallbacks?.delete(element);
-  }
-};
-var WebGPUApp = class {
-  constructor(gpu) {
-    this.gpu = gpu;
-  }
   gpu;
-  static {
-    __name(this, "WebGPUApp");
+  constructor(stage, gpu) {
+    this.stage = stage;
+    this.gpu = gpu;
+    this.config = Config.Create(AppConfig);
+    this.stage.add(this);
   }
-  static async Begin(appType, options = {}) {
-    document.body.classList.add("loading");
-    const adapter = await navigator.gpu?.requestAdapter();
-    const device = await adapter?.requestDevice();
-    if (!device) {
-      console.log("Unable to create WebGPU device.");
-      return;
+  clearDecals() {
+    this.stage.query(Decal).forEach((actor) => {
+      if (!actor.has(Tag("placing-decal"))) {
+        actor.parent?.removeChild(actor);
+      }
+    });
+  }
+  async loadDecalLayoutFromUrl(url) {
+    const response = await fetch(url);
+    this.deserializeDecalLayoutFromJson(await response.json());
+  }
+  deserializeDecalLayoutFromString(json) {
+    const decalLayout = JSON.parse(json);
+    this.deserializeDecalLayoutFromJson(decalLayout);
+  }
+  async deserializeDecalLayoutFromJson(decalLayout) {
+    this.clearDecals();
+    if (decalLayout.version != 1) {
+      throw new Error(`Unsupported DecalLayout version: ${decalLayout.version}`);
     }
-    const gpu = new WebGPURenderer(device, options);
-    const app = new appType(gpu);
-    await app.onInit(gpu);
-    document.body.classList.remove("loading");
-    ResizeHandler.observe(gpu.canvas, (width, height) => {
-      gpu.onResize(width, height);
-      app.onResize(gpu, width, height);
-    });
-    let lastFrame = performance.now();
-    const rafCallback = /* @__PURE__ */ __name((timestamp) => {
-      requestAnimationFrame(rafCallback);
-      const delta = timestamp - lastFrame;
-      lastFrame = timestamp;
-      if (delta > 1e3) {
-        return;
+    for (const decal of decalLayout.decals) {
+      const emoji = decalLayout.emoji[decal.emojiIndex];
+      let decalComponent = await this.gpu.decalManager.getDecal(emoji);
+      if (decal.baseColorFactor) {
+        decalComponent = decalComponent.clone();
+        decalComponent.baseColorFactor.copy(decal.baseColorFactor);
       }
-      app.onFrame(gpu, timestamp, delta);
-    }, "rafCallback");
-    requestAnimationFrame(rafCallback);
+      const actor = new Actor(decalComponent);
+      actor.transform.translation = decal.translation;
+      actor.transform.rotation = decal.rotation;
+      this.stage.attachChild(actor);
+    }
   }
-  async onInit(gpu) {
-  }
-  onResize(gpu, width, height) {
-  }
-  onFrame(gpu, timestamp, delta) {
-  }
-};
-
-// src/controllers/controller-input.ts
-var ControllerInput = class {
-  static {
-    __name(this, "ControllerInput");
-  }
-  #element;
-  #registerElement;
-  #keyPressed = {};
-  #mousePressed = [];
-  constructor(element) {
-    let lastX;
-    let lastY;
-    window.addEventListener("keydown", (event) => {
-      if (event.defaultPrevented) {
-        return;
-      }
-      this.#keyPressed[event.code] = true;
-    });
-    window.addEventListener("keyup", (event) => {
-      this.#keyPressed[event.code] = false;
-    });
-    window.addEventListener("blur", (event) => {
-      this.#keyPressed = {};
-    });
-    const downCallback = /* @__PURE__ */ __name((event) => {
-      lastX = event.pageX;
-      lastY = event.pageY;
-    }, "downCallback");
-    const moveCallback = /* @__PURE__ */ __name((event) => {
-      this.#mousePressed[0] = (event.buttons & 1) != 0 || event.pointerType == "touch";
-      this.#mousePressed[1] = (event.buttons & 2) != 0;
-      this.#mousePressed[3] = (event.buttons & 4) != 0;
-      this.#mousePressed[4] = (event.buttons & 8) != 0;
-      this.#mousePressed[5] = (event.buttons & 16) != 0;
-      if (document.pointerLockElement !== null) {
-        this.onMouseMove(event.movementX, event.movementY);
-      } else {
-        this.onMouseMove(event.pageX - lastX, event.pageY - lastY);
-      }
-      lastX = event.pageX;
-      lastY = event.pageY;
-    }, "moveCallback");
-    const wheelCallback = /* @__PURE__ */ __name((event) => {
-      this.onScroll(event.deltaY);
-      event.preventDefault();
-    }, "wheelCallback");
-    this.#registerElement = (value) => {
-      if (this.#element && this.#element != value) {
-        this.#element.removeEventListener("pointerdown", downCallback);
-        this.#element.removeEventListener("pointermove", moveCallback);
-        this.#element.removeEventListener("wheel", wheelCallback);
-      }
-      this.#element = value;
-      if (this.#element) {
-        this.#element.addEventListener("pointerdown", downCallback);
-        this.#element.addEventListener("pointermove", moveCallback);
-        this.#element.addEventListener("wheel", wheelCallback);
-      }
+  serializeDecalLayout() {
+    const decalLayout = {
+      version: 1,
+      emoji: [],
+      decals: []
     };
-    this.#registerElement(element);
-  }
-  set element(value) {
-    this.#registerElement(value);
-  }
-  get element() {
-    return this.#element;
-  }
-  onMouseMove(xDelta, yDelta) {
-  }
-  onScroll(delta) {
-  }
-  keyPressed(keycode) {
-    return !!this.#keyPressed[keycode];
-  }
-  mousePressed(button) {
-    return !!this.#mousePressed[button];
-  }
-};
-
-// src/controllers/physics-fps-controller.ts
-var tmpDir = new Vec3();
-var tmpQuat = new Quat();
-var PhysicsFPSController = class extends ControllerInput {
-  static {
-    __name(this, "PhysicsFPSController");
-  }
-  speed = 0.01;
-  angles = new Vec2();
-  rotation = new Quat();
-  flying = false;
-  #onGround = false;
-  #yVelocity = 0;
-  gravity = -1;
-  //-9.81;
-  jumpVelocity = 0.3;
-  #physicsController;
-  #collider;
-  #rigidBody;
-  constructor(element) {
-    super(element);
-  }
-  setAngles(x2, y2) {
-    this.angles[0] = x2;
-    this.angles[1] = y2;
-    const q2 = this.rotation;
-    q2.identity();
-    Quat.rotateY(q2, q2, -this.angles[1]);
-    Quat.rotateX(q2, q2, -this.angles[0]);
-  }
-  onMouseMove(xDelta, yDelta) {
-    if (this.mousePressed(0)) {
-      this.angles[1] = (this.angles[1] + xDelta * 0.025) % (Math.PI * 2);
-      this.angles[0] += yDelta * 0.025;
-      this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI * 0.5), Math.PI * 0.5);
-      const q2 = this.rotation;
-      q2.identity();
-      Quat.rotateY(q2, q2, -this.angles[1]);
-      Quat.rotateX(q2, q2, -this.angles[0]);
-    }
-  }
-  #ensurePhysicsController(actor) {
-    if (this.#physicsController) {
-      return this.#physicsController;
-    }
-    if (!actor.stage) {
-      return void 0;
-    }
-    const stagePhysics = actor.stage?.get(StagePhysics);
-    if (!stagePhysics) {
-      return void 0;
-    }
-    this.#physicsController = stagePhysics.world.createCharacterController(0.1);
-    this.#rigidBody = stagePhysics.world.createRigidBody(zg.RigidBodyDesc.kinematicPositionBased());
-    const playerHalfHeight = 0.75;
-    const capsule = zg.ColliderDesc.capsule(playerHalfHeight, 0.4);
-    this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
-    this.#collider.setTranslationWrtParent({ x: 0, y: -playerHalfHeight, z: 0 });
-    this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
-  }
-  addToStage(stage, actor) {
-    this.#ensurePhysicsController(actor);
-  }
-  removeFromStage(stage, actor) {
-    if (!this.#physicsController) {
-      return;
-    }
-    let stagePhysics = stage.get(StagePhysics);
-    if (!stagePhysics) {
-      return;
-    }
-    stagePhysics.world.removeCharacterController(this.#physicsController);
-    this.#physicsController = void 0;
-  }
-  static TickOrder = 1;
-  onTick(tickData, actor) {
-    let controller = this.#ensurePhysicsController(actor);
-    if (!controller) {
-      return;
-    }
-    if (!this.#rigidBody || !this.#collider) {
-      console.warn("PhysicsFPSController has no RigidBody or Collider");
-      return;
-    }
-    if (!this.flying) {
-      this.#yVelocity += this.gravity / 1e3 * tickData.delta;
-    } else {
-      this.#yVelocity = 0;
-    }
-    Vec3.set(tmpDir, 0, 0, 0);
-    if (this.keyPressed("KeyW")) {
-      tmpDir[2] -= 1;
-    }
-    if (this.keyPressed("KeyS")) {
-      tmpDir[2] += 1;
-    }
-    if (this.keyPressed("KeyA")) {
-      tmpDir[0] -= 1;
-    }
-    if (this.keyPressed("KeyD")) {
-      tmpDir[0] += 1;
-    }
-    if (this.keyPressed("Space")) {
-      if (this.flying) {
-        tmpDir[1] += 1;
-      } else if (this.#onGround) {
-        this.#yVelocity = this.jumpVelocity;
+    this.stage.query(Decal).forEach((actor, decal) => {
+      if (actor.has(Tag("placing-decal"))) {
+        return;
       }
-    }
-    if (this.keyPressed("ShiftLeft")) {
-      if (this.flying) {
-        tmpDir[1] -= 1;
-      } else {
+      if (!decalLayout.emoji[decal.textureIndex]) {
+        decalLayout.emoji[decal.textureIndex] = decal.emoji;
       }
-    }
-    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0 || this.#yVelocity !== 0) {
-      if (this.flying) {
-        Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
-      } else {
-        tmpQuat.identity();
-        tmpQuat.rotateY(-this.angles[1]);
-        Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
+      const out = {
+        emojiIndex: decal.textureIndex,
+        translation: [...actor.worldTransform.translation],
+        rotation: [...actor.worldTransform.rotation]
+      };
+      if (!Vec4.equals(decal.baseColorFactor, [1, 1, 1, 1])) {
+        out.baseColorFactor = [...decal.baseColorFactor];
       }
-      tmpDir.normalize();
-      tmpDir.scale(this.speed * tickData.delta);
-      if (!this.flying) {
-        tmpDir[1] += this.#yVelocity;
-      }
-      controller.computeColliderMovement(this.#collider, tmpDir);
-      const correctedMovement = controller.computedMovement();
-      tmpDir[0] = correctedMovement.x;
-      tmpDir[1] = correctedMovement.y;
-      tmpDir[2] = correctedMovement.z;
-      this.#onGround = controller.computedGrounded();
-      if (this.#onGround) {
-        this.#yVelocity = 0;
-      }
-      actor.transform.translationRef.add(tmpDir);
-      this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
-    }
-    actor.transform.rotation = this.rotation;
+      decalLayout.decals.push(out);
+    });
+    return JSON.stringify(decalLayout);
   }
 };
 
@@ -27296,8 +27454,7 @@ var PaintballColors = [
 ];
 (/* @__PURE__ */ __name((function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
-    config;
-    pane;
+    appState;
     viewButton = document.querySelector("#view-button");
     emojiButton = document.querySelector("#emoji-button");
     shootButton = document.querySelector("#shoot-button");
@@ -27316,6 +27473,7 @@ var PaintballColors = [
     paintballGun;
     paintballDecals = [];
     physics;
+    controller;
     gltfLoader;
     mode = 0 /* View */;
     audioPlayer = new AudioPlayer();
@@ -27335,17 +27493,32 @@ var PaintballColors = [
       { offset: 3.4, duration: 0.5 },
       { offset: 6.7, duration: 0.5 }
     ]);
+    /*footstepClips = this.audioPlayer.loadClip('./media/sounds/footsteps.mp3').subClips([
+      { offset: 0.0, duration: 0.75},
+      { offset: 0.75, duration: 0.75},
+      { offset: 1.25, duration: 0.5},
+      { offset: 1.75, duration: 0.5},
+      { offset: 2.25, duration: 0.5},
+      { offset: 2.75, duration: 0.5},
+      { offset: 3.25, duration: 0.5},
+      { offset: 3.75, duration: 0.5},
+      { offset: 4.25, duration: 0.5},
+      { offset: 4.75, duration: 0.5},
+      { offset: 5.25, duration: 0.5},
+    ]);*/
+    playingFootstep = false;
     constructor(gpu) {
       super(gpu);
-      this.config = Config.Create(AppConfig);
+      this.appState = new AppState(this.stage, gpu);
       if (QueryArgs.getBool("debug")) {
-        this.#setupDebugMenu();
+        this.stage.add(new DebugMenu(this.appState));
       }
       this.gltfLoader = new GltfLoader(gpu);
-      const controller = new PhysicsFPSController(gpu.canvas);
-      controller.speed = 4e-3;
+      this.controller = new PhysicsFPSController(gpu.canvas);
+      this.controller.speed = 4e-3;
+      this.controller.flying = this.appState.config.flying;
       this.player = new Actor(
-        controller
+        this.controller
       );
       this.player.transform.translation = [0.2, 2, 2];
       this.stage.attachChild(this.player);
@@ -27359,7 +27532,7 @@ var PaintballColors = [
       this.decal.transform.translation = [0, 0, 0];
       this.#setupUIHandlers(gpu);
       this.#switchMode(0 /* View */);
-      this.onEmojiPicked(this.config.emoji);
+      this.onEmojiPicked(this.appState.config.emoji);
     }
     async onInit(gpu) {
       const loadingPromises = [];
@@ -27390,7 +27563,7 @@ var PaintballColors = [
       loadingPromises.push(gpu.textureLoader.fromUrl("./media/environment/industrial_pipe_and_valve_ibl.ktx").then((texture) => {
         gpu.environmentTexture = texture;
       }));
-      loadingPromises.push(this.loadDecalLayoutFromUrl("./media/decalLayout.json"));
+      loadingPromises.push(this.appState.loadDecalLayoutFromUrl("./media/decalLayout.json"));
       await Promise.allSettled(loadingPromises);
     }
     #setupUIHandlers(gpu) {
@@ -27404,7 +27577,7 @@ var PaintballColors = [
         if (this.mode == 1 /* Paint */) {
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
-            this.audioPlayer.play(this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)]);
+            this.audioPlayer.play(this.sprayClips.random());
             this.decal.remove(Tag("placing-decal"));
             this.decal.transform = this.decal.worldTransform;
             this.stage.attachChild(this.decal);
@@ -27415,12 +27588,12 @@ var PaintballColors = [
             if (this.mode == 1 /* Paint */) {
               this.camera.attachChild(this.decal);
             }
-          }, this.config.sprayCooldown);
+          }, this.appState.config.sprayCooldown);
         } else if (this.mode == 2 /* Erase */) {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor) => {
             if (decalIndex == this.lastSelectedDecal) {
-              this.audioPlayer.play(this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)]);
+              this.audioPlayer.play(this.eraseClips.random());
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
               this.gpu.decalManager.selectedDecal = 0;
@@ -27429,7 +27602,7 @@ var PaintballColors = [
             decalIndex++;
           });
         } else if (this.mode == 3 /* Shoot */) {
-          this.audioPlayer.play(this.paintballClips[Math.floor(Math.random() * this.paintballClips.length)]);
+          this.audioPlayer.play(this.paintballClips.random());
           const forward = new Vec4(0, 0, -1, 0);
           Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
           const ray = new zg.Ray(this.camera.worldTransform.translation, forward);
@@ -27543,107 +27716,9 @@ var PaintballColors = [
           break;
       }
     }
-    #setupDebugMenu() {
-      this.pane = new Pane({
-        title: document.title.split("-")[0]
-      });
-      this.pane.addButton({
-        title: "Save"
-      }).on("click", () => {
-        const json = this.serializeDecalLayout();
-        const blob = new Blob([json], { type: "text/json" });
-        const link = document.createElement("a");
-        link.download = "decalLayout.json";
-        link.href = window.URL.createObjectURL(blob);
-        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
-        link.click();
-        link.remove();
-      });
-      this.pane.addButton({
-        title: "Load"
-      }).on("click", () => {
-        let input = document.createElement("input");
-        input.type = "file";
-        input.onchange = async () => {
-          let file = input.files?.item(0);
-          if (file) {
-            this.deserializeDecalLayoutFromString(await file.text());
-          }
-        };
-        input.click();
-      });
-      this.pane.addBinding(this.config, "physicsDebugRendering").on("change", (ev) => {
-        if (ev.value) {
-          this.stage.add(new PhysicsDebugRenderer(this.gpu));
-        } else {
-          this.stage.remove(PhysicsDebugRenderer);
-        }
-      });
-      if (this.config.physicsDebugRendering) {
-        this.stage.add(new PhysicsDebugRenderer(this.gpu));
-      }
-    }
-    clearDecals() {
-      this.stage.query(Decal).forEach((actor) => {
-        if (!actor.has(Tag("placing-decal"))) {
-          actor.parent?.removeChild(actor);
-        }
-      });
-    }
-    async loadDecalLayoutFromUrl(url) {
-      const response = await fetch(url);
-      this.deserializeDecalLayoutFromJson(await response.json());
-    }
-    deserializeDecalLayoutFromString(json) {
-      const decalLayout = JSON.parse(json);
-      this.deserializeDecalLayoutFromJson(decalLayout);
-    }
-    async deserializeDecalLayoutFromJson(decalLayout) {
-      this.clearDecals();
-      if (decalLayout.version != 1) {
-        throw new Error(`Unsupported DecalLayout version: ${decalLayout.version}`);
-      }
-      for (const decal of decalLayout.decals) {
-        const emoji = decalLayout.emoji[decal.emojiIndex];
-        let decalComponent = await this.gpu.decalManager.getDecal(emoji);
-        if (decal.baseColorFactor) {
-          decalComponent = decalComponent.clone();
-          decalComponent.baseColorFactor.copy(decal.baseColorFactor);
-        }
-        const actor = new Actor(decalComponent);
-        actor.transform.translation = decal.translation;
-        actor.transform.rotation = decal.rotation;
-        this.stage.attachChild(actor);
-      }
-    }
-    serializeDecalLayout() {
-      const decalLayout = {
-        version: 1,
-        emoji: [],
-        decals: []
-      };
-      this.stage.query(Decal).forEach((actor, decal) => {
-        if (actor.has(Tag("placing-decal"))) {
-          return;
-        }
-        if (!decalLayout.emoji[decal.textureIndex]) {
-          decalLayout.emoji[decal.textureIndex] = decal.emoji;
-        }
-        const out = {
-          emojiIndex: decal.textureIndex,
-          translation: [...actor.worldTransform.translation],
-          rotation: [...actor.worldTransform.rotation]
-        };
-        if (!Vec4.equals(decal.baseColorFactor, [1, 1, 1, 1])) {
-          out.baseColorFactor = [...decal.baseColorFactor];
-        }
-        decalLayout.decals.push(out);
-      });
-      return JSON.stringify(decalLayout);
-    }
     async onEmojiPicked(emoji) {
       console.log(emoji);
-      this.config.emoji = emoji;
+      this.appState.config.emoji = emoji;
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
       if (emoji.unicode) {
         this.emojiButton.innerHTML = emoji.unicode;

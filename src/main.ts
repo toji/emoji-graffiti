@@ -5,19 +5,17 @@ import { AppConfig } from './app-config.ts';
 import { Config } from './util/config.ts';
 import { PerspectiveCamera } from './core/camera.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
-import { FlyingController } from './controllers/flying-controller.ts';
 import { Decal } from './materials/decal.ts';
-import { AudioPlayer } from './audio-player.ts';
+import { AudioPlayer } from './audio/audio-player.ts';
 
-import { Pane } from 'tweakpane';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { StagePhysics } from './physics/stage-physics.ts';
 import { Vec4 } from 'gl-matrix';
-import { PhysicsDebugRenderer } from './physics/physics-debug-renderer.ts';
 import { QueryArgs } from './util/query-args.ts';
 import { WebGPUApp } from './renderer/webgpu-app.ts';
-import { RigidBody } from './physics/rigid-body.ts';
 import { PhysicsFPSController } from './controllers/physics-fps-controller.ts';
+import { DebugMenu } from './debug-menu.ts';
+import { AppState } from './app-state.ts';
 
 enum InputMode {
   View,
@@ -40,8 +38,7 @@ const PaintballColors = [
 
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
-    config: AppConfig;
-    pane?: Pane;
+    appState: AppState;
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
@@ -64,6 +61,7 @@ const PaintballColors = [
     paintballDecals: Decal[] = [];
 
     physics?: StagePhysics;
+    controller: PhysicsFPSController;
 
     gltfLoader: GltfLoader;
 
@@ -89,18 +87,35 @@ const PaintballColors = [
       { offset: 6.7, duration: 0.5},
     ]);
 
+    /*footstepClips = this.audioPlayer.loadClip('./media/sounds/footsteps.mp3').subClips([
+      { offset: 0.0, duration: 0.75},
+      { offset: 0.75, duration: 0.75},
+      { offset: 1.25, duration: 0.5},
+      { offset: 1.75, duration: 0.5},
+      { offset: 2.25, duration: 0.5},
+      { offset: 2.75, duration: 0.5},
+      { offset: 3.25, duration: 0.5},
+      { offset: 3.75, duration: 0.5},
+      { offset: 4.25, duration: 0.5},
+      { offset: 4.75, duration: 0.5},
+      { offset: 5.25, duration: 0.5},
+    ]);*/
+    playingFootstep = false;
+
     constructor(gpu: WebGPURenderer) {
       super(gpu);
-      this.config = Config.Create(AppConfig);
+      this.appState = new AppState(this.stage, gpu);
 
-      if (QueryArgs.getBool('debug')) { this.#setupDebugMenu(); }
+      if (QueryArgs.getBool('debug')) { this.stage.add(new DebugMenu(this.appState)); }
 
       this.gltfLoader = new GltfLoader(gpu);
 
-      const controller = new PhysicsFPSController(gpu.canvas);
-      controller.speed = 0.004;
+      this.controller = new PhysicsFPSController(gpu.canvas);
+      this.controller.speed = 0.004;
+      this.controller.flying = this.appState.config.flying;
+
       this.player = new Actor(
-        controller,
+        this.controller,
       );
       this.player.transform.translation = [0.2, 2, 2];
       this.stage.attachChild(this.player);
@@ -120,7 +135,7 @@ const PaintballColors = [
       this.#setupUIHandlers(gpu);
       this.#switchMode(InputMode.View);
 
-      this.onEmojiPicked(this.config.emoji);
+      this.onEmojiPicked(this.appState.config.emoji);
     }
 
     async onInit(gpu: WebGPURenderer) {
@@ -163,7 +178,7 @@ const PaintballColors = [
         gpu.environmentTexture = texture;
       }));
 
-      loadingPromises.push(this.loadDecalLayoutFromUrl('./media/decalLayout.json'));
+      loadingPromises.push(this.appState.loadDecalLayoutFromUrl('./media/decalLayout.json'));
 
       await Promise.allSettled(loadingPromises);
     }
@@ -184,7 +199,7 @@ const PaintballColors = [
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
-            this.audioPlayer.play(this.sprayClips[Math.floor(Math.random() * this.sprayClips.length)]);
+            this.audioPlayer.play(this.sprayClips.random());
 
             this.decal.remove(Tag('placing-decal'));
             this.decal.transform = this.decal.worldTransform;
@@ -200,13 +215,13 @@ const PaintballColors = [
             if (this.mode == InputMode.Paint) {
               this.camera.attachChild(this.decal);
             }
-          }, this.config.sprayCooldown);
+          }, this.appState.config.sprayCooldown);
         } else if (this.mode == InputMode.Erase) {
           // Erase the selected decal
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor: Actor) => {
             if (decalIndex == this.lastSelectedDecal) {
-              this.audioPlayer.play(this.eraseClips[Math.floor(Math.random() * this.eraseClips.length)]);
+              this.audioPlayer.play(this.eraseClips.random());
 
               actor.parent?.removeChild(actor);
               this.lastSelectedDecal = 0;
@@ -216,7 +231,7 @@ const PaintballColors = [
             decalIndex++;
           });
         } else if (this.mode == InputMode.Shoot) {
-          this.audioPlayer.play(this.paintballClips[Math.floor(Math.random() * this.paintballClips.length)]);
+          this.audioPlayer.play(this.paintballClips.random());
 
           const forward = new Vec4(0, 0, -1, 0);
           Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
@@ -352,128 +367,9 @@ const PaintballColors = [
       }
     }
 
-    #setupDebugMenu() {
-      this.pane = new Pane({
-        title: document.title.split('-')[0],
-      });
-
-      this.pane.addButton({
-        title: 'Save',
-      }).on('click', () => {
-        const json = this.serializeDecalLayout();
-        const blob = new Blob([json], { type: "text/json" });
-        const link = document.createElement("a");
-        link.download = 'decalLayout.json';
-        link.href = window.URL.createObjectURL(blob);
-        link.dataset.downloadurl = ["text/json", link.download, link.href].join(":");
-        link.click();
-        link.remove();
-      });
-
-      this.pane.addButton({
-        title: 'Load',
-      }).on('click', () => {
-        let input = document.createElement('input');
-        input.type = 'file';
-        input.onchange = async () => {
-          let file = input.files?.item(0);
-          if (file) {
-            this.deserializeDecalLayoutFromString(await file.text());
-          }
-        };
-        input.click();
-      });
-
-      this.pane.addBinding(this.config, 'physicsDebugRendering').on('change', (ev) => {
-        if (ev.value) {
-          this.stage.add(new PhysicsDebugRenderer(this.gpu));
-        } else {
-          this.stage.remove(PhysicsDebugRenderer);
-        }
-      });
-
-      if (this.config.physicsDebugRendering) {
-        this.stage.add(new PhysicsDebugRenderer(this.gpu));
-      }
-    }
-
-    clearDecals() {
-      this.stage.query(Decal).forEach((actor: Actor) => {
-        // Don't remove the decal that we're using to place the next one.
-        if (!actor.has(Tag('placing-decal'))) {
-          actor.parent?.removeChild(actor);
-        }
-      });
-    }
-
-    async loadDecalLayoutFromUrl(url: string) {
-      const response = await fetch(url);
-      this.deserializeDecalLayoutFromJson(await response.json());
-    }
-
-    deserializeDecalLayoutFromString(json: string) {
-      const decalLayout = JSON.parse(json);
-      this.deserializeDecalLayoutFromJson(decalLayout);
-    }
-
-    async deserializeDecalLayoutFromJson(decalLayout: any) {
-      this.clearDecals();
-
-      if (decalLayout.version != 1) {
-        throw new Error(`Unsupported DecalLayout version: ${decalLayout.version}`);
-      }
-
-      for (const decal of decalLayout.decals) {
-        const emoji = decalLayout.emoji[decal.emojiIndex];
-        let decalComponent = await this.gpu.decalManager.getDecal(emoji);
-        if (decal.baseColorFactor) {
-          decalComponent = decalComponent.clone();
-          decalComponent.baseColorFactor.copy(decal.baseColorFactor);
-        }
-        const actor = new Actor(decalComponent);
-        actor.transform.translation = decal.translation;
-        actor.transform.rotation = decal.rotation;
-
-        this.stage.attachChild(actor);
-      }
-    }
-
-    serializeDecalLayout(): string {
-      const decalLayout: any = {
-        version: 1,
-        emoji: [],
-        decals: [],
-      };
-
-      this.stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
-        // Don't serialize the placing helper.
-        if (actor.has(Tag('placing-decal'))) {
-          return;
-        }
-
-        if (!decalLayout.emoji[decal.textureIndex]) {
-          decalLayout.emoji[decal.textureIndex] = decal.emoji;
-        }
-
-        const out: any = {
-          emojiIndex: decal.textureIndex,
-          translation: [...actor.worldTransform.translation],
-          rotation: [...actor.worldTransform.rotation],
-        };
-
-        if (!Vec4.equals(decal.baseColorFactor, [1, 1, 1, 1])) {
-          out.baseColorFactor = [...decal.baseColorFactor];
-        }
-
-        decalLayout.decals.push(out);
-      });
-
-      return JSON.stringify(decalLayout);
-    }
-
     async onEmojiPicked(emoji: any) {
       console.log(emoji);
-      this.config.emoji = emoji;
+      this.appState.config.emoji = emoji;
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
 
       if (emoji.unicode) {
@@ -509,6 +405,14 @@ const PaintballColors = [
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
       this.stage.tick(timestamp);
+
+      /*if (this.controller.walking && !this.playingFootstep) {
+        this.playingFootstep = true;
+        this.audioPlayer.play(this.footstepClips.random()).then(() => {
+          this.playingFootstep = false;
+        });
+      }*/
+
       gpu.render(this.stage, this.camera, timestamp);
     }
   }, {
