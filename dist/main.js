@@ -16033,6 +16033,7 @@ var RenderConfig = class _RenderConfig extends Config {
   depthStencilFormat = "depth24plus";
   selectionFormat = "r32uint";
   sampleCount = 1;
+  useBindless = true;
   // How large the render targets are compared to the screen resolution.
   // (Canvas render target size will always be 1:1 to allow for better UI)
   outputScale = 1;
@@ -17697,13 +17698,19 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
       }]
     });
     this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
+      bindGroupLayouts: [gpu.frameBGL, this.materialBGL],
+      // @ts-expect-error
+      usesResourceTable: gpu.supportsBindless
     });
   }
   getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
     const module = this.device.createShaderModule({
       label: "Unlit Material",
       code: wgsl`
+          #if ${args.useBindless}
+          enable chromium_experimental_resource_table;
+          #endif
+
           ${DecalFrameBindings}
 
           struct Material {
@@ -17762,6 +17769,20 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             @location(1) decalId: u32,
           }
 
+          #if ${args.useBindless}
+            fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
+              if (!hasResource<texture_2d<f32>>(decalIndex)) {
+                return vec4f(1, 0, 1, 1); // Hard to miss. :)
+              }
+              let tex = getResource<texture_2d<f32>>(decalIndex);
+              return textureSample(tex, defaultSampler, texCoord);
+            }
+          #else
+            fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
+              return textureSample(decalTexture, defaultSampler, texCoord, decalIndex);
+            }
+          #endif
+
           @fragment
           fn fragMain(in: VertexOut) -> FragOut {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
@@ -17782,7 +17803,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = decals.decal[i].baseColorFactor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
+              var decalColor = decals.decal[i].baseColorFactor * getDecalColor(decals.decal[i].textureIndex, decalUv.xy);
 
               // TODO: Check to ensure in.normal is facing towards the decal.
               let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
@@ -17932,7 +17953,12 @@ var DecalManager = class {
   }
   gpu;
   emojiRenderer;
+  // For non-bindless support.
   decalTextureArray;
+  // For bindless support.
+  decalTextureSet = [];
+  // @ts-expect-error
+  decalResourceTable;
   decalArray = new ArrayBuffer(DECAL_BYTE_SIZE * MAX_DECALS + Vec4.BYTE_LENGTH);
   decalUintArray = new Uint32Array(this.decalArray);
   decalFloatArray = new Float32Array(this.decalArray);
@@ -17949,10 +17975,15 @@ var DecalManager = class {
       size: this.decalArray.byteLength,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
     });
+    if (gpu.supportsBindless) {
+      this.decalResourceTable = gpu.device.createResourceTable({
+        size: MAX_DECALS * 2
+      });
+    }
     const emojiSize = this.gpu.config.emojiTextureSize;
     this.decalTextureArray = gpu.device.createTexture({
       label: "Decal",
-      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+      size: [emojiSize, emojiSize, gpu.supportsBindless ? 1 : MAX_DECAL_TEXTURES],
       mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
       usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
       format: "rgba8unorm-srgb"
@@ -17967,15 +17998,31 @@ var DecalManager = class {
     if (decalIndex !== void 0) {
       return this.decalCache[decalIndex];
     }
-    decalIndex = this.nextTextureIndex;
-    this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
-    let decal = this.decalCache[decalIndex];
-    if (decal) {
-      decal.textureIndex = -1;
-      this.decalKeyMapping.delete(this.#getEmojiKey(decal.emoji));
+    let texture = this.decalTextureArray;
+    let layerIndex = 0;
+    if (this.gpu.supportsBindless) {
+      const emojiSize = this.gpu.config.emojiTextureSize;
+      texture = this.gpu.device.createTexture({
+        label: "Decal",
+        size: [emojiSize, emojiSize, 1],
+        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+        format: "rgba8unorm-srgb"
+      });
+      decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
+      this.decalTextureSet[decalIndex] = texture;
+    } else {
+      decalIndex = this.nextTextureIndex;
+      layerIndex = decalIndex;
+      this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
+      const oldDecal = this.decalCache[decalIndex];
+      if (oldDecal) {
+        oldDecal.textureIndex = -1;
+        this.decalKeyMapping.delete(this.#getEmojiKey(oldDecal.emoji));
+      }
     }
-    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, decalIndex);
-    decal = new Decal(emoji, decalIndex);
+    await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
+    const decal = new Decal(emoji, decalIndex);
     this.decalCache[decalIndex] = decal;
     this.decalKeyMapping.set(decalKey, decalIndex);
     return decal;
@@ -18525,10 +18572,16 @@ var WebGPURenderer = class {
   static {
     __name(this, "WebGPURenderer");
   }
+  static RequiredFeatures = [];
+  static OptionalFeatures = [
+    // @ts-expect-error Not an official part of the spec
+    "chromium-experimental-sampling-resource-table"
+  ];
   device;
   canvas;
   context;
   config;
+  supportsBindless;
   textureLoader;
   depthStencilTexture;
   msaaColorTexture;
@@ -18554,6 +18607,7 @@ var WebGPURenderer = class {
     this.canvas = options.canvas ?? document.createElement("canvas");
     this.context = this.canvas.getContext("webgpu");
     this.config = Config.Create(RenderConfig, device);
+    this.supportsBindless = QueryArgs.getBool("bindless", false) && this.device.features.has("chromium-experimental-sampling-resource-table");
     this.context.configure({
       device: this.device,
       format: this.config.colorFormat
@@ -18733,7 +18787,7 @@ var WebGPURenderer = class {
     const colorTexture = this.context.getCurrentTexture();
     const commandEncoder = this.device.createCommandEncoder();
     this.clusterManager.updateClusterBounds(commandEncoder);
-    const renderPass = commandEncoder.beginRenderPass({
+    const passDesc = {
       colorAttachments: [{
         view: colorTexture,
         loadOp: "clear",
@@ -18751,7 +18805,11 @@ var WebGPURenderer = class {
         depthClearValue: 0,
         depthStoreOp: "discard"
       }
-    });
+    };
+    if (this.supportsBindless) {
+      passDesc.resourceTable = this.decalManager.decalResourceTable;
+    }
+    const renderPass = commandEncoder.beginRenderPass(passDesc);
     renderPass.setBindGroup(0, this.frameBindings);
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
@@ -18762,7 +18820,8 @@ var WebGPURenderer = class {
             depthTest: materialGeometries.material.depthTest,
             doubleSided: materialGeometries.material.doubleSided,
             transparent: materialGeometries.material.transparent,
-            mirrored: false
+            mirrored: false,
+            useBindless: this.supportsBindless
           };
           if (geometryInstances.instances.length) {
             const pipeline = this.unlitPipelineFactory.getPipeline(
@@ -18878,9 +18937,23 @@ var WebGPUApp = class {
   static async Begin(appType, options = {}) {
     document.body.classList.add("loading");
     const adapter = await navigator.gpu?.requestAdapter();
-    const device = await adapter?.requestDevice();
+    const requiredFeatures = [];
+    for (const feature of WebGPURenderer.RequiredFeatures) {
+      if (adapter?.features.has(feature)) {
+        requiredFeatures.push(feature);
+      } else {
+        console.error(`Required feature ${feature} is not supported by the WebGPU Adapter`);
+        return;
+      }
+    }
+    for (const feature of WebGPURenderer.OptionalFeatures) {
+      if (adapter?.features.has(feature)) {
+        requiredFeatures.push(feature);
+      }
+    }
+    const device = await adapter?.requestDevice({ requiredFeatures });
     if (!device) {
-      console.log("Unable to create WebGPU device.");
+      console.error("Unable to create WebGPU device.");
       return;
     }
     const gpu = new WebGPURenderer(device, options);
