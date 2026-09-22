@@ -1,3 +1,5 @@
+import { wgsl } from "../../util/wgsl-preprocessor.ts";
+
 export const CameraBindings = /* wgsl */`
   struct Camera {
     projection: mat4x4f,
@@ -27,7 +29,7 @@ export const FrameBindings = /* wgsl */`
   @group(0) @binding(4) var environmentTexture: texture_cube<f32>;
 `;
 
-export const DecalFrameBindings = /* wgsl */`
+export function DecalFrameBindings(useBindless: boolean) { return wgsl`
   ${FrameBindings}
 
   struct Decal {
@@ -42,10 +44,14 @@ export const DecalFrameBindings = /* wgsl */`
     decalCount: u32,
     decal: array<Decal>,
   };
-  @group(0) @binding(5) var<storage> decals: SceneDecals;
-  @group(0) @binding(6) var decalTexture: texture_2d_array<f32>;
-  @group(0) @binding(7) var causticsTexture: texture_2d<f32>;
+  @group(0) @binding(5) var causticsTexture: texture_2d<f32>;
+  // @binding(6): Cluster data
+  @group(0) @binding(7) var<storage> decals: SceneDecals;
+#if ${!useBindless}
+  @group(0) @binding(8) var decalTexture: texture_2d_array<f32>;
+#endif
 `;
+}
 
 export const SRGBConversions = /* wgsl */`
   const GAMMA = 2.2f;

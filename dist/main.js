@@ -17538,9 +17538,8 @@ var FrameBindings = (
   @group(0) @binding(4) var environmentTexture: texture_cube<f32>;
 `
 );
-var DecalFrameBindings = (
-  /* wgsl */
-  `
+function DecalFrameBindings(useBindless) {
+  return wgsl`
   ${FrameBindings}
 
   struct Decal {
@@ -17555,11 +17554,15 @@ var DecalFrameBindings = (
     decalCount: u32,
     decal: array<Decal>,
   };
-  @group(0) @binding(5) var<storage> decals: SceneDecals;
-  @group(0) @binding(6) var decalTexture: texture_2d_array<f32>;
-  @group(0) @binding(7) var causticsTexture: texture_2d<f32>;
-`
-);
+  @group(0) @binding(5) var causticsTexture: texture_2d<f32>;
+  // @binding(6): Cluster data
+  @group(0) @binding(7) var<storage> decals: SceneDecals;
+#if ${!useBindless}
+  @group(0) @binding(8) var decalTexture: texture_2d_array<f32>;
+#endif
+`;
+}
+__name(DecalFrameBindings, "DecalFrameBindings");
 var SRGBConversions = (
   /* wgsl */
   `
@@ -17700,7 +17703,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
     this.pipelineLayout = gpu.device.createPipelineLayout({
       bindGroupLayouts: [gpu.frameBGL, this.materialBGL],
       // @ts-expect-error
-      usesResourceTable: gpu.supportsBindless
+      usesResourceTable: gpu.useBindless
     });
   }
   getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
@@ -17711,7 +17714,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
           enable chromium_experimental_resource_table;
           #endif
 
-          ${DecalFrameBindings}
+          ${DecalFrameBindings(args.useBindless)}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -17975,19 +17978,20 @@ var DecalManager = class {
       size: this.decalArray.byteLength,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
     });
-    if (gpu.supportsBindless) {
+    if (gpu.useBindless) {
       this.decalResourceTable = gpu.device.createResourceTable({
-        size: MAX_DECALS * 2
+        size: MAX_DECAL_TEXTURES * 4
+      });
+    } else {
+      const emojiSize = this.gpu.config.emojiTextureSize;
+      this.decalTextureArray = gpu.device.createTexture({
+        label: "Decal",
+        size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+        format: "rgba8unorm-srgb"
       });
     }
-    const emojiSize = this.gpu.config.emojiTextureSize;
-    this.decalTextureArray = gpu.device.createTexture({
-      label: "Decal",
-      size: [emojiSize, emojiSize, gpu.supportsBindless ? 1 : MAX_DECAL_TEXTURES],
-      mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-      format: "rgba8unorm-srgb"
-    });
   }
   #getEmojiKey(emoji) {
     return emoji.unicode ?? emoji.emoji?.url;
@@ -18000,7 +18004,7 @@ var DecalManager = class {
     }
     let texture = this.decalTextureArray;
     let layerIndex = 0;
-    if (this.gpu.supportsBindless) {
+    if (this.gpu.useBindless) {
       const emojiSize = this.gpu.config.emojiTextureSize;
       texture = this.gpu.device.createTexture({
         label: "Decal",
@@ -18581,7 +18585,7 @@ var WebGPURenderer = class {
   canvas;
   context;
   config;
-  supportsBindless;
+  useBindless;
   textureLoader;
   depthStencilTexture;
   msaaColorTexture;
@@ -18607,8 +18611,8 @@ var WebGPURenderer = class {
     this.canvas = options.canvas ?? document.createElement("canvas");
     this.context = this.canvas.getContext("webgpu");
     this.config = Config.Create(RenderConfig, device);
-    this.supportsBindless = QueryArgs.getBool("bindless", false) && this.device.features.has("chromium-experimental-sampling-resource-table");
-    if (this.supportsBindless) {
+    this.useBindless = QueryArgs.getBool("bindless", false) && this.device.features.has("chromium-experimental-sampling-resource-table");
+    if (this.useBindless) {
       console.log("Using Bindless for Decals! \u{1F44D}");
     } else {
       console.log("Not using Bindless for Decals");
@@ -18636,54 +18640,58 @@ var WebGPURenderer = class {
       this.config.depthStencilFormat,
       this.config.sampleCount
     );
-    this.frameBGL = device.createBindGroupLayout({
-      label: "Frame",
-      entries: [{
-        // Camera Uniforms
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: {}
-      }, {
-        // Instance Data
-        binding: 1,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: { type: "read-only-storage" }
-      }, {
-        // Instance Index
-        binding: 2,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
-        buffer: { type: "read-only-storage" }
-      }, {
-        // Default Sampler
-        binding: 3,
-        visibility: GPUShaderStage.FRAGMENT,
-        sampler: {}
-      }, {
-        // Environment Texture
-        binding: 4,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: { viewDimension: "cube" }
-      }, {
-        // Decal Data
-        binding: 5,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-        buffer: { type: "read-only-storage" }
-      }, {
+    const frameBGLEntries = [{
+      // Camera Uniforms
+      binding: 0,
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+      buffer: {}
+    }, {
+      // Instance Data
+      binding: 1,
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+      buffer: { type: "read-only-storage" }
+    }, {
+      // Instance Index
+      binding: 2,
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE,
+      buffer: { type: "read-only-storage" }
+    }, {
+      // Default Sampler
+      binding: 3,
+      visibility: GPUShaderStage.FRAGMENT,
+      sampler: {}
+    }, {
+      // Environment Texture
+      binding: 4,
+      visibility: GPUShaderStage.FRAGMENT,
+      texture: { viewDimension: "cube" }
+    }, {
+      // Caustics Texture
+      binding: 5,
+      visibility: GPUShaderStage.FRAGMENT,
+      texture: {}
+    }, {
+      // Cluster Bounds
+      binding: 6,
+      visibility: GPUShaderStage.FRAGMENT,
+      buffer: { type: "read-only-storage" }
+    }, {
+      // Decal Data
+      binding: 7,
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+      buffer: { type: "read-only-storage" }
+    }];
+    if (!this.useBindless) {
+      frameBGLEntries.push({
         // Decal Array Texture
-        binding: 6,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: { viewDimension: "2d-array" }
-      }, {
-        // Caustics Texture
-        binding: 7,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: {}
-      }, {
-        // Cluster Bounds
         binding: 8,
         visibility: GPUShaderStage.FRAGMENT,
-        buffer: { type: "read-only-storage" }
-      }]
+        texture: { viewDimension: "2d-array" }
+      });
+    }
+    this.frameBGL = device.createBindGroupLayout({
+      label: "Frame",
+      entries: frameBGLEntries
     });
     this.defaultSampler = device.createSampler({
       label: "Default",
@@ -18744,40 +18752,44 @@ var WebGPURenderer = class {
   get frameBindings() {
     if (this.#rebuildFrameBindings) {
       this.#rebuildFrameBindings = false;
-      this.#frameBindGroup = this.device.createBindGroup({
-        label: "Frame",
-        layout: this.frameBGL,
-        entries: [{
-          binding: 0,
-          resource: this.cameraManager.cameraBuffer
-        }, {
-          binding: 1,
-          resource: this.instanceManager.instanceBuffers.instanceTransformBuffer
-        }, {
-          binding: 2,
-          resource: this.instanceManager.instanceBuffers.instanceIndexBuffer
-        }, {
-          binding: 3,
-          resource: this.defaultSampler
-        }, {
-          binding: 4,
-          resource: (this.environmentTexture ? this.environmentTexture : this.whiteCubeTexture).createView({ dimension: "cube" })
-        }, {
-          binding: 5,
-          resource: this.decalManager.decalBuffer
-        }, {
-          binding: 6,
+      const entries = [{
+        binding: 0,
+        resource: this.cameraManager.cameraBuffer
+      }, {
+        binding: 1,
+        resource: this.instanceManager.instanceBuffers.instanceTransformBuffer
+      }, {
+        binding: 2,
+        resource: this.instanceManager.instanceBuffers.instanceIndexBuffer
+      }, {
+        binding: 3,
+        resource: this.defaultSampler
+      }, {
+        binding: 4,
+        resource: (this.environmentTexture ? this.environmentTexture : this.whiteCubeTexture).createView({ dimension: "cube" })
+      }, {
+        binding: 5,
+        resource: this.causticsTexture ?? this.whiteTexture
+      }, {
+        binding: 6,
+        resource: this.clusterManager.clusterBoundsBuffer
+      }, {
+        binding: 7,
+        resource: this.decalManager.decalBuffer
+      }];
+      if (!this.useBindless) {
+        entries.push({
+          binding: 8,
           resource: this.decalManager.decalTextureArray.createView({
             label: "Decal",
             dimension: "2d-array"
           })
-        }, {
-          binding: 7,
-          resource: this.causticsTexture ?? this.whiteTexture
-        }, {
-          binding: 8,
-          resource: this.clusterManager.clusterBoundsBuffer
-        }]
+        });
+      }
+      this.#frameBindGroup = this.device.createBindGroup({
+        label: "Frame",
+        layout: this.frameBGL,
+        entries
       });
     }
     return this.#frameBindGroup;
@@ -18811,7 +18823,7 @@ var WebGPURenderer = class {
         depthStoreOp: "discard"
       }
     };
-    if (this.supportsBindless) {
+    if (this.useBindless) {
       passDesc.resourceTable = this.decalManager.decalResourceTable;
     }
     const renderPass = commandEncoder.beginRenderPass(passDesc);
@@ -18826,7 +18838,7 @@ var WebGPURenderer = class {
             doubleSided: materialGeometries.material.doubleSided,
             transparent: materialGeometries.material.transparent,
             mirrored: false,
-            useBindless: this.supportsBindless
+            useBindless: this.useBindless
           };
           if (geometryInstances.instances.length) {
             const pipeline = this.unlitPipelineFactory.getPipeline(
