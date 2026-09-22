@@ -1,8 +1,6 @@
 import { Stage } from './core/stage.ts';
 import { Actor, Tag } from './core/actor.ts';
 import { WebGPURenderer } from './renderer/webgpu-renderer.ts';
-import { AppConfig } from './app-config.ts';
-import { Config } from './util/config.ts';
 import { PerspectiveCamera } from './core/camera.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
 import { Decal } from './materials/decal.ts';
@@ -15,14 +13,7 @@ import { QueryArgs } from './util/query-args.ts';
 import { WebGPUApp } from './renderer/webgpu-app.ts';
 import { PhysicsFPSController } from './controllers/physics-fps-controller.ts';
 import { DebugMenu } from './debug-menu.ts';
-import { AppState } from './app-state.ts';
-
-enum InputMode {
-  View,
-  Paint,
-  Erase,
-  Shoot,
-};
+import { AppState, InputMode } from './app-state.ts';
 
 const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
@@ -64,8 +55,6 @@ const PaintballColors = [
     controller: PhysicsFPSController;
 
     gltfLoader: GltfLoader;
-
-    mode: InputMode = InputMode.View;
 
     audioPlayer: AudioPlayer = new AudioPlayer();
     sprayClips = this.audioPlayer.loadClip('./media/sounds/spray.mp3').subClips([
@@ -195,7 +184,7 @@ const PaintballColors = [
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
 
-        if (this.mode == InputMode.Paint) {
+        if (this.appState.mode == InputMode.Paint) {
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
@@ -212,11 +201,11 @@ const PaintballColors = [
 
           // Quick cooldown to prevent spamming decals
           setTimeout(() => {
-            if (this.mode == InputMode.Paint) {
+            if (this.appState.mode == InputMode.Paint) {
               this.camera.attachChild(this.decal);
             }
           }, this.appState.config.sprayCooldown);
-        } else if (this.mode == InputMode.Erase) {
+        } else if (this.appState.mode == InputMode.Erase) {
           // Erase the selected decal
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor: Actor) => {
@@ -230,7 +219,7 @@ const PaintballColors = [
             }
             decalIndex++;
           });
-        } else if (this.mode == InputMode.Shoot) {
+        } else if (this.appState.mode == InputMode.Shoot) {
           this.audioPlayer.play(this.paintballClips.random());
 
           const forward = new Vec4(0, 0, -1, 0);
@@ -288,11 +277,11 @@ const PaintballColors = [
       });
 
       this.clearButton.addEventListener('click', () => {
-        this.clearDecals();
+        this.appState.clearDecals();
       });
 
       this.gpu.canvas.addEventListener('mousemove', async (ev: MouseEvent) => {
-        if (this.mode == InputMode.Erase) {
+        if (this.appState.mode == InputMode.Erase) {
           this.getSelectedDecal(gpu,
             Math.floor(ev.clientX * devicePixelRatio),
             Math.floor(ev.clientY * devicePixelRatio));
@@ -301,7 +290,7 @@ const PaintballColors = [
     }
 
     async #switchMode(mode: InputMode) {
-      this.mode = mode;
+      this.appState.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
 
       // Toggle the emoji picker.
@@ -313,33 +302,33 @@ const PaintballColors = [
 
       this.crosshairs.style.display = 'none';
 
-      switch(this.mode) {
+      function setSelected(element: HTMLElement, selected: boolean) {
+        if (selected) {
+          element.classList.add('selected');
+        } else {
+          element.classList.remove('selected');
+        }
+      }
+
+      setSelected(this.viewButton, this.appState.mode === InputMode.View);
+      setSelected(this.emojiButton, this.appState.mode === InputMode.Paint);
+      setSelected(this.shootButton, this.appState.mode === InputMode.Shoot);
+      setSelected(this.eraseButton, this.appState.mode === InputMode.Erase);
+
+      switch(this.appState.mode) {
         case InputMode.View:
-          this.viewButton.classList.add('selected');
-          this.emojiButton.classList.remove('selected');
-          this.shootButton.classList.remove('selected');
-          this.eraseButton.classList.remove('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          this.emojiPicker.style.display = 'none';
           break;
         case InputMode.Paint:
-          this.viewButton.classList.remove('selected');
-          this.emojiButton.classList.add('selected');
-          this.shootButton.classList.remove('selected');
-          this.eraseButton.classList.remove('selected');
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
           break;
         case InputMode.Shoot:
-          this.viewButton.classList.remove('selected');
-          this.emojiButton.classList.remove('selected');
-          this.shootButton.classList.add('selected');
-          this.eraseButton.classList.remove('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
@@ -349,20 +338,14 @@ const PaintballColors = [
 
           for (let i = 0; i < 3; ++i) {
             this.paintballDecals[i] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i}.png`);
-            //this.paintballDecals[i].projection.perspectiveZO(Math.PI/4, 1, 0.1, 2);
           }
 
           break;
         case InputMode.Erase:
-          this.viewButton.classList.remove('selected');
-          this.emojiButton.classList.remove('selected');
-          this.shootButton.classList.remove('selected');
-          this.eraseButton.classList.add('selected');
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          this.emojiPicker.style.display = 'none';
           break;
       }
     }
