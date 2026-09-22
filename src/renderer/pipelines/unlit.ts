@@ -44,7 +44,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     this.pipelineLayout = gpu.device.createPipelineLayout({
       bindGroupLayouts: [gpu.frameBGL, this.materialBGL],
       // @ts-expect-error
-      usesResourceTable: gpu.supportsBindless,
+      usesResourceTable: gpu.useBindless,
     });
   }
 
@@ -59,7 +59,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
           enable chromium_experimental_resource_table;
           #endif
 
-          ${DecalFrameBindings}
+          ${DecalFrameBindings(args.useBindless)}
 
           struct Material {
             baseColorFactor: vec4f,

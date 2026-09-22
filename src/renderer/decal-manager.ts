@@ -16,7 +16,7 @@ export class DecalManager {
   emojiRenderer: EmojiRenderer;
 
   // For non-bindless support.
-  decalTextureArray: GPUTexture;
+  decalTextureArray?: GPUTexture;
   // For bindless support.
   decalTextureSet: GPUTexture[] = [];
   // @ts-expect-error
@@ -45,22 +45,21 @@ export class DecalManager {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
     });
 
-    if (gpu.supportsBindless) {
+    if (gpu.useBindless) {
       // @ts-expect-error
       this.decalResourceTable = gpu.device.createResourceTable({
-        size: MAX_DECALS * 2
+        size: MAX_DECAL_TEXTURES * 4
+      });
+    } else {
+      const emojiSize = this.gpu.config.emojiTextureSize;
+      this.decalTextureArray = gpu.device.createTexture({
+        label: 'Decal',
+        size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+        format: 'rgba8unorm-srgb',
       });
     }
-
-    // TODO: Don't create at all if using Bindless
-    const emojiSize = this.gpu.config.emojiTextureSize;
-    this.decalTextureArray = gpu.device.createTexture({
-      label: 'Decal',
-      size: [emojiSize, emojiSize, gpu.supportsBindless ? 1 :MAX_DECAL_TEXTURES],
-      mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-      format: 'rgba8unorm-srgb',
-    });
   }
 
   #getEmojiKey(emoji: any) {
@@ -77,7 +76,7 @@ export class DecalManager {
 
     let texture = this.decalTextureArray;
     let layerIndex = 0;
-    if (this.gpu.supportsBindless) {
+    if (this.gpu.useBindless) {
       const emojiSize = this.gpu.config.emojiTextureSize;
       texture = this.gpu.device.createTexture({
         label: 'Decal',
@@ -101,7 +100,7 @@ export class DecalManager {
       }
     }
 
-    await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
+    await this.emojiRenderer.renderEmoji(emoji, texture!, layerIndex);
 
     const decal = new Decal(emoji, decalIndex!);
     this.decalCache[decalIndex!] = decal;
