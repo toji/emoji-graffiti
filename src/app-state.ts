@@ -6,10 +6,18 @@ import { Decal } from "./materials/decal.ts";
 import { WebGPURenderer } from "./renderer/webgpu-renderer.ts";
 import { Config } from "./util/config.ts";
 
+export enum InputMode {
+  View,
+  Paint,
+  Erase,
+  Shoot,
+};
+
 export class AppState {
   stage: Stage;
   config: AppConfig;
   gpu: WebGPURenderer;
+  mode: InputMode = InputMode.View;
 
   constructor(stage: Stage, gpu: WebGPURenderer) {
     this.stage = stage;

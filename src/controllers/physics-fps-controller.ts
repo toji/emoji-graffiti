@@ -10,6 +10,8 @@ import { RigidBody } from '../physics/rigid-body.ts';
 const tmpDir = new Vec3();
 const tmpQuat = new Quat();
 
+const PlayerHalfHeight = 0.75;
+
 export class PhysicsFPSController extends ControllerInput {
   speed = 0.01;
   angles = new Vec2();
@@ -26,6 +28,8 @@ export class PhysicsFPSController extends ControllerInput {
   #rigidBody?: RAPIER.RigidBody;
 
   #walking: boolean = false;
+  #crouching: boolean = false;
+  #crouchPressed: boolean = false;
 
   constructor(element: HTMLElement) {
     super(element);
@@ -73,13 +77,23 @@ export class PhysicsFPSController extends ControllerInput {
     if (!stagePhysics) { return undefined; }
 
     this.#physicsController = stagePhysics.world.createCharacterController(0.1);
+    this.#physicsController.enableAutostep(0.5, 0.2, true);
     this.#rigidBody = stagePhysics.world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased());
 
-    const playerHalfHeight = 0.75;
-    const capsule = RAPIER.ColliderDesc.capsule(playerHalfHeight, 0.4);
+    const capsule = RAPIER.ColliderDesc.capsule(PlayerHalfHeight, 0.4);
     this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
-    this.#collider.setTranslationWrtParent({x: 0, y: -playerHalfHeight, z: 0});
+    this.#setCrouch(this.#crouching, true);
     this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
+  }
+
+  #setCrouch(enabled: boolean, force: boolean = false) {
+    if (!force && this.#crouching === enabled) { return; }
+    this.#crouching = enabled;
+    if (this.#crouching) {
+      this.#collider?.setTranslationWrtParent({x: 0, y: 0, z: 0});
+    } else {
+      this.#collider?.setTranslationWrtParent({x: 0, y: -PlayerHalfHeight, z: 0});
+    }
   }
 
   addToStage(stage: Stage, actor: Actor) {
@@ -110,6 +124,7 @@ export class PhysicsFPSController extends ControllerInput {
       this.#yVelocity += this.#onGround ? 0 :((this.gravity / 1000) * tickData.delta);
     } else {
       this.#yVelocity = 0;
+      this.#setCrouch(false);
     }
 
     // Handle keyboard state.
@@ -125,6 +140,16 @@ export class PhysicsFPSController extends ControllerInput {
     }
     if (this.keyPressed('KeyD')) {
       tmpDir[0] += 1.0;
+    }
+    // Toggle crouching
+    if (this.keyPressed('KeyC')) {
+      if (!this.#crouchPressed) {
+        this.#setCrouch(!this.#crouching);
+        tmpDir[1] += this.#crouching ? -1 : 1;
+        this.#crouchPressed = true;
+      }
+    } else {
+      this.#crouchPressed = false;
     }
     if (this.keyPressed('Space')) {
       if (this.flying) {

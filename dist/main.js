@@ -18993,6 +18993,7 @@ var ControllerInput = class {
 // src/controllers/physics-fps-controller.ts
 var tmpDir = new Vec3();
 var tmpQuat = new Quat();
+var PlayerHalfHeight = 0.75;
 var PhysicsFPSController = class extends ControllerInput {
   static {
     __name(this, "PhysicsFPSController");
@@ -19010,6 +19011,8 @@ var PhysicsFPSController = class extends ControllerInput {
   #collider;
   #rigidBody;
   #walking = false;
+  #crouching = false;
+  #crouchPressed = false;
   constructor(element) {
     super(element);
   }
@@ -19047,12 +19050,23 @@ var PhysicsFPSController = class extends ControllerInput {
       return void 0;
     }
     this.#physicsController = stagePhysics.world.createCharacterController(0.1);
+    this.#physicsController.enableAutostep(0.5, 0.2, true);
     this.#rigidBody = stagePhysics.world.createRigidBody(zg.RigidBodyDesc.kinematicPositionBased());
-    const playerHalfHeight = 0.75;
-    const capsule = zg.ColliderDesc.capsule(playerHalfHeight, 0.4);
+    const capsule = zg.ColliderDesc.capsule(PlayerHalfHeight, 0.4);
     this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
-    this.#collider.setTranslationWrtParent({ x: 0, y: -playerHalfHeight, z: 0 });
+    this.#setCrouch(this.#crouching, true);
     this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
+  }
+  #setCrouch(enabled, force = false) {
+    if (!force && this.#crouching === enabled) {
+      return;
+    }
+    this.#crouching = enabled;
+    if (this.#crouching) {
+      this.#collider?.setTranslationWrtParent({ x: 0, y: 0, z: 0 });
+    } else {
+      this.#collider?.setTranslationWrtParent({ x: 0, y: -PlayerHalfHeight, z: 0 });
+    }
   }
   addToStage(stage, actor) {
     this.#ensurePhysicsController(actor);
@@ -19082,6 +19096,7 @@ var PhysicsFPSController = class extends ControllerInput {
       this.#yVelocity += this.#onGround ? 0 : this.gravity / 1e3 * tickData.delta;
     } else {
       this.#yVelocity = 0;
+      this.#setCrouch(false);
     }
     Vec3.set(tmpDir, 0, 0, 0);
     if (this.keyPressed("KeyW")) {
@@ -19095,6 +19110,15 @@ var PhysicsFPSController = class extends ControllerInput {
     }
     if (this.keyPressed("KeyD")) {
       tmpDir[0] += 1;
+    }
+    if (this.keyPressed("KeyC")) {
+      if (!this.#crouchPressed) {
+        this.#setCrouch(!this.#crouching);
+        tmpDir[1] += this.#crouching ? -1 : 1;
+        this.#crouchPressed = true;
+      }
+    } else {
+      this.#crouchPressed = false;
     }
     if (this.keyPressed("Space")) {
       if (this.flying) {
@@ -27375,6 +27399,7 @@ var AppState = class {
   stage;
   config;
   gpu;
+  mode = 0 /* View */;
   constructor(stage, gpu) {
     this.stage = stage;
     this.gpu = gpu;
@@ -27475,7 +27500,6 @@ var PaintballColors = [
     physics;
     controller;
     gltfLoader;
-    mode = 0 /* View */;
     audioPlayer = new AudioPlayer();
     sprayClips = this.audioPlayer.loadClip("./media/sounds/spray.mp3").subClips([
       { offset: 0.2, duration: 0.5 },
@@ -27574,7 +27598,7 @@ var PaintballColors = [
       });
       gpu.canvas.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
-        if (this.mode == 1 /* Paint */) {
+        if (this.appState.mode == 1 /* Paint */) {
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
             this.audioPlayer.play(this.sprayClips.random());
@@ -27585,11 +27609,11 @@ var PaintballColors = [
           this.decal = new Actor(curDecal, Tag("placing-decal"));
           this.decal.transform.rotationRef.rotateZ(this.decalRotation);
           setTimeout(() => {
-            if (this.mode == 1 /* Paint */) {
+            if (this.appState.mode == 1 /* Paint */) {
               this.camera.attachChild(this.decal);
             }
           }, this.appState.config.sprayCooldown);
-        } else if (this.mode == 2 /* Erase */) {
+        } else if (this.appState.mode == 2 /* Erase */) {
           let decalIndex = 1;
           this.stage.query(Decal).forEach((actor) => {
             if (decalIndex == this.lastSelectedDecal) {
@@ -27601,7 +27625,7 @@ var PaintballColors = [
             }
             decalIndex++;
           });
-        } else if (this.mode == 3 /* Shoot */) {
+        } else if (this.appState.mode == 3 /* Shoot */) {
           this.audioPlayer.play(this.paintballClips.random());
           const forward = new Vec4(0, 0, -1, 0);
           Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
@@ -27646,10 +27670,10 @@ var PaintballColors = [
         this.#switchMode(2 /* Erase */);
       });
       this.clearButton.addEventListener("click", () => {
-        this.clearDecals();
+        this.appState.clearDecals();
       });
       this.gpu.canvas.addEventListener("mousemove", async (ev) => {
-        if (this.mode == 2 /* Erase */) {
+        if (this.appState.mode == 2 /* Erase */) {
           this.getSelectedDecal(
             gpu,
             Math.floor(ev.clientX * devicePixelRatio),
@@ -27659,7 +27683,7 @@ var PaintballColors = [
       });
     }
     async #switchMode(mode) {
-      this.mode = mode;
+      this.appState.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
       if (this.emojiPicker.style.display === "none" && mode == 1 /* Paint */) {
         this.emojiPicker.style.display = "";
@@ -27667,33 +27691,32 @@ var PaintballColors = [
         this.emojiPicker.style.display = "none";
       }
       this.crosshairs.style.display = "none";
-      switch (this.mode) {
+      function setSelected(element, selected) {
+        if (selected) {
+          element.classList.add("selected");
+        } else {
+          element.classList.remove("selected");
+        }
+      }
+      __name(setSelected, "setSelected");
+      setSelected(this.viewButton, this.appState.mode === 0 /* View */);
+      setSelected(this.emojiButton, this.appState.mode === 1 /* Paint */);
+      setSelected(this.shootButton, this.appState.mode === 3 /* Shoot */);
+      setSelected(this.eraseButton, this.appState.mode === 2 /* Erase */);
+      switch (this.appState.mode) {
         case 0 /* View */:
-          this.viewButton.classList.add("selected");
-          this.emojiButton.classList.remove("selected");
-          this.shootButton.classList.remove("selected");
-          this.eraseButton.classList.remove("selected");
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          this.emojiPicker.style.display = "none";
           break;
         case 1 /* Paint */:
-          this.viewButton.classList.remove("selected");
-          this.emojiButton.classList.add("selected");
-          this.shootButton.classList.remove("selected");
-          this.eraseButton.classList.remove("selected");
           this.camera.attachChild(this.decal);
           this.camera.attachChild(this.spraycan);
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
           break;
         case 3 /* Shoot */:
-          this.viewButton.classList.remove("selected");
-          this.emojiButton.classList.remove("selected");
-          this.shootButton.classList.add("selected");
-          this.eraseButton.classList.remove("selected");
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
@@ -27704,15 +27727,10 @@ var PaintballColors = [
           }
           break;
         case 2 /* Erase */:
-          this.viewButton.classList.remove("selected");
-          this.emojiButton.classList.remove("selected");
-          this.shootButton.classList.remove("selected");
-          this.eraseButton.classList.add("selected");
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
-          this.emojiPicker.style.display = "none";
           break;
       }
     }
