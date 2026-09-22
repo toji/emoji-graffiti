@@ -75,6 +75,12 @@ export class WebGPURenderer {
 
     this.supportsBindless = QueryArgs.getBool('bindless', false) && this.device.features.has('chromium-experimental-sampling-resource-table');
 
+    if(this.supportsBindless) {
+      console.log('Using Bindless for Decals! 👍');
+    } else {
+      console.log('Not using Bindless for Decals')
+    }
+
     // Set up the canvas context
     this.context.configure({
       device: this.device,
