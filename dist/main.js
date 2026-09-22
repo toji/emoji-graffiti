@@ -18608,6 +18608,11 @@ var WebGPURenderer = class {
     this.context = this.canvas.getContext("webgpu");
     this.config = Config.Create(RenderConfig, device);
     this.supportsBindless = QueryArgs.getBool("bindless", false) && this.device.features.has("chromium-experimental-sampling-resource-table");
+    if (this.supportsBindless) {
+      console.log("Using Bindless for Decals! \u{1F44D}");
+    } else {
+      console.log("Not using Bindless for Decals");
+    }
     this.context.configure({
       device: this.device,
       format: this.config.colorFormat
