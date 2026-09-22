@@ -15,7 +15,12 @@ export class DecalManager {
 
   emojiRenderer: EmojiRenderer;
 
+  // For non-bindless support.
   decalTextureArray: GPUTexture;
+  // For bindless support.
+  decalTextureSet: GPUTexture[] = [];
+  // @ts-expect-error
+  decalResourceTable?: GPUResourceTable;
 
   decalArray = new ArrayBuffer(DECAL_BYTE_SIZE * MAX_DECALS + Vec4.BYTE_LENGTH);
   decalUintArray = new Uint32Array(this.decalArray);
@@ -40,10 +45,18 @@ export class DecalManager {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
     });
 
+    if (gpu.supportsBindless) {
+      // @ts-expect-error
+      this.decalResourceTable = gpu.device.createResourceTable({
+        size: MAX_DECALS * 2
+      });
+    }
+
+    // TODO: Don't create at all if using Bindless
     const emojiSize = this.gpu.config.emojiTextureSize;
     this.decalTextureArray = gpu.device.createTexture({
       label: 'Decal',
-      size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+      size: [emojiSize, emojiSize, gpu.supportsBindless ? 1 :MAX_DECAL_TEXTURES],
       mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
       usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
       format: 'rgba8unorm-srgb',
@@ -62,21 +75,37 @@ export class DecalManager {
       return this.decalCache[decalIndex];
     }
 
-    decalIndex = this.nextTextureIndex;
-    this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
+    let texture = this.decalTextureArray;
+    let layerIndex = 0;
+    if (this.gpu.supportsBindless) {
+      const emojiSize = this.gpu.config.emojiTextureSize;
+      texture = this.gpu.device.createTexture({
+        label: 'Decal',
+        size: [emojiSize, emojiSize, 1],
+        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+        format: 'rgba8unorm-srgb',
+      });
+      decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
+      this.decalTextureSet[decalIndex!] = texture;
+    } else {
+      decalIndex = this.nextTextureIndex;
+      layerIndex = decalIndex;
+      this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
 
-    // Remove any pre-existing Decals at that index
-    let decal = this.decalCache[decalIndex];
-    if (decal) {
-      decal.textureIndex = -1; // Flag that this decal is no longer valid.
-      this.decalKeyMapping.delete(this.#getEmojiKey(decal.emoji));
+      // Remove any pre-existing Decals at that index
+      const oldDecal = this.decalCache[decalIndex];
+      if (oldDecal) {
+        oldDecal.textureIndex = -1; // Flag that this decal is no longer valid.
+        this.decalKeyMapping.delete(this.#getEmojiKey(oldDecal.emoji));
+      }
     }
 
-    await this.emojiRenderer.renderEmoji(emoji, this.decalTextureArray, decalIndex);
+    await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
 
-    decal = new Decal(emoji, decalIndex);
-    this.decalCache[decalIndex] = decal;
-    this.decalKeyMapping.set(decalKey, decalIndex);
+    const decal = new Decal(emoji, decalIndex!);
+    this.decalCache[decalIndex!] = decal;
+    this.decalKeyMapping.set(decalKey, decalIndex!);
 
     return decal;
   }

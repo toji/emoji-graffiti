@@ -70,9 +70,25 @@ export class WebGPUApp implements WebGPUAppCallbacks {
 
     // Create the WebGPU device
     const adapter = await navigator.gpu?.requestAdapter();
-    const device = await adapter?.requestDevice();
+
+    const requiredFeatures: GPUFeatureName[] = [];
+    for (const feature of WebGPURenderer.RequiredFeatures) {
+      if (adapter?.features.has(feature)) {
+        requiredFeatures.push(feature);
+      } else {
+        console.error(`Required feature ${feature} is not supported by the WebGPU Adapter`);
+        return;
+      }
+    }
+    for (const feature of WebGPURenderer.OptionalFeatures) {
+      if (adapter?.features.has(feature)) {
+        requiredFeatures.push(feature);
+      }
+    }
+
+    const device = await adapter?.requestDevice({ requiredFeatures });
     if (!device) {
-      console.log("Unable to create WebGPU device.");
+      console.error("Unable to create WebGPU device.");
       return;
     }
 

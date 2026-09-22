@@ -13,6 +13,7 @@ export interface UnlitPipelineArgs {
   mirrored: boolean,
   canDecal: boolean,
   depthTest: boolean,
+  useBindless: boolean,
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -41,7 +42,9 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     });
 
     this.pipelineLayout = gpu.device.createPipelineLayout({
-      bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
+      bindGroupLayouts: [gpu.frameBGL, this.materialBGL],
+      // @ts-expect-error
+      usesResourceTable: gpu.supportsBindless,
     });
   }
 
@@ -52,6 +55,10 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
       const module = this.device.createShaderModule({
         label: 'Unlit Material',
         code: wgsl`
+          #if ${args.useBindless}
+          enable chromium_experimental_resource_table;
+          #endif
+
           ${DecalFrameBindings}
 
           struct Material {
@@ -110,6 +117,20 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             @location(1) decalId: u32,
           }
 
+          #if ${args.useBindless}
+            fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
+              if (!hasResource<texture_2d<f32>>(decalIndex)) {
+                return vec4f(1, 0, 1, 1); // Hard to miss. :)
+              }
+              let tex = getResource<texture_2d<f32>>(decalIndex);
+              return textureSample(tex, defaultSampler, texCoord);
+            }
+          #else
+            fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
+              return textureSample(decalTexture, defaultSampler, texCoord, decalIndex);
+            }
+          #endif
+
           @fragment
           fn fragMain(in: VertexOut) -> FragOut {
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, texSampler, in.texCoord);
@@ -130,7 +151,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             for (var i = 0u; i < decals.decalCount; i++) {
               let decalProjCoord = projBias * decals.decal[i].decalProj * in.worldPos;
               let decalUv = decalProjCoord.xyz / decalProjCoord.w;
-              var decalColor = decals.decal[i].baseColorFactor * textureSample(decalTexture, defaultSampler, decalUv.xy, decals.decal[i].textureIndex);
+              var decalColor = decals.decal[i].baseColorFactor * getDecalColor(decals.decal[i].textureIndex, decalUv.xy);
 
               // TODO: Check to ensure in.normal is facing towards the decal.
               let originToPoint = decals.decal[i].origin - in.worldPos.xyz;
