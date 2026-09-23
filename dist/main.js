@@ -27576,8 +27576,11 @@ var PaintballColors = [
     eraseButton = document.querySelector("#erase-button");
     clearButton = document.querySelector("#clear-button");
     emojiPicker = document.querySelector("emoji-picker");
+    decalOptionsElement = document.querySelector("#decalOptions");
     decalRotationInput = document.querySelector("#decalRotation");
     decalRotation = 0;
+    decalFlipInput = document.querySelector("#decalFlip");
+    decalFlip = false;
     crosshairs = document.querySelector(".crosshairs");
     stage = new Stage();
     camera;
@@ -27686,6 +27689,10 @@ var PaintballColors = [
         this.decal.transform.rotationRef.identity();
         this.decal.transform.rotationRef.rotateZ(this.decalRotation);
       });
+      this.decalFlipInput.addEventListener("input", (ev) => {
+        this.decalFlip = this.decalFlipInput.checked;
+        this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
+      });
       gpu.canvas.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         if (this.appState.mode == 1 /* Paint */) {
@@ -27698,6 +27705,7 @@ var PaintballColors = [
           }
           this.decal = new Actor(curDecal, Tag("placing-decal"));
           this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+          this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
           setTimeout(() => {
             if (this.appState.mode == 1 /* Paint */) {
               this.camera.attachChild(this.decal);
@@ -27793,6 +27801,7 @@ var PaintballColors = [
       setSelected(this.emojiButton, this.appState.mode === 1 /* Paint */);
       setSelected(this.shootButton, this.appState.mode === 3 /* Shoot */);
       setSelected(this.eraseButton, this.appState.mode === 2 /* Erase */);
+      this.decalOptionsElement.style.display = this.appState.mode === 1 /* Paint */ ? "" : "none";
       switch (this.appState.mode) {
         case 0 /* View */:
           this.camera.removeChild(this.decal);
