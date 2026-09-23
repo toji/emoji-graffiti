@@ -38,8 +38,11 @@ const PaintballColors = [
     clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
 
     emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
+    decalOptionsElement: HTMLElement = document.querySelector('#decalOptions')!;
     decalRotationInput: HTMLInputElement = document.querySelector('#decalRotation')!;
     decalRotation: number = 0;
+    decalFlipInput: HTMLInputElement = document.querySelector('#decalFlip')!;
+    decalFlip: boolean = false;
     crosshairs: HTMLElement = document.querySelector('.crosshairs')!;
 
     stage: Stage = new Stage();
@@ -180,6 +183,11 @@ const PaintballColors = [
         this.decal.transform.rotationRef.rotateZ(this.decalRotation);
       });
 
+      this.decalFlipInput.addEventListener('input', (ev) => {
+        this.decalFlip = this.decalFlipInput.checked;
+        this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
+      });
+
       // Detach from the camera on right click
       gpu.canvas.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
@@ -198,6 +206,7 @@ const PaintballColors = [
           // Create a new one decal
           this.decal = new Actor(curDecal, Tag('placing-decal'));
           this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+          this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
 
           // Quick cooldown to prevent spamming decals
           setTimeout(() => {
@@ -314,6 +323,8 @@ const PaintballColors = [
       setSelected(this.emojiButton, this.appState.mode === InputMode.Paint);
       setSelected(this.shootButton, this.appState.mode === InputMode.Shoot);
       setSelected(this.eraseButton, this.appState.mode === InputMode.Erase);
+
+      this.decalOptionsElement.style.display = this.appState.mode === InputMode.Paint ? '' : 'none';
 
       switch(this.appState.mode) {
         case InputMode.View:
