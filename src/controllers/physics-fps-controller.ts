@@ -31,6 +31,9 @@ export class PhysicsFPSController extends ControllerInput {
   #crouching: boolean = false;
   #crouchPressed: boolean = false;
 
+  #virtualWalk = new Vec2();
+  #virtualLook = new Vec2();
+
   constructor(element: HTMLElement) {
     super(element);
   }
@@ -46,22 +49,36 @@ export class PhysicsFPSController extends ControllerInput {
     Quat.rotateX(q, q, -this.angles[0]);
   }
 
+  setVirtualWalk(x: number, y: number) {
+    this.#virtualWalk[0] = x;
+    this.#virtualWalk[1] = y;
+  }
+
+  setVirtualLook(x: number, y: number) {
+    this.#virtualLook[0] = x;
+    this.#virtualLook[1] = -y;
+  }
+
   protected onMouseMove(xDelta: number, yDelta: number): void {
     if (this.mousePressed(0)) {
-      // Keep our rotation in the range of [0, 2*PI]
-      // (Prevents numeric instability if you spin around a LOT.)
-      this.angles[1] = (this.angles[1] + (xDelta * 0.025)) % (Math.PI * 2.0);
-
-      this.angles[0] += yDelta * 0.025;
-      // Clamp the up/down rotation to prevent us from flipping upside-down
-      this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI*0.5), Math.PI*0.5);
-
-      // Update the tranform rotation
-      const q = this.rotation;
-      q.identity();
-      Quat.rotateY(q, q, -this.angles[1]);
-      Quat.rotateX(q, q, -this.angles[0]);
+      this.#rotateView(xDelta, yDelta);
     }
+  }
+
+  #rotateView(xDelta: number, yDelta: number) {
+    // Keep our rotation in the range of [0, 2*PI]
+    // (Prevents numeric instability if you spin around a LOT.)
+    this.angles[1] = (this.angles[1] + (xDelta * 0.025)) % (Math.PI * 2.0);
+
+    this.angles[0] += yDelta * 0.025;
+    // Clamp the up/down rotation to prevent us from flipping upside-down
+    this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI*0.5), Math.PI*0.5);
+
+    // Update the tranform rotation
+    const q = this.rotation;
+    q.identity();
+    Quat.rotateY(q, q, -this.angles[1]);
+    Quat.rotateX(q, q, -this.angles[0]);
   }
 
   get walking() {
@@ -120,6 +137,10 @@ export class PhysicsFPSController extends ControllerInput {
       return;
     }
 
+    if (this.#virtualLook.sqrMag > 0.025) {
+      this.#rotateView(this.#virtualLook[0], this.#virtualLook[1]);
+    }
+
     if (!this.flying) {
       this.#yVelocity += this.#onGround ? 0 :((this.gravity / 1000) * tickData.delta);
     } else {
@@ -166,7 +187,18 @@ export class PhysicsFPSController extends ControllerInput {
       }
     }
 
-    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0 || this.#yVelocity !== 0) {
+    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0) {
+      tmpDir.normalize();
+    }
+
+    tmpDir[0] += this.#virtualWalk[0];
+    tmpDir[2] -= this.#virtualWalk[1];
+
+    if (tmpDir.sqrMag > 1) {
+      tmpDir.normalize();
+    }
+
+    if (tmpDir.sqrMag > 0.025 || this.#yVelocity !== 0) {
       if (this.flying) {
         Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
       } else {
@@ -176,7 +208,6 @@ export class PhysicsFPSController extends ControllerInput {
         Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
       }
 
-      tmpDir.normalize();
       tmpDir.scale(this.speed * tickData.delta);
 
       // Emulate gravity, since the Rapier KinematicCharacterController effectively disables it.

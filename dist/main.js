@@ -39,21 +39,21 @@ var Mat3 = class _Mat3 extends Float32Array {
         super(values[0], values[1], 9);
         break;
       case 1:
-        const v2 = values[0];
-        if (typeof v2 === "number") {
+        const v3 = values[0];
+        if (typeof v3 === "number") {
           super([
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3
           ]);
         } else {
-          super(v2, 0, 9);
+          super(v3, 0, 9);
         }
         break;
       default:
@@ -80,8 +80,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a the source vector
    * @returns `this`
    */
-  copy(a2) {
-    this.set(a2);
+  copy(a3) {
+    this.set(a3);
     return this;
   }
   /**
@@ -103,13 +103,13 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - The second operand
    * @returns `this`
    */
-  multiply(b2) {
-    return _Mat3.multiply(this, this, b2);
+  multiply(b3) {
+    return _Mat3.multiply(this, this, b3);
   }
   /**
    * Alias for {@link Mat3.multiply}
    */
-  mul(b2) {
+  mul(b3) {
     return this;
   }
   /**
@@ -137,8 +137,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param v - The {@link Vec2} to translate by
    * @returns `this`
    */
-  translate(v2) {
-    return _Mat3.translate(this, this, v2);
+  translate(v3) {
+    return _Mat3.translate(this, this, v3);
   }
   /**
    * Rotates this {@link Mat3} by the given angle around the given axis
@@ -157,8 +157,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param v - The {@link Vec2} to scale the matrix by
    * @returns `this`
    */
-  scale(v2) {
-    return _Mat3.scale(this, this, v2);
+  scale(v3) {
+    return _Mat3.scale(this, this, v3);
   }
   //================
   // Static methods
@@ -179,8 +179,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - Matrix to clone
    * @returns A new {@link Mat3}
    */
-  static clone(a2) {
-    return new _Mat3(a2);
+  static clone(a3) {
+    return new _Mat3(a3);
   }
   /**
    * Copy the values from one {@link Mat3} to another
@@ -190,16 +190,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - Matrix to copy
    * @returns `out`
    */
-  static copy(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
-    out[2] = a2[2];
-    out[3] = a2[3];
-    out[4] = a2[4];
-    out[5] = a2[5];
-    out[6] = a2[6];
-    out[7] = a2[7];
-    out[8] = a2[8];
+  static copy(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
+    out[2] = a3[2];
+    out[3] = a3[3];
+    out[4] = a3[4];
+    out[5] = a3[5];
+    out[6] = a3[6];
+    out[7] = a3[7];
+    out[8] = a3[8];
     return out;
   }
   /**
@@ -259,25 +259,25 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the source matrix
    * @returns `out`
    */
-  static transpose(out, a2) {
-    if (out === a2) {
-      const a01 = a2[1], a02 = a2[2], a12 = a2[5];
-      out[1] = a2[3];
-      out[2] = a2[6];
+  static transpose(out, a3) {
+    if (out === a3) {
+      const a01 = a3[1], a02 = a3[2], a12 = a3[5];
+      out[1] = a3[3];
+      out[2] = a3[6];
       out[3] = a01;
-      out[5] = a2[7];
+      out[5] = a3[7];
       out[6] = a02;
       out[7] = a12;
     } else {
-      out[0] = a2[0];
-      out[1] = a2[3];
-      out[2] = a2[6];
-      out[3] = a2[1];
-      out[4] = a2[4];
-      out[5] = a2[7];
-      out[6] = a2[2];
-      out[7] = a2[5];
-      out[8] = a2[8];
+      out[0] = a3[0];
+      out[1] = a3[3];
+      out[2] = a3[6];
+      out[3] = a3[1];
+      out[4] = a3[4];
+      out[5] = a3[7];
+      out[6] = a3[2];
+      out[7] = a3[5];
+      out[8] = a3[8];
     }
     return out;
   }
@@ -289,10 +289,10 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the source matrix
    * @returns `out` or `null` if the matrix is not invertable
    */
-  static invert(out, a2) {
-    const a00 = a2[0], a01 = a2[1], a02 = a2[2];
-    const a10 = a2[3], a11 = a2[4], a12 = a2[5];
-    const a20 = a2[6], a21 = a2[7], a22 = a2[8];
+  static invert(out, a3) {
+    const a00 = a3[0], a01 = a3[1], a02 = a3[2];
+    const a10 = a3[3], a11 = a3[4], a12 = a3[5];
+    const a20 = a3[6], a21 = a3[7], a22 = a3[8];
     const b01 = a22 * a11 - a12 * a21;
     const b11 = -a22 * a10 + a12 * a20;
     const b21 = a21 * a10 - a11 * a20;
@@ -320,16 +320,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the source matrix
    * @returns `out`
    */
-  static adjoint(out, a2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a10 = a2[3];
-    const a11 = a2[4];
-    const a12 = a2[5];
-    const a20 = a2[6];
-    const a21 = a2[7];
-    const a22 = a2[8];
+  static adjoint(out, a3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a10 = a3[3];
+    const a11 = a3[4];
+    const a12 = a3[5];
+    const a20 = a3[6];
+    const a21 = a3[7];
+    const a22 = a3[8];
     out[0] = a11 * a22 - a12 * a21;
     out[1] = a02 * a21 - a01 * a22;
     out[2] = a01 * a12 - a02 * a11;
@@ -348,16 +348,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the source matrix
    * @returns determinant of a
    */
-  static determinant(a2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a10 = a2[3];
-    const a11 = a2[4];
-    const a12 = a2[5];
-    const a20 = a2[6];
-    const a21 = a2[7];
-    const a22 = a2[8];
+  static determinant(a3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a10 = a3[3];
+    const a11 = a3[4];
+    const a12 = a3[5];
+    const a20 = a3[6];
+    const a21 = a3[7];
+    const a22 = a3[8];
     return a00 * (a22 * a11 - a12 * a21) + a01 * (-a22 * a10 + a12 * a20) + a02 * (a21 * a10 - a11 * a20);
   }
   /**
@@ -369,16 +369,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static add(out, a2, b2) {
-    out[0] = a2[0] + b2[0];
-    out[1] = a2[1] + b2[1];
-    out[2] = a2[2] + b2[2];
-    out[3] = a2[3] + b2[3];
-    out[4] = a2[4] + b2[4];
-    out[5] = a2[5] + b2[5];
-    out[6] = a2[6] + b2[6];
-    out[7] = a2[7] + b2[7];
-    out[8] = a2[8] + b2[8];
+  static add(out, a3, b3) {
+    out[0] = a3[0] + b3[0];
+    out[1] = a3[1] + b3[1];
+    out[2] = a3[2] + b3[2];
+    out[3] = a3[3] + b3[3];
+    out[4] = a3[4] + b3[4];
+    out[5] = a3[5] + b3[5];
+    out[6] = a3[6] + b3[6];
+    out[7] = a3[7] + b3[7];
+    out[8] = a3[8] + b3[8];
     return out;
   }
   /**
@@ -390,23 +390,23 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static subtract(out, a2, b2) {
-    out[0] = a2[0] - b2[0];
-    out[1] = a2[1] - b2[1];
-    out[2] = a2[2] - b2[2];
-    out[3] = a2[3] - b2[3];
-    out[4] = a2[4] - b2[4];
-    out[5] = a2[5] - b2[5];
-    out[6] = a2[6] - b2[6];
-    out[7] = a2[7] - b2[7];
-    out[8] = a2[8] - b2[8];
+  static subtract(out, a3, b3) {
+    out[0] = a3[0] - b3[0];
+    out[1] = a3[1] - b3[1];
+    out[2] = a3[2] - b3[2];
+    out[3] = a3[3] - b3[3];
+    out[4] = a3[4] - b3[4];
+    out[5] = a3[5] - b3[5];
+    out[6] = a3[6] - b3[6];
+    out[7] = a3[7] - b3[7];
+    out[8] = a3[8] - b3[8];
     return out;
   }
   /**
    * Alias for {@link Mat3.subtract}
    * @category Static
    */
-  static sub(out, a2, b2) {
+  static sub(out, a3, b3) {
     return out;
   }
   /**
@@ -418,31 +418,31 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static multiply(out, a2, b2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a10 = a2[3];
-    const a11 = a2[4];
-    const a12 = a2[5];
-    const a20 = a2[6];
-    const a21 = a2[7];
-    const a22 = a2[8];
-    let b0 = b2[0];
-    let b1 = b2[1];
-    let b22 = b2[2];
+  static multiply(out, a3, b3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a10 = a3[3];
+    const a11 = a3[4];
+    const a12 = a3[5];
+    const a20 = a3[6];
+    const a21 = a3[7];
+    const a22 = a3[8];
+    let b0 = b3[0];
+    let b1 = b3[1];
+    let b22 = b3[2];
     out[0] = b0 * a00 + b1 * a10 + b22 * a20;
     out[1] = b0 * a01 + b1 * a11 + b22 * a21;
     out[2] = b0 * a02 + b1 * a12 + b22 * a22;
-    b0 = b2[3];
-    b1 = b2[4];
-    b22 = b2[5];
+    b0 = b3[3];
+    b1 = b3[4];
+    b22 = b3[5];
     out[3] = b0 * a00 + b1 * a10 + b22 * a20;
     out[4] = b0 * a01 + b1 * a11 + b22 * a21;
     out[5] = b0 * a02 + b1 * a12 + b22 * a22;
-    b0 = b2[6];
-    b1 = b2[7];
-    b22 = b2[8];
+    b0 = b3[6];
+    b1 = b3[7];
+    b22 = b3[8];
     out[6] = b0 * a00 + b1 * a10 + b22 * a20;
     out[7] = b0 * a01 + b1 * a11 + b22 * a21;
     out[8] = b0 * a02 + b1 * a12 + b22 * a22;
@@ -452,7 +452,7 @@ var Mat3 = class _Mat3 extends Float32Array {
    * Alias for {@link Mat3.multiply}
    * @category Static
    */
-  static mul(out, a2, b2) {
+  static mul(out, a3, b3) {
     return out;
   }
   /**
@@ -464,27 +464,27 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param v - vector to translate by
    * @returns `out`
    */
-  static translate(out, a2, v2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a10 = a2[3];
-    const a11 = a2[4];
-    const a12 = a2[5];
-    const a20 = a2[6];
-    const a21 = a2[7];
-    const a22 = a2[8];
-    const x2 = v2[0];
-    const y2 = v2[1];
+  static translate(out, a3, v3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a10 = a3[3];
+    const a11 = a3[4];
+    const a12 = a3[5];
+    const a20 = a3[6];
+    const a21 = a3[7];
+    const a22 = a3[8];
+    const x3 = v3[0];
+    const y3 = v3[1];
     out[0] = a00;
     out[1] = a01;
     out[2] = a02;
     out[3] = a10;
     out[4] = a11;
     out[5] = a12;
-    out[6] = x2 * a00 + y2 * a10 + a20;
-    out[7] = x2 * a01 + y2 * a11 + a21;
-    out[8] = x2 * a02 + y2 * a12 + a22;
+    out[6] = x3 * a00 + y3 * a10 + a20;
+    out[7] = x3 * a01 + y3 * a11 + a21;
+    out[8] = x3 * a02 + y3 * a12 + a22;
     return out;
   }
   /**
@@ -496,24 +496,24 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param rad - the angle to rotate the matrix by
    * @returns `out`
    */
-  static rotate(out, a2, rad) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a10 = a2[3];
-    const a11 = a2[4];
-    const a12 = a2[5];
-    const a20 = a2[6];
-    const a21 = a2[7];
-    const a22 = a2[8];
-    const s2 = Math.sin(rad);
-    const c2 = Math.cos(rad);
-    out[0] = c2 * a00 + s2 * a10;
-    out[1] = c2 * a01 + s2 * a11;
-    out[2] = c2 * a02 + s2 * a12;
-    out[3] = c2 * a10 - s2 * a00;
-    out[4] = c2 * a11 - s2 * a01;
-    out[5] = c2 * a12 - s2 * a02;
+  static rotate(out, a3, rad) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a10 = a3[3];
+    const a11 = a3[4];
+    const a12 = a3[5];
+    const a20 = a3[6];
+    const a21 = a3[7];
+    const a22 = a3[8];
+    const s4 = Math.sin(rad);
+    const c3 = Math.cos(rad);
+    out[0] = c3 * a00 + s4 * a10;
+    out[1] = c3 * a01 + s4 * a11;
+    out[2] = c3 * a02 + s4 * a12;
+    out[3] = c3 * a10 - s4 * a00;
+    out[4] = c3 * a11 - s4 * a01;
+    out[5] = c3 * a12 - s4 * a02;
     out[6] = a20;
     out[7] = a21;
     out[8] = a22;
@@ -528,18 +528,18 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param v - the {@link Vec2} to scale the matrix by
    * @returns `out`
    **/
-  static scale(out, a2, v2) {
-    const x2 = v2[0];
-    const y2 = v2[1];
-    out[0] = x2 * a2[0];
-    out[1] = x2 * a2[1];
-    out[2] = x2 * a2[2];
-    out[3] = y2 * a2[3];
-    out[4] = y2 * a2[4];
-    out[5] = y2 * a2[5];
-    out[6] = a2[6];
-    out[7] = a2[7];
-    out[8] = a2[8];
+  static scale(out, a3, v3) {
+    const x3 = v3[0];
+    const y3 = v3[1];
+    out[0] = x3 * a3[0];
+    out[1] = x3 * a3[1];
+    out[2] = x3 * a3[2];
+    out[3] = y3 * a3[3];
+    out[4] = y3 * a3[4];
+    out[5] = y3 * a3[5];
+    out[6] = a3[6];
+    out[7] = a3[7];
+    out[8] = a3[8];
     return out;
   }
   /**
@@ -554,15 +554,15 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param v - Translation vector
    * @returns `out`
    */
-  static fromTranslation(out, v2) {
+  static fromTranslation(out, v3) {
     out[0] = 1;
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
     out[4] = 1;
     out[5] = 0;
-    out[6] = v2[0];
-    out[7] = v2[1];
+    out[6] = v3[0];
+    out[7] = v3[1];
     out[8] = 1;
     return out;
   }
@@ -579,13 +579,13 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @returns `out`
    */
   static fromRotation(out, rad) {
-    const s2 = Math.sin(rad);
-    const c2 = Math.cos(rad);
-    out[0] = c2;
-    out[1] = s2;
+    const s4 = Math.sin(rad);
+    const c3 = Math.cos(rad);
+    out[0] = c3;
+    out[1] = s4;
     out[2] = 0;
-    out[3] = -s2;
-    out[4] = c2;
+    out[3] = -s4;
+    out[4] = c3;
     out[5] = 0;
     out[6] = 0;
     out[7] = 0;
@@ -604,12 +604,12 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param v - Scaling vector
    * @returns `out`
    */
-  static fromScaling(out, v2) {
-    out[0] = v2[0];
+  static fromScaling(out, v3) {
+    out[0] = v3[0];
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
-    out[4] = v2[1];
+    out[4] = v3[1];
     out[5] = 0;
     out[6] = 0;
     out[7] = 0;
@@ -625,15 +625,15 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the source 2x3 matrix
    * @returns `out`
    */
-  static fromMat2d(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
+  static fromMat2d(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
     out[2] = 0;
-    out[3] = a2[2];
-    out[4] = a2[3];
+    out[3] = a3[2];
+    out[4] = a3[3];
     out[5] = 0;
-    out[6] = a2[4];
-    out[7] = a2[5];
+    out[6] = a3[4];
+    out[7] = a3[5];
     out[8] = 1;
     return out;
   }
@@ -645,22 +645,22 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @returns `out`
    */
   static fromQuat(out, q2) {
-    const x2 = q2[0];
-    const y2 = q2[1];
-    const z2 = q2[2];
-    const w2 = q2[3];
-    const x22 = x2 + x2;
-    const y22 = y2 + y2;
-    const z22 = z2 + z2;
-    const xx = x2 * x22;
-    const yx = y2 * x22;
-    const yy = y2 * y22;
-    const zx = z2 * x22;
-    const zy = z2 * y22;
-    const zz = z2 * z22;
-    const wx = w2 * x22;
-    const wy = w2 * y22;
-    const wz = w2 * z22;
+    const x3 = q2[0];
+    const y3 = q2[1];
+    const z3 = q2[2];
+    const w3 = q2[3];
+    const x22 = x3 + x3;
+    const y22 = y3 + y3;
+    const z22 = z3 + z3;
+    const xx = x3 * x22;
+    const yx = y3 * x22;
+    const yy = y3 * y22;
+    const zx = z3 * x22;
+    const zy = z3 * y22;
+    const zz = z3 * z22;
+    const wx = w3 * x22;
+    const wy = w3 * y22;
+    const wz = w3 * z22;
     out[0] = 1 - yy - zz;
     out[3] = yx - wz;
     out[6] = zx + wy;
@@ -681,16 +681,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the source 4x4 matrix
    * @returns `out`
    */
-  static fromMat4(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
-    out[2] = a2[2];
-    out[3] = a2[4];
-    out[4] = a2[5];
-    out[5] = a2[6];
-    out[6] = a2[8];
-    out[7] = a2[9];
-    out[8] = a2[10];
+  static fromMat4(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
+    out[2] = a3[2];
+    out[3] = a3[4];
+    out[4] = a3[5];
+    out[5] = a3[6];
+    out[6] = a3[8];
+    out[7] = a3[9];
+    out[8] = a3[10];
     return out;
   }
   /**
@@ -701,23 +701,23 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param {ReadonlyMat4} a Mat4 to derive the normal matrix from
    * @returns `out` or `null` if the matrix is not invertable
    */
-  static normalFromMat4(out, a2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a03 = a2[3];
-    const a10 = a2[4];
-    const a11 = a2[5];
-    const a12 = a2[6];
-    const a13 = a2[7];
-    const a20 = a2[8];
-    const a21 = a2[9];
-    const a22 = a2[10];
-    const a23 = a2[11];
-    const a30 = a2[12];
-    const a31 = a2[13];
-    const a32 = a2[14];
-    const a33 = a2[15];
+  static normalFromMat4(out, a3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a03 = a3[3];
+    const a10 = a3[4];
+    const a11 = a3[5];
+    const a12 = a3[6];
+    const a13 = a3[7];
+    const a20 = a3[8];
+    const a21 = a3[9];
+    const a22 = a3[10];
+    const a23 = a3[11];
+    const a30 = a3[12];
+    const a31 = a3[13];
+    const a32 = a3[14];
+    const a33 = a3[15];
     const b00 = a00 * a11 - a01 * a10;
     const b01 = a00 * a12 - a02 * a10;
     const b02 = a00 * a13 - a03 * a10;
@@ -757,16 +757,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - Mat4 to derive the normal matrix from
    * @returns `out`
    */
-  static normalFromMat4Fast(out, a2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const bx = a2[4];
-    const by = a2[5];
-    const bz = a2[6];
-    const cx = a2[8];
-    const cy = a2[9];
-    const cz = a2[10];
+  static normalFromMat4Fast(out, a3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const bx = a3[4];
+    const by = a3[5];
+    const bz = a3[6];
+    const cx = a3[8];
+    const cy = a3[9];
+    const cz = a3[10];
     out[0] = by * cz - cz * cy;
     out[1] = bz * cx - cx * cz;
     out[2] = bx * cy - cy * cx;
@@ -806,8 +806,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - the matrix to calculate Frobenius norm of
    * @returns Frobenius norm
    */
-  static frob(a2) {
-    return Math.sqrt(a2[0] * a2[0] + a2[1] * a2[1] + a2[2] * a2[2] + a2[3] * a2[3] + a2[4] * a2[4] + a2[5] * a2[5] + a2[6] * a2[6] + a2[7] * a2[7] + a2[8] * a2[8]);
+  static frob(a3) {
+    return Math.sqrt(a3[0] * a3[0] + a3[1] * a3[1] + a3[2] * a3[2] + a3[3] * a3[3] + a3[4] * a3[4] + a3[5] * a3[5] + a3[6] * a3[6] + a3[7] * a3[7] + a3[8] * a3[8]);
   }
   /**
    * Multiply each element of a {@link Mat3} by a scalar.
@@ -818,16 +818,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - amount to scale the matrix's elements by
    * @returns `out`
    */
-  static multiplyScalar(out, a2, b2) {
-    out[0] = a2[0] * b2;
-    out[1] = a2[1] * b2;
-    out[2] = a2[2] * b2;
-    out[3] = a2[3] * b2;
-    out[4] = a2[4] * b2;
-    out[5] = a2[5] * b2;
-    out[6] = a2[6] * b2;
-    out[7] = a2[7] * b2;
-    out[8] = a2[8] * b2;
+  static multiplyScalar(out, a3, b3) {
+    out[0] = a3[0] * b3;
+    out[1] = a3[1] * b3;
+    out[2] = a3[2] * b3;
+    out[3] = a3[3] * b3;
+    out[4] = a3[4] * b3;
+    out[5] = a3[5] * b3;
+    out[6] = a3[6] * b3;
+    out[7] = a3[7] * b3;
+    out[8] = a3[8] * b3;
     return out;
   }
   /**
@@ -840,16 +840,16 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param scale - the amount to scale b's elements by before adding
    * @returns `out`
    */
-  static multiplyScalarAndAdd(out, a2, b2, scale) {
-    out[0] = a2[0] + b2[0] * scale;
-    out[1] = a2[1] + b2[1] * scale;
-    out[2] = a2[2] + b2[2] * scale;
-    out[3] = a2[3] + b2[3] * scale;
-    out[4] = a2[4] + b2[4] * scale;
-    out[5] = a2[5] + b2[5] * scale;
-    out[6] = a2[6] + b2[6] * scale;
-    out[7] = a2[7] + b2[7] * scale;
-    out[8] = a2[8] + b2[8] * scale;
+  static multiplyScalarAndAdd(out, a3, b3, scale) {
+    out[0] = a3[0] + b3[0] * scale;
+    out[1] = a3[1] + b3[1] * scale;
+    out[2] = a3[2] + b3[2] * scale;
+    out[3] = a3[3] + b3[3] * scale;
+    out[4] = a3[4] + b3[4] * scale;
+    out[5] = a3[5] + b3[5] * scale;
+    out[6] = a3[6] + b3[6] * scale;
+    out[7] = a3[7] + b3[7] * scale;
+    out[8] = a3[8] + b3[8] * scale;
     return out;
   }
   /**
@@ -860,8 +860,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - The second matrix.
    * @returns True if the matrices are equal, false otherwise.
    */
-  static exactEquals(a2, b2) {
-    return a2[0] === b2[0] && a2[1] === b2[1] && a2[2] === b2[2] && a2[3] === b2[3] && a2[4] === b2[4] && a2[5] === b2[5] && a2[6] === b2[6] && a2[7] === b2[7] && a2[8] === b2[8];
+  static exactEquals(a3, b3) {
+    return a3[0] === b3[0] && a3[1] === b3[1] && a3[2] === b3[2] && a3[3] === b3[3] && a3[4] === b3[4] && a3[5] === b3[5] && a3[6] === b3[6] && a3[7] === b3[7] && a3[8] === b3[8];
   }
   /**
    * Returns whether or not two {@link Mat3}s have approximately the same elements in the same position.
@@ -871,26 +871,26 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param b - The second matrix.
    * @returns True if the matrices are equal, false otherwise.
    */
-  static equals(a2, b2) {
-    const a0 = a2[0];
-    const a1 = a2[1];
-    const a22 = a2[2];
-    const a3 = a2[3];
-    const a4 = a2[4];
-    const a5 = a2[5];
-    const a6 = a2[6];
-    const a7 = a2[7];
-    const a8 = a2[8];
-    const b0 = b2[0];
-    const b1 = b2[1];
-    const b22 = b2[2];
-    const b3 = b2[3];
-    const b4 = b2[4];
-    const b5 = b2[5];
-    const b6 = b2[6];
-    const b7 = b2[7];
-    const b8 = b2[8];
-    return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22)) && Math.abs(a3 - b3) <= EPSILON * Math.max(1, Math.abs(a3), Math.abs(b3)) && Math.abs(a4 - b4) <= EPSILON * Math.max(1, Math.abs(a4), Math.abs(b4)) && Math.abs(a5 - b5) <= EPSILON * Math.max(1, Math.abs(a5), Math.abs(b5)) && Math.abs(a6 - b6) <= EPSILON * Math.max(1, Math.abs(a6), Math.abs(b6)) && Math.abs(a7 - b7) <= EPSILON * Math.max(1, Math.abs(a7), Math.abs(b7)) && Math.abs(a8 - b8) <= EPSILON * Math.max(1, Math.abs(a8), Math.abs(b8));
+  static equals(a3, b3) {
+    const a0 = a3[0];
+    const a1 = a3[1];
+    const a22 = a3[2];
+    const a32 = a3[3];
+    const a4 = a3[4];
+    const a5 = a3[5];
+    const a6 = a3[6];
+    const a7 = a3[7];
+    const a8 = a3[8];
+    const b0 = b3[0];
+    const b1 = b3[1];
+    const b22 = b3[2];
+    const b32 = b3[3];
+    const b4 = b3[4];
+    const b5 = b3[5];
+    const b6 = b3[6];
+    const b7 = b3[7];
+    const b8 = b3[8];
+    return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22)) && Math.abs(a32 - b32) <= EPSILON * Math.max(1, Math.abs(a32), Math.abs(b32)) && Math.abs(a4 - b4) <= EPSILON * Math.max(1, Math.abs(a4), Math.abs(b4)) && Math.abs(a5 - b5) <= EPSILON * Math.max(1, Math.abs(a5), Math.abs(b5)) && Math.abs(a6 - b6) <= EPSILON * Math.max(1, Math.abs(a6), Math.abs(b6)) && Math.abs(a7 - b7) <= EPSILON * Math.max(1, Math.abs(a7), Math.abs(b7)) && Math.abs(a8 - b8) <= EPSILON * Math.max(1, Math.abs(a8), Math.abs(b8));
   }
   /**
    * Returns a string representation of a {@link Mat3}
@@ -899,8 +899,8 @@ var Mat3 = class _Mat3 extends Float32Array {
    * @param a - matrix to represent as a string
    * @returns string representation of the matrix
    */
-  static str(a2) {
-    return `Mat3(${a2.join(", ")})`;
+  static str(a3) {
+    return `Mat3(${a3.join(", ")})`;
   }
 };
 Mat3.prototype.mul = Mat3.prototype.multiply;
@@ -946,28 +946,28 @@ var Mat4 = class _Mat4 extends Float32Array {
         super(values[0], values[1], 16);
         break;
       case 1:
-        const v2 = values[0];
-        if (typeof v2 === "number") {
+        const v3 = values[0];
+        if (typeof v3 === "number") {
           super([
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2,
-            v2
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3,
+            v3
           ]);
         } else {
-          super(v2, 0, 16);
+          super(v3, 0, 16);
         }
         break;
       default:
@@ -994,8 +994,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a the source vector
    * @returns `this`
    */
-  copy(a2) {
-    this.set(a2);
+  copy(a3) {
+    this.set(a3);
     return this;
   }
   /**
@@ -1017,13 +1017,13 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - The second operand
    * @returns `this`
    */
-  multiply(b2) {
-    return _Mat4.multiply(this, this, b2);
+  multiply(b3) {
+    return _Mat4.multiply(this, this, b3);
   }
   /**
    * Alias for {@link Mat4.multiply}
    */
-  mul(b2) {
+  mul(b3) {
     return this;
   }
   /**
@@ -1051,8 +1051,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - The {@link Vec3} to translate by
    * @returns `this`
    */
-  translate(v2) {
-    return _Mat4.translate(this, this, v2);
+  translate(v3) {
+    return _Mat4.translate(this, this, v3);
   }
   /**
    * Rotates this {@link Mat4} by the given angle around the given axis
@@ -1072,8 +1072,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - The {@link Vec3} to scale the matrix by
    * @returns `this`
    */
-  scale(v2) {
-    return _Mat4.scale(this, this, v2);
+  scale(v3) {
+    return _Mat4.scale(this, this, v3);
   }
   /**
    * Rotates this {@link Mat4} by the given angle around the X axis
@@ -1190,8 +1190,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - Matrix to clone
    * @returns A new {@link Mat4}
    */
-  static clone(a2) {
-    return new _Mat4(a2);
+  static clone(a3) {
+    return new _Mat4(a3);
   }
   /**
    * Copy the values from one {@link Mat4} to another
@@ -1201,23 +1201,23 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - Matrix to copy
    * @returns `out`
    */
-  static copy(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
-    out[2] = a2[2];
-    out[3] = a2[3];
-    out[4] = a2[4];
-    out[5] = a2[5];
-    out[6] = a2[6];
-    out[7] = a2[7];
-    out[8] = a2[8];
-    out[9] = a2[9];
-    out[10] = a2[10];
-    out[11] = a2[11];
-    out[12] = a2[12];
-    out[13] = a2[13];
-    out[14] = a2[14];
-    out[15] = a2[15];
+  static copy(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
+    out[2] = a3[2];
+    out[3] = a3[3];
+    out[4] = a3[4];
+    out[5] = a3[5];
+    out[6] = a3[6];
+    out[7] = a3[7];
+    out[8] = a3[8];
+    out[9] = a3[9];
+    out[10] = a3[10];
+    out[11] = a3[11];
+    out[12] = a3[12];
+    out[13] = a3[13];
+    out[14] = a3[14];
+    out[15] = a3[15];
     return out;
   }
   /**
@@ -1291,40 +1291,40 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - the source matrix
    * @returns `out`
    */
-  static transpose(out, a2) {
-    if (out === a2) {
-      const a01 = a2[1], a02 = a2[2], a03 = a2[3];
-      const a12 = a2[6], a13 = a2[7];
-      const a23 = a2[11];
-      out[1] = a2[4];
-      out[2] = a2[8];
-      out[3] = a2[12];
+  static transpose(out, a3) {
+    if (out === a3) {
+      const a01 = a3[1], a02 = a3[2], a03 = a3[3];
+      const a12 = a3[6], a13 = a3[7];
+      const a23 = a3[11];
+      out[1] = a3[4];
+      out[2] = a3[8];
+      out[3] = a3[12];
       out[4] = a01;
-      out[6] = a2[9];
-      out[7] = a2[13];
+      out[6] = a3[9];
+      out[7] = a3[13];
       out[8] = a02;
       out[9] = a12;
-      out[11] = a2[14];
+      out[11] = a3[14];
       out[12] = a03;
       out[13] = a13;
       out[14] = a23;
     } else {
-      out[0] = a2[0];
-      out[1] = a2[4];
-      out[2] = a2[8];
-      out[3] = a2[12];
-      out[4] = a2[1];
-      out[5] = a2[5];
-      out[6] = a2[9];
-      out[7] = a2[13];
-      out[8] = a2[2];
-      out[9] = a2[6];
-      out[10] = a2[10];
-      out[11] = a2[14];
-      out[12] = a2[3];
-      out[13] = a2[7];
-      out[14] = a2[11];
-      out[15] = a2[15];
+      out[0] = a3[0];
+      out[1] = a3[4];
+      out[2] = a3[8];
+      out[3] = a3[12];
+      out[4] = a3[1];
+      out[5] = a3[5];
+      out[6] = a3[9];
+      out[7] = a3[13];
+      out[8] = a3[2];
+      out[9] = a3[6];
+      out[10] = a3[10];
+      out[11] = a3[14];
+      out[12] = a3[3];
+      out[13] = a3[7];
+      out[14] = a3[11];
+      out[15] = a3[15];
     }
     return out;
   }
@@ -1336,11 +1336,11 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - the source matrix
    * @returns `out` or `null` if the matrix is not invertable
    */
-  static invert(out, a2) {
-    const a00 = a2[0], a01 = a2[1], a02 = a2[2], a03 = a2[3];
-    const a10 = a2[4], a11 = a2[5], a12 = a2[6], a13 = a2[7];
-    const a20 = a2[8], a21 = a2[9], a22 = a2[10], a23 = a2[11];
-    const a30 = a2[12], a31 = a2[13], a32 = a2[14], a33 = a2[15];
+  static invert(out, a3) {
+    const a00 = a3[0], a01 = a3[1], a02 = a3[2], a03 = a3[3];
+    const a10 = a3[4], a11 = a3[5], a12 = a3[6], a13 = a3[7];
+    const a20 = a3[8], a21 = a3[9], a22 = a3[10], a23 = a3[11];
+    const a30 = a3[12], a31 = a3[13], a32 = a3[14], a33 = a3[15];
     const b00 = a00 * a11 - a01 * a10;
     const b01 = a00 * a12 - a02 * a10;
     const b02 = a00 * a13 - a03 * a10;
@@ -1384,11 +1384,11 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - the source matrix
    * @returns `out`
    */
-  static adjoint(out, a2) {
-    const a00 = a2[0], a01 = a2[1], a02 = a2[2], a03 = a2[3];
-    const a10 = a2[4], a11 = a2[5], a12 = a2[6], a13 = a2[7];
-    const a20 = a2[8], a21 = a2[9], a22 = a2[10], a23 = a2[11];
-    const a30 = a2[12], a31 = a2[13], a32 = a2[14], a33 = a2[15];
+  static adjoint(out, a3) {
+    const a00 = a3[0], a01 = a3[1], a02 = a3[2], a03 = a3[3];
+    const a10 = a3[4], a11 = a3[5], a12 = a3[6], a13 = a3[7];
+    const a20 = a3[8], a21 = a3[9], a22 = a3[10], a23 = a3[11];
+    const a30 = a3[12], a31 = a3[13], a32 = a3[14], a33 = a3[15];
     const b00 = a00 * a11 - a01 * a10;
     const b01 = a00 * a12 - a02 * a10;
     const b02 = a00 * a13 - a03 * a10;
@@ -1426,21 +1426,21 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - the source matrix
    * @returns determinant of a
    */
-  static determinant(a2) {
-    const a00 = a2[0], a01 = a2[1], a02 = a2[2], a03 = a2[3];
-    const a10 = a2[4], a11 = a2[5], a12 = a2[6], a13 = a2[7];
-    const a20 = a2[8], a21 = a2[9], a22 = a2[10], a23 = a2[11];
-    const a30 = a2[12], a31 = a2[13], a32 = a2[14], a33 = a2[15];
+  static determinant(a3) {
+    const a00 = a3[0], a01 = a3[1], a02 = a3[2], a03 = a3[3];
+    const a10 = a3[4], a11 = a3[5], a12 = a3[6], a13 = a3[7];
+    const a20 = a3[8], a21 = a3[9], a22 = a3[10], a23 = a3[11];
+    const a30 = a3[12], a31 = a3[13], a32 = a3[14], a33 = a3[15];
     const b0 = a00 * a11 - a01 * a10;
     const b1 = a00 * a12 - a02 * a10;
-    const b2 = a01 * a12 - a02 * a11;
+    const b22 = a01 * a12 - a02 * a11;
     const b3 = a20 * a31 - a21 * a30;
     const b4 = a20 * a32 - a22 * a30;
     const b5 = a21 * a32 - a22 * a31;
     const b6 = a00 * b5 - a01 * b4 + a02 * b3;
     const b7 = a10 * b5 - a11 * b4 + a12 * b3;
-    const b8 = a20 * b2 - a21 * b1 + a22 * b0;
-    const b9 = a30 * b2 - a31 * b1 + a32 * b0;
+    const b8 = a20 * b22 - a21 * b1 + a22 * b0;
+    const b9 = a30 * b22 - a31 * b1 + a32 * b0;
     return a13 * b6 - a03 * b7 + a33 * b8 - a23 * b9;
   }
   /**
@@ -1452,62 +1452,62 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static multiply(out, a2, b2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a03 = a2[3];
-    const a10 = a2[4];
-    const a11 = a2[5];
-    const a12 = a2[6];
-    const a13 = a2[7];
-    const a20 = a2[8];
-    const a21 = a2[9];
-    const a22 = a2[10];
-    const a23 = a2[11];
-    const a30 = a2[12];
-    const a31 = a2[13];
-    const a32 = a2[14];
-    const a33 = a2[15];
-    let b0 = b2[0];
-    let b1 = b2[1];
-    let b22 = b2[2];
-    let b3 = b2[3];
-    out[0] = b0 * a00 + b1 * a10 + b22 * a20 + b3 * a30;
-    out[1] = b0 * a01 + b1 * a11 + b22 * a21 + b3 * a31;
-    out[2] = b0 * a02 + b1 * a12 + b22 * a22 + b3 * a32;
-    out[3] = b0 * a03 + b1 * a13 + b22 * a23 + b3 * a33;
-    b0 = b2[4];
-    b1 = b2[5];
-    b22 = b2[6];
-    b3 = b2[7];
-    out[4] = b0 * a00 + b1 * a10 + b22 * a20 + b3 * a30;
-    out[5] = b0 * a01 + b1 * a11 + b22 * a21 + b3 * a31;
-    out[6] = b0 * a02 + b1 * a12 + b22 * a22 + b3 * a32;
-    out[7] = b0 * a03 + b1 * a13 + b22 * a23 + b3 * a33;
-    b0 = b2[8];
-    b1 = b2[9];
-    b22 = b2[10];
-    b3 = b2[11];
-    out[8] = b0 * a00 + b1 * a10 + b22 * a20 + b3 * a30;
-    out[9] = b0 * a01 + b1 * a11 + b22 * a21 + b3 * a31;
-    out[10] = b0 * a02 + b1 * a12 + b22 * a22 + b3 * a32;
-    out[11] = b0 * a03 + b1 * a13 + b22 * a23 + b3 * a33;
-    b0 = b2[12];
-    b1 = b2[13];
-    b22 = b2[14];
-    b3 = b2[15];
-    out[12] = b0 * a00 + b1 * a10 + b22 * a20 + b3 * a30;
-    out[13] = b0 * a01 + b1 * a11 + b22 * a21 + b3 * a31;
-    out[14] = b0 * a02 + b1 * a12 + b22 * a22 + b3 * a32;
-    out[15] = b0 * a03 + b1 * a13 + b22 * a23 + b3 * a33;
+  static multiply(out, a3, b3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a03 = a3[3];
+    const a10 = a3[4];
+    const a11 = a3[5];
+    const a12 = a3[6];
+    const a13 = a3[7];
+    const a20 = a3[8];
+    const a21 = a3[9];
+    const a22 = a3[10];
+    const a23 = a3[11];
+    const a30 = a3[12];
+    const a31 = a3[13];
+    const a32 = a3[14];
+    const a33 = a3[15];
+    let b0 = b3[0];
+    let b1 = b3[1];
+    let b22 = b3[2];
+    let b32 = b3[3];
+    out[0] = b0 * a00 + b1 * a10 + b22 * a20 + b32 * a30;
+    out[1] = b0 * a01 + b1 * a11 + b22 * a21 + b32 * a31;
+    out[2] = b0 * a02 + b1 * a12 + b22 * a22 + b32 * a32;
+    out[3] = b0 * a03 + b1 * a13 + b22 * a23 + b32 * a33;
+    b0 = b3[4];
+    b1 = b3[5];
+    b22 = b3[6];
+    b32 = b3[7];
+    out[4] = b0 * a00 + b1 * a10 + b22 * a20 + b32 * a30;
+    out[5] = b0 * a01 + b1 * a11 + b22 * a21 + b32 * a31;
+    out[6] = b0 * a02 + b1 * a12 + b22 * a22 + b32 * a32;
+    out[7] = b0 * a03 + b1 * a13 + b22 * a23 + b32 * a33;
+    b0 = b3[8];
+    b1 = b3[9];
+    b22 = b3[10];
+    b32 = b3[11];
+    out[8] = b0 * a00 + b1 * a10 + b22 * a20 + b32 * a30;
+    out[9] = b0 * a01 + b1 * a11 + b22 * a21 + b32 * a31;
+    out[10] = b0 * a02 + b1 * a12 + b22 * a22 + b32 * a32;
+    out[11] = b0 * a03 + b1 * a13 + b22 * a23 + b32 * a33;
+    b0 = b3[12];
+    b1 = b3[13];
+    b22 = b3[14];
+    b32 = b3[15];
+    out[12] = b0 * a00 + b1 * a10 + b22 * a20 + b32 * a30;
+    out[13] = b0 * a01 + b1 * a11 + b22 * a21 + b32 * a31;
+    out[14] = b0 * a02 + b1 * a12 + b22 * a22 + b32 * a32;
+    out[15] = b0 * a03 + b1 * a13 + b22 * a23 + b32 * a33;
     return out;
   }
   /**
    * Alias for {@link Mat4.multiply}
    * @category Static
    */
-  static mul(out, a2, b2) {
+  static mul(out, a3, b3) {
     return out;
   }
   /**
@@ -1519,28 +1519,28 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - vector to translate by
    * @returns `out`
    */
-  static translate(out, a2, v2) {
-    const x2 = v2[0];
-    const y2 = v2[1];
-    const z2 = v2[2];
-    if (a2 === out) {
-      out[12] = a2[0] * x2 + a2[4] * y2 + a2[8] * z2 + a2[12];
-      out[13] = a2[1] * x2 + a2[5] * y2 + a2[9] * z2 + a2[13];
-      out[14] = a2[2] * x2 + a2[6] * y2 + a2[10] * z2 + a2[14];
-      out[15] = a2[3] * x2 + a2[7] * y2 + a2[11] * z2 + a2[15];
+  static translate(out, a3, v3) {
+    const x3 = v3[0];
+    const y3 = v3[1];
+    const z3 = v3[2];
+    if (a3 === out) {
+      out[12] = a3[0] * x3 + a3[4] * y3 + a3[8] * z3 + a3[12];
+      out[13] = a3[1] * x3 + a3[5] * y3 + a3[9] * z3 + a3[13];
+      out[14] = a3[2] * x3 + a3[6] * y3 + a3[10] * z3 + a3[14];
+      out[15] = a3[3] * x3 + a3[7] * y3 + a3[11] * z3 + a3[15];
     } else {
-      const a00 = a2[0];
-      const a01 = a2[1];
-      const a02 = a2[2];
-      const a03 = a2[3];
-      const a10 = a2[4];
-      const a11 = a2[5];
-      const a12 = a2[6];
-      const a13 = a2[7];
-      const a20 = a2[8];
-      const a21 = a2[9];
-      const a22 = a2[10];
-      const a23 = a2[11];
+      const a00 = a3[0];
+      const a01 = a3[1];
+      const a02 = a3[2];
+      const a03 = a3[3];
+      const a10 = a3[4];
+      const a11 = a3[5];
+      const a12 = a3[6];
+      const a13 = a3[7];
+      const a20 = a3[8];
+      const a21 = a3[9];
+      const a22 = a3[10];
+      const a23 = a3[11];
       out[0] = a00;
       out[1] = a01;
       out[2] = a02;
@@ -1553,10 +1553,10 @@ var Mat4 = class _Mat4 extends Float32Array {
       out[9] = a21;
       out[10] = a22;
       out[11] = a23;
-      out[12] = a00 * x2 + a10 * y2 + a20 * z2 + a2[12];
-      out[13] = a01 * x2 + a11 * y2 + a21 * z2 + a2[13];
-      out[14] = a02 * x2 + a12 * y2 + a22 * z2 + a2[14];
-      out[15] = a03 * x2 + a13 * y2 + a23 * z2 + a2[15];
+      out[12] = a00 * x3 + a10 * y3 + a20 * z3 + a3[12];
+      out[13] = a01 * x3 + a11 * y3 + a21 * z3 + a3[13];
+      out[14] = a02 * x3 + a12 * y3 + a22 * z3 + a3[14];
+      out[15] = a03 * x3 + a13 * y3 + a23 * z3 + a3[15];
     }
     return out;
   }
@@ -1569,26 +1569,26 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - the {@link Vec3} to scale the matrix by
    * @returns `out`
    **/
-  static scale(out, a2, v2) {
-    const x2 = v2[0];
-    const y2 = v2[1];
-    const z2 = v2[2];
-    out[0] = a2[0] * x2;
-    out[1] = a2[1] * x2;
-    out[2] = a2[2] * x2;
-    out[3] = a2[3] * x2;
-    out[4] = a2[4] * y2;
-    out[5] = a2[5] * y2;
-    out[6] = a2[6] * y2;
-    out[7] = a2[7] * y2;
-    out[8] = a2[8] * z2;
-    out[9] = a2[9] * z2;
-    out[10] = a2[10] * z2;
-    out[11] = a2[11] * z2;
-    out[12] = a2[12];
-    out[13] = a2[13];
-    out[14] = a2[14];
-    out[15] = a2[15];
+  static scale(out, a3, v3) {
+    const x3 = v3[0];
+    const y3 = v3[1];
+    const z3 = v3[2];
+    out[0] = a3[0] * x3;
+    out[1] = a3[1] * x3;
+    out[2] = a3[2] * x3;
+    out[3] = a3[3] * x3;
+    out[4] = a3[4] * y3;
+    out[5] = a3[5] * y3;
+    out[6] = a3[6] * y3;
+    out[7] = a3[7] * y3;
+    out[8] = a3[8] * z3;
+    out[9] = a3[9] * z3;
+    out[10] = a3[10] * z3;
+    out[11] = a3[11] * z3;
+    out[12] = a3[12];
+    out[13] = a3[13];
+    out[14] = a3[14];
+    out[15] = a3[15];
     return out;
   }
   /**
@@ -1601,42 +1601,42 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param axis - the axis to rotate around
    * @returns `out` or `null` if axis has a length of 0
    */
-  static rotate(out, a2, rad, axis) {
-    let x2 = axis[0];
-    let y2 = axis[1];
-    let z2 = axis[2];
-    let len = Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
+  static rotate(out, a3, rad, axis) {
+    let x3 = axis[0];
+    let y3 = axis[1];
+    let z3 = axis[2];
+    let len = Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
     if (len < EPSILON) {
       return null;
     }
     len = 1 / len;
-    x2 *= len;
-    y2 *= len;
-    z2 *= len;
-    const s2 = Math.sin(rad);
-    const c2 = Math.cos(rad);
-    const t2 = 1 - c2;
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a03 = a2[3];
-    const a10 = a2[4];
-    const a11 = a2[5];
-    const a12 = a2[6];
-    const a13 = a2[7];
-    const a20 = a2[8];
-    const a21 = a2[9];
-    const a22 = a2[10];
-    const a23 = a2[11];
-    const b00 = x2 * x2 * t2 + c2;
-    const b01 = y2 * x2 * t2 + z2 * s2;
-    const b02 = z2 * x2 * t2 - y2 * s2;
-    const b10 = x2 * y2 * t2 - z2 * s2;
-    const b11 = y2 * y2 * t2 + c2;
-    const b12 = z2 * y2 * t2 + x2 * s2;
-    const b20 = x2 * z2 * t2 + y2 * s2;
-    const b21 = y2 * z2 * t2 - x2 * s2;
-    const b22 = z2 * z2 * t2 + c2;
+    x3 *= len;
+    y3 *= len;
+    z3 *= len;
+    const s4 = Math.sin(rad);
+    const c3 = Math.cos(rad);
+    const t3 = 1 - c3;
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a03 = a3[3];
+    const a10 = a3[4];
+    const a11 = a3[5];
+    const a12 = a3[6];
+    const a13 = a3[7];
+    const a20 = a3[8];
+    const a21 = a3[9];
+    const a22 = a3[10];
+    const a23 = a3[11];
+    const b00 = x3 * x3 * t3 + c3;
+    const b01 = y3 * x3 * t3 + z3 * s4;
+    const b02 = z3 * x3 * t3 - y3 * s4;
+    const b10 = x3 * y3 * t3 - z3 * s4;
+    const b11 = y3 * y3 * t3 + c3;
+    const b12 = z3 * y3 * t3 + x3 * s4;
+    const b20 = x3 * z3 * t3 + y3 * s4;
+    const b21 = y3 * z3 * t3 - x3 * s4;
+    const b22 = z3 * z3 * t3 + c3;
     out[0] = a00 * b00 + a10 * b01 + a20 * b02;
     out[1] = a01 * b00 + a11 * b01 + a21 * b02;
     out[2] = a02 * b00 + a12 * b01 + a22 * b02;
@@ -1649,11 +1649,11 @@ var Mat4 = class _Mat4 extends Float32Array {
     out[9] = a01 * b20 + a11 * b21 + a21 * b22;
     out[10] = a02 * b20 + a12 * b21 + a22 * b22;
     out[11] = a03 * b20 + a13 * b21 + a23 * b22;
-    if (a2 !== out) {
-      out[12] = a2[12];
-      out[13] = a2[13];
-      out[14] = a2[14];
-      out[15] = a2[15];
+    if (a3 !== out) {
+      out[12] = a3[12];
+      out[13] = a3[13];
+      out[14] = a3[14];
+      out[15] = a3[15];
     }
     return out;
   }
@@ -1666,35 +1666,35 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param rad - the angle to rotate the matrix by
    * @returns `out`
    */
-  static rotateX(out, a2, rad) {
-    let s2 = Math.sin(rad);
-    let c2 = Math.cos(rad);
-    let a10 = a2[4];
-    let a11 = a2[5];
-    let a12 = a2[6];
-    let a13 = a2[7];
-    let a20 = a2[8];
-    let a21 = a2[9];
-    let a22 = a2[10];
-    let a23 = a2[11];
-    if (a2 !== out) {
-      out[0] = a2[0];
-      out[1] = a2[1];
-      out[2] = a2[2];
-      out[3] = a2[3];
-      out[12] = a2[12];
-      out[13] = a2[13];
-      out[14] = a2[14];
-      out[15] = a2[15];
+  static rotateX(out, a3, rad) {
+    let s4 = Math.sin(rad);
+    let c3 = Math.cos(rad);
+    let a10 = a3[4];
+    let a11 = a3[5];
+    let a12 = a3[6];
+    let a13 = a3[7];
+    let a20 = a3[8];
+    let a21 = a3[9];
+    let a22 = a3[10];
+    let a23 = a3[11];
+    if (a3 !== out) {
+      out[0] = a3[0];
+      out[1] = a3[1];
+      out[2] = a3[2];
+      out[3] = a3[3];
+      out[12] = a3[12];
+      out[13] = a3[13];
+      out[14] = a3[14];
+      out[15] = a3[15];
     }
-    out[4] = a10 * c2 + a20 * s2;
-    out[5] = a11 * c2 + a21 * s2;
-    out[6] = a12 * c2 + a22 * s2;
-    out[7] = a13 * c2 + a23 * s2;
-    out[8] = a20 * c2 - a10 * s2;
-    out[9] = a21 * c2 - a11 * s2;
-    out[10] = a22 * c2 - a12 * s2;
-    out[11] = a23 * c2 - a13 * s2;
+    out[4] = a10 * c3 + a20 * s4;
+    out[5] = a11 * c3 + a21 * s4;
+    out[6] = a12 * c3 + a22 * s4;
+    out[7] = a13 * c3 + a23 * s4;
+    out[8] = a20 * c3 - a10 * s4;
+    out[9] = a21 * c3 - a11 * s4;
+    out[10] = a22 * c3 - a12 * s4;
+    out[11] = a23 * c3 - a13 * s4;
     return out;
   }
   /**
@@ -1706,35 +1706,35 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param rad - the angle to rotate the matrix by
    * @returns `out`
    */
-  static rotateY(out, a2, rad) {
-    let s2 = Math.sin(rad);
-    let c2 = Math.cos(rad);
-    let a00 = a2[0];
-    let a01 = a2[1];
-    let a02 = a2[2];
-    let a03 = a2[3];
-    let a20 = a2[8];
-    let a21 = a2[9];
-    let a22 = a2[10];
-    let a23 = a2[11];
-    if (a2 !== out) {
-      out[4] = a2[4];
-      out[5] = a2[5];
-      out[6] = a2[6];
-      out[7] = a2[7];
-      out[12] = a2[12];
-      out[13] = a2[13];
-      out[14] = a2[14];
-      out[15] = a2[15];
+  static rotateY(out, a3, rad) {
+    let s4 = Math.sin(rad);
+    let c3 = Math.cos(rad);
+    let a00 = a3[0];
+    let a01 = a3[1];
+    let a02 = a3[2];
+    let a03 = a3[3];
+    let a20 = a3[8];
+    let a21 = a3[9];
+    let a22 = a3[10];
+    let a23 = a3[11];
+    if (a3 !== out) {
+      out[4] = a3[4];
+      out[5] = a3[5];
+      out[6] = a3[6];
+      out[7] = a3[7];
+      out[12] = a3[12];
+      out[13] = a3[13];
+      out[14] = a3[14];
+      out[15] = a3[15];
     }
-    out[0] = a00 * c2 - a20 * s2;
-    out[1] = a01 * c2 - a21 * s2;
-    out[2] = a02 * c2 - a22 * s2;
-    out[3] = a03 * c2 - a23 * s2;
-    out[8] = a00 * s2 + a20 * c2;
-    out[9] = a01 * s2 + a21 * c2;
-    out[10] = a02 * s2 + a22 * c2;
-    out[11] = a03 * s2 + a23 * c2;
+    out[0] = a00 * c3 - a20 * s4;
+    out[1] = a01 * c3 - a21 * s4;
+    out[2] = a02 * c3 - a22 * s4;
+    out[3] = a03 * c3 - a23 * s4;
+    out[8] = a00 * s4 + a20 * c3;
+    out[9] = a01 * s4 + a21 * c3;
+    out[10] = a02 * s4 + a22 * c3;
+    out[11] = a03 * s4 + a23 * c3;
     return out;
   }
   /**
@@ -1746,35 +1746,35 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param rad - the angle to rotate the matrix by
    * @returns `out`
    */
-  static rotateZ(out, a2, rad) {
-    let s2 = Math.sin(rad);
-    let c2 = Math.cos(rad);
-    let a00 = a2[0];
-    let a01 = a2[1];
-    let a02 = a2[2];
-    let a03 = a2[3];
-    let a10 = a2[4];
-    let a11 = a2[5];
-    let a12 = a2[6];
-    let a13 = a2[7];
-    if (a2 !== out) {
-      out[8] = a2[8];
-      out[9] = a2[9];
-      out[10] = a2[10];
-      out[11] = a2[11];
-      out[12] = a2[12];
-      out[13] = a2[13];
-      out[14] = a2[14];
-      out[15] = a2[15];
+  static rotateZ(out, a3, rad) {
+    let s4 = Math.sin(rad);
+    let c3 = Math.cos(rad);
+    let a00 = a3[0];
+    let a01 = a3[1];
+    let a02 = a3[2];
+    let a03 = a3[3];
+    let a10 = a3[4];
+    let a11 = a3[5];
+    let a12 = a3[6];
+    let a13 = a3[7];
+    if (a3 !== out) {
+      out[8] = a3[8];
+      out[9] = a3[9];
+      out[10] = a3[10];
+      out[11] = a3[11];
+      out[12] = a3[12];
+      out[13] = a3[13];
+      out[14] = a3[14];
+      out[15] = a3[15];
     }
-    out[0] = a00 * c2 + a10 * s2;
-    out[1] = a01 * c2 + a11 * s2;
-    out[2] = a02 * c2 + a12 * s2;
-    out[3] = a03 * c2 + a13 * s2;
-    out[4] = a10 * c2 - a00 * s2;
-    out[5] = a11 * c2 - a01 * s2;
-    out[6] = a12 * c2 - a02 * s2;
-    out[7] = a13 * c2 - a03 * s2;
+    out[0] = a00 * c3 + a10 * s4;
+    out[1] = a01 * c3 + a11 * s4;
+    out[2] = a02 * c3 + a12 * s4;
+    out[3] = a03 * c3 + a13 * s4;
+    out[4] = a10 * c3 - a00 * s4;
+    out[5] = a11 * c3 - a01 * s4;
+    out[6] = a12 * c3 - a02 * s4;
+    out[7] = a13 * c3 - a03 * s4;
     return out;
   }
   /**
@@ -1789,7 +1789,7 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - Translation vector
    * @returns `out`
    */
-  static fromTranslation(out, v2) {
+  static fromTranslation(out, v3) {
     out[0] = 1;
     out[1] = 0;
     out[2] = 0;
@@ -1802,9 +1802,9 @@ var Mat4 = class _Mat4 extends Float32Array {
     out[9] = 0;
     out[10] = 1;
     out[11] = 0;
-    out[12] = v2[0];
-    out[13] = v2[1];
-    out[14] = v2[2];
+    out[12] = v3[0];
+    out[13] = v3[1];
+    out[14] = v3[2];
     out[15] = 1;
     return out;
   }
@@ -1820,18 +1820,18 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - Scaling vector
    * @returns `out`
    */
-  static fromScaling(out, v2) {
-    out[0] = v2[0];
+  static fromScaling(out, v3) {
+    out[0] = v3[0];
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
     out[4] = 0;
-    out[5] = v2[1];
+    out[5] = v3[1];
     out[6] = 0;
     out[7] = 0;
     out[8] = 0;
     out[9] = 0;
-    out[10] = v2[2];
+    out[10] = v3[2];
     out[11] = 0;
     out[12] = 0;
     out[13] = 0;
@@ -1853,31 +1853,31 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out` or `null` if `axis` has a length of 0
    */
   static fromRotation(out, rad, axis) {
-    let x2 = axis[0];
-    let y2 = axis[1];
-    let z2 = axis[2];
-    let len = Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
+    let x3 = axis[0];
+    let y3 = axis[1];
+    let z3 = axis[2];
+    let len = Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
     if (len < EPSILON) {
       return null;
     }
     len = 1 / len;
-    x2 *= len;
-    y2 *= len;
-    z2 *= len;
-    const s2 = Math.sin(rad);
-    const c2 = Math.cos(rad);
-    const t2 = 1 - c2;
-    out[0] = x2 * x2 * t2 + c2;
-    out[1] = y2 * x2 * t2 + z2 * s2;
-    out[2] = z2 * x2 * t2 - y2 * s2;
+    x3 *= len;
+    y3 *= len;
+    z3 *= len;
+    const s4 = Math.sin(rad);
+    const c3 = Math.cos(rad);
+    const t3 = 1 - c3;
+    out[0] = x3 * x3 * t3 + c3;
+    out[1] = y3 * x3 * t3 + z3 * s4;
+    out[2] = z3 * x3 * t3 - y3 * s4;
     out[3] = 0;
-    out[4] = x2 * y2 * t2 - z2 * s2;
-    out[5] = y2 * y2 * t2 + c2;
-    out[6] = z2 * y2 * t2 + x2 * s2;
+    out[4] = x3 * y3 * t3 - z3 * s4;
+    out[5] = y3 * y3 * t3 + c3;
+    out[6] = z3 * y3 * t3 + x3 * s4;
     out[7] = 0;
-    out[8] = x2 * z2 * t2 + y2 * s2;
-    out[9] = y2 * z2 * t2 - x2 * s2;
-    out[10] = z2 * z2 * t2 + c2;
+    out[8] = x3 * z3 * t3 + y3 * s4;
+    out[9] = y3 * z3 * t3 - x3 * s4;
+    out[10] = z3 * z3 * t3 + c3;
     out[11] = 0;
     out[12] = 0;
     out[13] = 0;
@@ -1898,19 +1898,19 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out`
    */
   static fromXRotation(out, rad) {
-    let s2 = Math.sin(rad);
-    let c2 = Math.cos(rad);
+    let s4 = Math.sin(rad);
+    let c3 = Math.cos(rad);
     out[0] = 1;
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
     out[4] = 0;
-    out[5] = c2;
-    out[6] = s2;
+    out[5] = c3;
+    out[6] = s4;
     out[7] = 0;
     out[8] = 0;
-    out[9] = -s2;
-    out[10] = c2;
+    out[9] = -s4;
+    out[10] = c3;
     out[11] = 0;
     out[12] = 0;
     out[13] = 0;
@@ -1931,19 +1931,19 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out`
    */
   static fromYRotation(out, rad) {
-    let s2 = Math.sin(rad);
-    let c2 = Math.cos(rad);
-    out[0] = c2;
+    let s4 = Math.sin(rad);
+    let c3 = Math.cos(rad);
+    out[0] = c3;
     out[1] = 0;
-    out[2] = -s2;
+    out[2] = -s4;
     out[3] = 0;
     out[4] = 0;
     out[5] = 1;
     out[6] = 0;
     out[7] = 0;
-    out[8] = s2;
+    out[8] = s4;
     out[9] = 0;
-    out[10] = c2;
+    out[10] = c3;
     out[11] = 0;
     out[12] = 0;
     out[13] = 0;
@@ -1964,14 +1964,14 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out`
    */
   static fromZRotation(out, rad) {
-    const s2 = Math.sin(rad);
-    const c2 = Math.cos(rad);
-    out[0] = c2;
-    out[1] = s2;
+    const s4 = Math.sin(rad);
+    const c3 = Math.cos(rad);
+    out[0] = c3;
+    out[1] = s4;
     out[2] = 0;
     out[3] = 0;
-    out[4] = -s2;
-    out[5] = c2;
+    out[4] = -s4;
+    out[5] = c3;
     out[6] = 0;
     out[7] = 0;
     out[8] = 0;
@@ -2000,23 +2000,23 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param v - Translation vector
    * @returns `out`
    */
-  static fromRotationTranslation(out, q2, v2) {
-    const x2 = q2[0];
-    const y2 = q2[1];
-    const z2 = q2[2];
-    const w2 = q2[3];
-    const x22 = x2 + x2;
-    const y22 = y2 + y2;
-    const z22 = z2 + z2;
-    const xx = x2 * x22;
-    const xy = x2 * y22;
-    const xz = x2 * z22;
-    const yy = y2 * y22;
-    const yz = y2 * z22;
-    const zz = z2 * z22;
-    const wx = w2 * x22;
-    const wy = w2 * y22;
-    const wz = w2 * z22;
+  static fromRotationTranslation(out, q2, v3) {
+    const x3 = q2[0];
+    const y3 = q2[1];
+    const z3 = q2[2];
+    const w3 = q2[3];
+    const x22 = x3 + x3;
+    const y22 = y3 + y3;
+    const z22 = z3 + z3;
+    const xx = x3 * x22;
+    const xy = x3 * y22;
+    const xz = x3 * z22;
+    const yy = y3 * y22;
+    const yz = y3 * z22;
+    const zz = z3 * z22;
+    const wx = w3 * x22;
+    const wy = w3 * y22;
+    const wz = w3 * z22;
     out[0] = 1 - (yy + zz);
     out[1] = xy + wz;
     out[2] = xz - wy;
@@ -2029,9 +2029,9 @@ var Mat4 = class _Mat4 extends Float32Array {
     out[9] = yz - wx;
     out[10] = 1 - (xx + yy);
     out[11] = 0;
-    out[12] = v2[0];
-    out[13] = v2[1];
-    out[14] = v2[2];
+    out[12] = v3[0];
+    out[13] = v3[1];
+    out[14] = v3[2];
     out[15] = 1;
     return out;
   }
@@ -2043,15 +2043,15 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - Dual Quaternion
    * @returns `out`
    */
-  static fromQuat2(out, a2) {
-    const bx = -a2[0];
-    const by = -a2[1];
-    const bz = -a2[2];
-    const bw = a2[3];
-    const ax = a2[4];
-    const ay = a2[5];
-    const az = a2[6];
-    const aw = a2[7];
+  static fromQuat2(out, a3) {
+    const bx = -a3[0];
+    const by = -a3[1];
+    const bz = -a3[2];
+    const bw = a3[3];
+    const ax = a3[4];
+    const ay = a3[5];
+    const az = a3[6];
+    const aw = a3[7];
     let magnitude = bx * bx + by * by + bz * bz + bw * bw;
     if (magnitude > 0) {
       tmpVec3[0] = (ax * bw + aw * bx + ay * bz - az * by) * 2 / magnitude;
@@ -2062,7 +2062,7 @@ var Mat4 = class _Mat4 extends Float32Array {
       tmpVec3[1] = (ay * bw + aw * by + az * bx - ax * bz) * 2;
       tmpVec3[2] = (az * bw + aw * bz + ax * by - ay * bx) * 2;
     }
-    _Mat4.fromRotationTranslation(out, a2, tmpVec3);
+    _Mat4.fromRotationTranslation(out, a3, tmpVec3);
     return out;
   }
   /**
@@ -2073,23 +2073,23 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - Mat4 to derive the normal matrix from
    * @returns `out` or `null` if the matrix is not invertable
    */
-  static normalFromMat4(out, a2) {
-    const a00 = a2[0];
-    const a01 = a2[1];
-    const a02 = a2[2];
-    const a03 = a2[3];
-    const a10 = a2[4];
-    const a11 = a2[5];
-    const a12 = a2[6];
-    const a13 = a2[7];
-    const a20 = a2[8];
-    const a21 = a2[9];
-    const a22 = a2[10];
-    const a23 = a2[11];
-    const a30 = a2[12];
-    const a31 = a2[13];
-    const a32 = a2[14];
-    const a33 = a2[15];
+  static normalFromMat4(out, a3) {
+    const a00 = a3[0];
+    const a01 = a3[1];
+    const a02 = a3[2];
+    const a03 = a3[3];
+    const a10 = a3[4];
+    const a11 = a3[5];
+    const a12 = a3[6];
+    const a13 = a3[7];
+    const a20 = a3[8];
+    const a21 = a3[9];
+    const a22 = a3[10];
+    const a23 = a3[11];
+    const a30 = a3[12];
+    const a31 = a3[13];
+    const a32 = a3[14];
+    const a33 = a3[15];
     const b00 = a00 * a11 - a01 * a10;
     const b01 = a00 * a12 - a02 * a10;
     const b02 = a00 * a13 - a03 * a10;
@@ -2136,16 +2136,16 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - Mat4 to derive the normal matrix from
    * @returns `out`
    */
-  static normalFromMat4Fast(out, a2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const bx = a2[4];
-    const by = a2[5];
-    const bz = a2[6];
-    const cx = a2[8];
-    const cy = a2[9];
-    const cz = a2[10];
+  static normalFromMat4Fast(out, a3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const bx = a3[4];
+    const by = a3[5];
+    const bz = a3[6];
+    const cx = a3[8];
+    const cy = a3[9];
+    const cz = a3[10];
     out[0] = by * cz - cz * cy;
     out[1] = bz * cx - cx * cz;
     out[2] = bx * cy - cy * cx;
@@ -2234,31 +2234,31 @@ var Mat4 = class _Mat4 extends Float32Array {
     const sm32 = mat[9] * is2;
     const sm33 = mat[10] * is3;
     const trace = sm11 + sm22 + sm33;
-    let S2 = 0;
+    let S3 = 0;
     if (trace > 0) {
-      S2 = Math.sqrt(trace + 1) * 2;
-      out[3] = 0.25 * S2;
-      out[0] = (sm23 - sm32) / S2;
-      out[1] = (sm31 - sm13) / S2;
-      out[2] = (sm12 - sm21) / S2;
+      S3 = Math.sqrt(trace + 1) * 2;
+      out[3] = 0.25 * S3;
+      out[0] = (sm23 - sm32) / S3;
+      out[1] = (sm31 - sm13) / S3;
+      out[2] = (sm12 - sm21) / S3;
     } else if (sm11 > sm22 && sm11 > sm33) {
-      S2 = Math.sqrt(1 + sm11 - sm22 - sm33) * 2;
-      out[3] = (sm23 - sm32) / S2;
-      out[0] = 0.25 * S2;
-      out[1] = (sm12 + sm21) / S2;
-      out[2] = (sm31 + sm13) / S2;
+      S3 = Math.sqrt(1 + sm11 - sm22 - sm33) * 2;
+      out[3] = (sm23 - sm32) / S3;
+      out[0] = 0.25 * S3;
+      out[1] = (sm12 + sm21) / S3;
+      out[2] = (sm31 + sm13) / S3;
     } else if (sm22 > sm33) {
-      S2 = Math.sqrt(1 + sm22 - sm11 - sm33) * 2;
-      out[3] = (sm31 - sm13) / S2;
-      out[0] = (sm12 + sm21) / S2;
-      out[1] = 0.25 * S2;
-      out[2] = (sm23 + sm32) / S2;
+      S3 = Math.sqrt(1 + sm22 - sm11 - sm33) * 2;
+      out[3] = (sm31 - sm13) / S3;
+      out[0] = (sm12 + sm21) / S3;
+      out[1] = 0.25 * S3;
+      out[2] = (sm23 + sm32) / S3;
     } else {
-      S2 = Math.sqrt(1 + sm33 - sm11 - sm22) * 2;
-      out[3] = (sm12 - sm21) / S2;
-      out[0] = (sm31 + sm13) / S2;
-      out[1] = (sm23 + sm32) / S2;
-      out[2] = 0.25 * S2;
+      S3 = Math.sqrt(1 + sm33 - sm11 - sm22) * 2;
+      out[3] = (sm12 - sm21) / S3;
+      out[0] = (sm31 + sm13) / S3;
+      out[1] = (sm23 + sm32) / S3;
+      out[2] = 0.25 * S3;
     }
     return out;
   }
@@ -2302,31 +2302,31 @@ var Mat4 = class _Mat4 extends Float32Array {
     const sm32 = m32 * is2;
     const sm33 = m33 * is3;
     const trace = sm11 + sm22 + sm33;
-    let S2 = 0;
+    let S3 = 0;
     if (trace > 0) {
-      S2 = Math.sqrt(trace + 1) * 2;
-      out_r[3] = 0.25 * S2;
-      out_r[0] = (sm23 - sm32) / S2;
-      out_r[1] = (sm31 - sm13) / S2;
-      out_r[2] = (sm12 - sm21) / S2;
+      S3 = Math.sqrt(trace + 1) * 2;
+      out_r[3] = 0.25 * S3;
+      out_r[0] = (sm23 - sm32) / S3;
+      out_r[1] = (sm31 - sm13) / S3;
+      out_r[2] = (sm12 - sm21) / S3;
     } else if (sm11 > sm22 && sm11 > sm33) {
-      S2 = Math.sqrt(1 + sm11 - sm22 - sm33) * 2;
-      out_r[3] = (sm23 - sm32) / S2;
-      out_r[0] = 0.25 * S2;
-      out_r[1] = (sm12 + sm21) / S2;
-      out_r[2] = (sm31 + sm13) / S2;
+      S3 = Math.sqrt(1 + sm11 - sm22 - sm33) * 2;
+      out_r[3] = (sm23 - sm32) / S3;
+      out_r[0] = 0.25 * S3;
+      out_r[1] = (sm12 + sm21) / S3;
+      out_r[2] = (sm31 + sm13) / S3;
     } else if (sm22 > sm33) {
-      S2 = Math.sqrt(1 + sm22 - sm11 - sm33) * 2;
-      out_r[3] = (sm31 - sm13) / S2;
-      out_r[0] = (sm12 + sm21) / S2;
-      out_r[1] = 0.25 * S2;
-      out_r[2] = (sm23 + sm32) / S2;
+      S3 = Math.sqrt(1 + sm22 - sm11 - sm33) * 2;
+      out_r[3] = (sm31 - sm13) / S3;
+      out_r[0] = (sm12 + sm21) / S3;
+      out_r[1] = 0.25 * S3;
+      out_r[2] = (sm23 + sm32) / S3;
     } else {
-      S2 = Math.sqrt(1 + sm33 - sm11 - sm22) * 2;
-      out_r[3] = (sm12 - sm21) / S2;
-      out_r[0] = (sm31 + sm13) / S2;
-      out_r[1] = (sm23 + sm32) / S2;
-      out_r[2] = 0.25 * S2;
+      S3 = Math.sqrt(1 + sm33 - sm11 - sm22) * 2;
+      out_r[3] = (sm12 - sm21) / S3;
+      out_r[0] = (sm31 + sm13) / S3;
+      out_r[1] = (sm23 + sm32) / S3;
+      out_r[2] = 0.25 * S3;
     }
     return out_r;
   }
@@ -2348,26 +2348,26 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param s - Scaling vector
    * @returns `out`
    */
-  static fromRotationTranslationScale(out, q2, v2, s2) {
-    const x2 = q2[0];
-    const y2 = q2[1];
-    const z2 = q2[2];
-    const w2 = q2[3];
-    const x22 = x2 + x2;
-    const y22 = y2 + y2;
-    const z22 = z2 + z2;
-    const xx = x2 * x22;
-    const xy = x2 * y22;
-    const xz = x2 * z22;
-    const yy = y2 * y22;
-    const yz = y2 * z22;
-    const zz = z2 * z22;
-    const wx = w2 * x22;
-    const wy = w2 * y22;
-    const wz = w2 * z22;
-    const sx = s2[0];
-    const sy = s2[1];
-    const sz = s2[2];
+  static fromRotationTranslationScale(out, q2, v3, s4) {
+    const x3 = q2[0];
+    const y3 = q2[1];
+    const z3 = q2[2];
+    const w3 = q2[3];
+    const x22 = x3 + x3;
+    const y22 = y3 + y3;
+    const z22 = z3 + z3;
+    const xx = x3 * x22;
+    const xy = x3 * y22;
+    const xz = x3 * z22;
+    const yy = y3 * y22;
+    const yz = y3 * z22;
+    const zz = z3 * z22;
+    const wx = w3 * x22;
+    const wy = w3 * y22;
+    const wz = w3 * z22;
+    const sx = s4[0];
+    const sy = s4[1];
+    const sz = s4[2];
     out[0] = (1 - (yy + zz)) * sx;
     out[1] = (xy + wz) * sx;
     out[2] = (xz - wy) * sx;
@@ -2380,9 +2380,9 @@ var Mat4 = class _Mat4 extends Float32Array {
     out[9] = (yz - wx) * sz;
     out[10] = (1 - (xx + yy)) * sz;
     out[11] = 0;
-    out[12] = v2[0];
-    out[13] = v2[1];
-    out[14] = v2[2];
+    out[12] = v3[0];
+    out[13] = v3[1];
+    out[14] = v3[2];
     out[15] = 1;
     return out;
   }
@@ -2407,29 +2407,29 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param o - The origin vector around which to scale and rotate
    * @returns `out`
    */
-  static fromRotationTranslationScaleOrigin(out, q2, v2, s2, o2) {
-    const x2 = q2[0];
-    const y2 = q2[1];
-    const z2 = q2[2];
-    const w2 = q2[3];
-    const x22 = x2 + x2;
-    const y22 = y2 + y2;
-    const z22 = z2 + z2;
-    const xx = x2 * x22;
-    const xy = x2 * y22;
-    const xz = x2 * z22;
-    const yy = y2 * y22;
-    const yz = y2 * z22;
-    const zz = z2 * z22;
-    const wx = w2 * x22;
-    const wy = w2 * y22;
-    const wz = w2 * z22;
-    const sx = s2[0];
-    const sy = s2[1];
-    const sz = s2[2];
-    const ox = o2[0];
-    const oy = o2[1];
-    const oz = o2[2];
+  static fromRotationTranslationScaleOrigin(out, q2, v3, s4, o3) {
+    const x3 = q2[0];
+    const y3 = q2[1];
+    const z3 = q2[2];
+    const w3 = q2[3];
+    const x22 = x3 + x3;
+    const y22 = y3 + y3;
+    const z22 = z3 + z3;
+    const xx = x3 * x22;
+    const xy = x3 * y22;
+    const xz = x3 * z22;
+    const yy = y3 * y22;
+    const yz = y3 * z22;
+    const zz = z3 * z22;
+    const wx = w3 * x22;
+    const wy = w3 * y22;
+    const wz = w3 * z22;
+    const sx = s4[0];
+    const sy = s4[1];
+    const sz = s4[2];
+    const ox = o3[0];
+    const oy = o3[1];
+    const oz = o3[2];
     const out0 = (1 - (yy + zz)) * sx;
     const out1 = (xy + wz) * sx;
     const out2 = (xz - wy) * sx;
@@ -2451,9 +2451,9 @@ var Mat4 = class _Mat4 extends Float32Array {
     out[9] = out9;
     out[10] = out10;
     out[11] = 0;
-    out[12] = v2[0] + ox - (out0 * ox + out4 * oy + out8 * oz);
-    out[13] = v2[1] + oy - (out1 * ox + out5 * oy + out9 * oz);
-    out[14] = v2[2] + oz - (out2 * ox + out6 * oy + out10 * oz);
+    out[12] = v3[0] + ox - (out0 * ox + out4 * oy + out8 * oz);
+    out[13] = v3[1] + oy - (out1 * ox + out5 * oy + out9 * oz);
+    out[14] = v3[2] + oz - (out2 * ox + out6 * oy + out10 * oz);
     out[15] = 1;
     return out;
   }
@@ -2466,22 +2466,22 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out`
    */
   static fromQuat(out, q2) {
-    const x2 = q2[0];
-    const y2 = q2[1];
-    const z2 = q2[2];
-    const w2 = q2[3];
-    const x22 = x2 + x2;
-    const y22 = y2 + y2;
-    const z22 = z2 + z2;
-    const xx = x2 * x22;
-    const yx = y2 * x22;
-    const yy = y2 * y22;
-    const zx = z2 * x22;
-    const zy = z2 * y22;
-    const zz = z2 * z22;
-    const wx = w2 * x22;
-    const wy = w2 * y22;
-    const wz = w2 * z22;
+    const x3 = q2[0];
+    const y3 = q2[1];
+    const z3 = q2[2];
+    const w3 = q2[3];
+    const x22 = x3 + x3;
+    const y22 = y3 + y3;
+    const z22 = z3 + z3;
+    const xx = x3 * x22;
+    const yx = y3 * x22;
+    const yy = y3 * y22;
+    const zx = z3 * x22;
+    const zy = z3 * y22;
+    const zz = z3 * z22;
+    const wx = w3 * x22;
+    const wy = w3 * y22;
+    const wz = w3 * z22;
     out[0] = 1 - yy - zz;
     out[1] = yx + wz;
     out[2] = zx - wy;
@@ -2609,13 +2609,13 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out`
    */
   static perspectiveNO(out, fovy, aspect, near, far = Infinity) {
-    const f2 = 1 / Math.tan(fovy / 2);
-    out[0] = f2 / aspect;
+    const f3 = 1 / Math.tan(fovy / 2);
+    out[0] = f3 / aspect;
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
     out[4] = 0;
-    out[5] = f2;
+    out[5] = f3;
     out[6] = 0;
     out[7] = 0;
     out[8] = 0;
@@ -2657,13 +2657,13 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @returns `out`
    */
   static perspectiveZO(out, fovy, aspect, near, far = Infinity) {
-    const f2 = 1 / Math.tan(fovy / 2);
-    out[0] = f2 / aspect;
+    const f3 = 1 / Math.tan(fovy / 2);
+    out[0] = f3 / aspect;
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
     out[4] = 0;
-    out[5] = f2;
+    out[5] = f3;
     out[6] = 0;
     out[7] = 0;
     out[8] = 0;
@@ -2828,38 +2828,38 @@ var Mat4 = class _Mat4 extends Float32Array {
     }
     let z0 = eyex - centerx;
     let z1 = eyey - centery;
-    let z2 = eyez - centerz;
-    let len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
+    let z22 = eyez - centerz;
+    let len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z22 * z22);
     z0 *= len;
     z1 *= len;
-    z2 *= len;
-    let x0 = upy * z2 - upz * z1;
-    let x1 = upz * z0 - upx * z2;
-    let x2 = upx * z1 - upy * z0;
-    len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
+    z22 *= len;
+    let x0 = upy * z22 - upz * z1;
+    let x1 = upz * z0 - upx * z22;
+    let x22 = upx * z1 - upy * z0;
+    len = Math.sqrt(x0 * x0 + x1 * x1 + x22 * x22);
     if (!len) {
       x0 = 0;
       x1 = 0;
-      x2 = 0;
+      x22 = 0;
     } else {
       len = 1 / len;
       x0 *= len;
       x1 *= len;
-      x2 *= len;
+      x22 *= len;
     }
-    let y0 = z1 * x2 - z2 * x1;
-    let y1 = z2 * x0 - z0 * x2;
-    let y2 = z0 * x1 - z1 * x0;
-    len = Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);
+    let y0 = z1 * x22 - z22 * x1;
+    let y1 = z22 * x0 - z0 * x22;
+    let y22 = z0 * x1 - z1 * x0;
+    len = Math.sqrt(y0 * y0 + y1 * y1 + y22 * y22);
     if (!len) {
       y0 = 0;
       y1 = 0;
-      y2 = 0;
+      y22 = 0;
     } else {
       len = 1 / len;
       y0 *= len;
       y1 *= len;
-      y2 *= len;
+      y22 *= len;
     }
     out[0] = x0;
     out[1] = y0;
@@ -2869,13 +2869,13 @@ var Mat4 = class _Mat4 extends Float32Array {
     out[5] = y1;
     out[6] = z1;
     out[7] = 0;
-    out[8] = x2;
-    out[9] = y2;
-    out[10] = z2;
+    out[8] = x22;
+    out[9] = y22;
+    out[10] = z22;
     out[11] = 0;
-    out[12] = -(x0 * eyex + x1 * eyey + x2 * eyez);
-    out[13] = -(y0 * eyex + y1 * eyey + y2 * eyez);
-    out[14] = -(z0 * eyex + z1 * eyey + z2 * eyez);
+    out[12] = -(x0 * eyex + x1 * eyey + x22 * eyez);
+    out[13] = -(y0 * eyex + y1 * eyey + y22 * eyez);
+    out[14] = -(z0 * eyex + z1 * eyey + z22 * eyez);
     out[15] = 1;
     return out;
   }
@@ -2898,35 +2898,35 @@ var Mat4 = class _Mat4 extends Float32Array {
     const upz = up[2];
     let z0 = eyex - target[0];
     let z1 = eyey - target[1];
-    let z2 = eyez - target[2];
-    let len = z0 * z0 + z1 * z1 + z2 * z2;
+    let z22 = eyez - target[2];
+    let len = z0 * z0 + z1 * z1 + z22 * z22;
     if (len > 0) {
       len = 1 / Math.sqrt(len);
       z0 *= len;
       z1 *= len;
-      z2 *= len;
+      z22 *= len;
     }
-    let x0 = upy * z2 - upz * z1;
-    let x1 = upz * z0 - upx * z2;
-    let x2 = upx * z1 - upy * z0;
-    len = x0 * x0 + x1 * x1 + x2 * x2;
+    let x0 = upy * z22 - upz * z1;
+    let x1 = upz * z0 - upx * z22;
+    let x22 = upx * z1 - upy * z0;
+    len = x0 * x0 + x1 * x1 + x22 * x22;
     if (len > 0) {
       len = 1 / Math.sqrt(len);
       x0 *= len;
       x1 *= len;
-      x2 *= len;
+      x22 *= len;
     }
     out[0] = x0;
     out[1] = x1;
-    out[2] = x2;
+    out[2] = x22;
     out[3] = 0;
-    out[4] = z1 * x2 - z2 * x1;
-    out[5] = z2 * x0 - z0 * x2;
+    out[4] = z1 * x22 - z22 * x1;
+    out[5] = z22 * x0 - z0 * x22;
     out[6] = z0 * x1 - z1 * x0;
     out[7] = 0;
     out[8] = z0;
     out[9] = z1;
-    out[10] = z2;
+    out[10] = z22;
     out[11] = 0;
     out[12] = eyex;
     out[13] = eyey;
@@ -2941,8 +2941,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - the matrix to calculate Frobenius norm of
    * @returns Frobenius norm
    */
-  static frob(a2) {
-    return Math.sqrt(a2[0] * a2[0] + a2[1] * a2[1] + a2[2] * a2[2] + a2[3] * a2[3] + a2[4] * a2[4] + a2[5] * a2[5] + a2[6] * a2[6] + a2[7] * a2[7] + a2[8] * a2[8] + a2[9] * a2[9] + a2[10] * a2[10] + a2[11] * a2[11] + a2[12] * a2[12] + a2[13] * a2[13] + a2[14] * a2[14] + a2[15] * a2[15]);
+  static frob(a3) {
+    return Math.sqrt(a3[0] * a3[0] + a3[1] * a3[1] + a3[2] * a3[2] + a3[3] * a3[3] + a3[4] * a3[4] + a3[5] * a3[5] + a3[6] * a3[6] + a3[7] * a3[7] + a3[8] * a3[8] + a3[9] * a3[9] + a3[10] * a3[10] + a3[11] * a3[11] + a3[12] * a3[12] + a3[13] * a3[13] + a3[14] * a3[14] + a3[15] * a3[15]);
   }
   /**
    * Adds two {@link Mat4}'s
@@ -2953,23 +2953,23 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static add(out, a2, b2) {
-    out[0] = a2[0] + b2[0];
-    out[1] = a2[1] + b2[1];
-    out[2] = a2[2] + b2[2];
-    out[3] = a2[3] + b2[3];
-    out[4] = a2[4] + b2[4];
-    out[5] = a2[5] + b2[5];
-    out[6] = a2[6] + b2[6];
-    out[7] = a2[7] + b2[7];
-    out[8] = a2[8] + b2[8];
-    out[9] = a2[9] + b2[9];
-    out[10] = a2[10] + b2[10];
-    out[11] = a2[11] + b2[11];
-    out[12] = a2[12] + b2[12];
-    out[13] = a2[13] + b2[13];
-    out[14] = a2[14] + b2[14];
-    out[15] = a2[15] + b2[15];
+  static add(out, a3, b3) {
+    out[0] = a3[0] + b3[0];
+    out[1] = a3[1] + b3[1];
+    out[2] = a3[2] + b3[2];
+    out[3] = a3[3] + b3[3];
+    out[4] = a3[4] + b3[4];
+    out[5] = a3[5] + b3[5];
+    out[6] = a3[6] + b3[6];
+    out[7] = a3[7] + b3[7];
+    out[8] = a3[8] + b3[8];
+    out[9] = a3[9] + b3[9];
+    out[10] = a3[10] + b3[10];
+    out[11] = a3[11] + b3[11];
+    out[12] = a3[12] + b3[12];
+    out[13] = a3[13] + b3[13];
+    out[14] = a3[14] + b3[14];
+    out[15] = a3[15] + b3[15];
     return out;
   }
   /**
@@ -2981,30 +2981,30 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static subtract(out, a2, b2) {
-    out[0] = a2[0] - b2[0];
-    out[1] = a2[1] - b2[1];
-    out[2] = a2[2] - b2[2];
-    out[3] = a2[3] - b2[3];
-    out[4] = a2[4] - b2[4];
-    out[5] = a2[5] - b2[5];
-    out[6] = a2[6] - b2[6];
-    out[7] = a2[7] - b2[7];
-    out[8] = a2[8] - b2[8];
-    out[9] = a2[9] - b2[9];
-    out[10] = a2[10] - b2[10];
-    out[11] = a2[11] - b2[11];
-    out[12] = a2[12] - b2[12];
-    out[13] = a2[13] - b2[13];
-    out[14] = a2[14] - b2[14];
-    out[15] = a2[15] - b2[15];
+  static subtract(out, a3, b3) {
+    out[0] = a3[0] - b3[0];
+    out[1] = a3[1] - b3[1];
+    out[2] = a3[2] - b3[2];
+    out[3] = a3[3] - b3[3];
+    out[4] = a3[4] - b3[4];
+    out[5] = a3[5] - b3[5];
+    out[6] = a3[6] - b3[6];
+    out[7] = a3[7] - b3[7];
+    out[8] = a3[8] - b3[8];
+    out[9] = a3[9] - b3[9];
+    out[10] = a3[10] - b3[10];
+    out[11] = a3[11] - b3[11];
+    out[12] = a3[12] - b3[12];
+    out[13] = a3[13] - b3[13];
+    out[14] = a3[14] - b3[14];
+    out[15] = a3[15] - b3[15];
     return out;
   }
   /**
    * Alias for {@link Mat4.subtract}
    * @category Static
    */
-  static sub(out, a2, b2) {
+  static sub(out, a3, b3) {
     return out;
   }
   /**
@@ -3016,23 +3016,23 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - amount to scale the matrix's elements by
    * @returns `out`
    */
-  static multiplyScalar(out, a2, b2) {
-    out[0] = a2[0] * b2;
-    out[1] = a2[1] * b2;
-    out[2] = a2[2] * b2;
-    out[3] = a2[3] * b2;
-    out[4] = a2[4] * b2;
-    out[5] = a2[5] * b2;
-    out[6] = a2[6] * b2;
-    out[7] = a2[7] * b2;
-    out[8] = a2[8] * b2;
-    out[9] = a2[9] * b2;
-    out[10] = a2[10] * b2;
-    out[11] = a2[11] * b2;
-    out[12] = a2[12] * b2;
-    out[13] = a2[13] * b2;
-    out[14] = a2[14] * b2;
-    out[15] = a2[15] * b2;
+  static multiplyScalar(out, a3, b3) {
+    out[0] = a3[0] * b3;
+    out[1] = a3[1] * b3;
+    out[2] = a3[2] * b3;
+    out[3] = a3[3] * b3;
+    out[4] = a3[4] * b3;
+    out[5] = a3[5] * b3;
+    out[6] = a3[6] * b3;
+    out[7] = a3[7] * b3;
+    out[8] = a3[8] * b3;
+    out[9] = a3[9] * b3;
+    out[10] = a3[10] * b3;
+    out[11] = a3[11] * b3;
+    out[12] = a3[12] * b3;
+    out[13] = a3[13] * b3;
+    out[14] = a3[14] * b3;
+    out[15] = a3[15] * b3;
     return out;
   }
   /**
@@ -3045,23 +3045,23 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param scale - the amount to scale b's elements by before adding
    * @returns `out`
    */
-  static multiplyScalarAndAdd(out, a2, b2, scale) {
-    out[0] = a2[0] + b2[0] * scale;
-    out[1] = a2[1] + b2[1] * scale;
-    out[2] = a2[2] + b2[2] * scale;
-    out[3] = a2[3] + b2[3] * scale;
-    out[4] = a2[4] + b2[4] * scale;
-    out[5] = a2[5] + b2[5] * scale;
-    out[6] = a2[6] + b2[6] * scale;
-    out[7] = a2[7] + b2[7] * scale;
-    out[8] = a2[8] + b2[8] * scale;
-    out[9] = a2[9] + b2[9] * scale;
-    out[10] = a2[10] + b2[10] * scale;
-    out[11] = a2[11] + b2[11] * scale;
-    out[12] = a2[12] + b2[12] * scale;
-    out[13] = a2[13] + b2[13] * scale;
-    out[14] = a2[14] + b2[14] * scale;
-    out[15] = a2[15] + b2[15] * scale;
+  static multiplyScalarAndAdd(out, a3, b3, scale) {
+    out[0] = a3[0] + b3[0] * scale;
+    out[1] = a3[1] + b3[1] * scale;
+    out[2] = a3[2] + b3[2] * scale;
+    out[3] = a3[3] + b3[3] * scale;
+    out[4] = a3[4] + b3[4] * scale;
+    out[5] = a3[5] + b3[5] * scale;
+    out[6] = a3[6] + b3[6] * scale;
+    out[7] = a3[7] + b3[7] * scale;
+    out[8] = a3[8] + b3[8] * scale;
+    out[9] = a3[9] + b3[9] * scale;
+    out[10] = a3[10] + b3[10] * scale;
+    out[11] = a3[11] + b3[11] * scale;
+    out[12] = a3[12] + b3[12] * scale;
+    out[13] = a3[13] + b3[13] * scale;
+    out[14] = a3[14] + b3[14] * scale;
+    out[15] = a3[15] + b3[15] * scale;
     return out;
   }
   /**
@@ -3072,8 +3072,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - The second matrix.
    * @returns True if the matrices are equal, false otherwise.
    */
-  static exactEquals(a2, b2) {
-    return a2[0] === b2[0] && a2[1] === b2[1] && a2[2] === b2[2] && a2[3] === b2[3] && a2[4] === b2[4] && a2[5] === b2[5] && a2[6] === b2[6] && a2[7] === b2[7] && a2[8] === b2[8] && a2[9] === b2[9] && a2[10] === b2[10] && a2[11] === b2[11] && a2[12] === b2[12] && a2[13] === b2[13] && a2[14] === b2[14] && a2[15] === b2[15];
+  static exactEquals(a3, b3) {
+    return a3[0] === b3[0] && a3[1] === b3[1] && a3[2] === b3[2] && a3[3] === b3[3] && a3[4] === b3[4] && a3[5] === b3[5] && a3[6] === b3[6] && a3[7] === b3[7] && a3[8] === b3[8] && a3[9] === b3[9] && a3[10] === b3[10] && a3[11] === b3[11] && a3[12] === b3[12] && a3[13] === b3[13] && a3[14] === b3[14] && a3[15] === b3[15];
   }
   /**
    * Returns whether or not two {@link Mat4}s have approximately the same elements in the same position.
@@ -3083,40 +3083,40 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param b - The second matrix.
    * @returns True if the matrices are equal, false otherwise.
    */
-  static equals(a2, b2) {
-    const a0 = a2[0];
-    const a1 = a2[1];
-    const a22 = a2[2];
-    const a3 = a2[3];
-    const a4 = a2[4];
-    const a5 = a2[5];
-    const a6 = a2[6];
-    const a7 = a2[7];
-    const a8 = a2[8];
-    const a9 = a2[9];
-    const a10 = a2[10];
-    const a11 = a2[11];
-    const a12 = a2[12];
-    const a13 = a2[13];
-    const a14 = a2[14];
-    const a15 = a2[15];
-    const b0 = b2[0];
-    const b1 = b2[1];
-    const b22 = b2[2];
-    const b3 = b2[3];
-    const b4 = b2[4];
-    const b5 = b2[5];
-    const b6 = b2[6];
-    const b7 = b2[7];
-    const b8 = b2[8];
-    const b9 = b2[9];
-    const b10 = b2[10];
-    const b11 = b2[11];
-    const b12 = b2[12];
-    const b13 = b2[13];
-    const b14 = b2[14];
-    const b15 = b2[15];
-    return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22)) && Math.abs(a3 - b3) <= EPSILON * Math.max(1, Math.abs(a3), Math.abs(b3)) && Math.abs(a4 - b4) <= EPSILON * Math.max(1, Math.abs(a4), Math.abs(b4)) && Math.abs(a5 - b5) <= EPSILON * Math.max(1, Math.abs(a5), Math.abs(b5)) && Math.abs(a6 - b6) <= EPSILON * Math.max(1, Math.abs(a6), Math.abs(b6)) && Math.abs(a7 - b7) <= EPSILON * Math.max(1, Math.abs(a7), Math.abs(b7)) && Math.abs(a8 - b8) <= EPSILON * Math.max(1, Math.abs(a8), Math.abs(b8)) && Math.abs(a9 - b9) <= EPSILON * Math.max(1, Math.abs(a9), Math.abs(b9)) && Math.abs(a10 - b10) <= EPSILON * Math.max(1, Math.abs(a10), Math.abs(b10)) && Math.abs(a11 - b11) <= EPSILON * Math.max(1, Math.abs(a11), Math.abs(b11)) && Math.abs(a12 - b12) <= EPSILON * Math.max(1, Math.abs(a12), Math.abs(b12)) && Math.abs(a13 - b13) <= EPSILON * Math.max(1, Math.abs(a13), Math.abs(b13)) && Math.abs(a14 - b14) <= EPSILON * Math.max(1, Math.abs(a14), Math.abs(b14)) && Math.abs(a15 - b15) <= EPSILON * Math.max(1, Math.abs(a15), Math.abs(b15));
+  static equals(a3, b3) {
+    const a0 = a3[0];
+    const a1 = a3[1];
+    const a22 = a3[2];
+    const a32 = a3[3];
+    const a4 = a3[4];
+    const a5 = a3[5];
+    const a6 = a3[6];
+    const a7 = a3[7];
+    const a8 = a3[8];
+    const a9 = a3[9];
+    const a10 = a3[10];
+    const a11 = a3[11];
+    const a12 = a3[12];
+    const a13 = a3[13];
+    const a14 = a3[14];
+    const a15 = a3[15];
+    const b0 = b3[0];
+    const b1 = b3[1];
+    const b22 = b3[2];
+    const b32 = b3[3];
+    const b4 = b3[4];
+    const b5 = b3[5];
+    const b6 = b3[6];
+    const b7 = b3[7];
+    const b8 = b3[8];
+    const b9 = b3[9];
+    const b10 = b3[10];
+    const b11 = b3[11];
+    const b12 = b3[12];
+    const b13 = b3[13];
+    const b14 = b3[14];
+    const b15 = b3[15];
+    return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22)) && Math.abs(a32 - b32) <= EPSILON * Math.max(1, Math.abs(a32), Math.abs(b32)) && Math.abs(a4 - b4) <= EPSILON * Math.max(1, Math.abs(a4), Math.abs(b4)) && Math.abs(a5 - b5) <= EPSILON * Math.max(1, Math.abs(a5), Math.abs(b5)) && Math.abs(a6 - b6) <= EPSILON * Math.max(1, Math.abs(a6), Math.abs(b6)) && Math.abs(a7 - b7) <= EPSILON * Math.max(1, Math.abs(a7), Math.abs(b7)) && Math.abs(a8 - b8) <= EPSILON * Math.max(1, Math.abs(a8), Math.abs(b8)) && Math.abs(a9 - b9) <= EPSILON * Math.max(1, Math.abs(a9), Math.abs(b9)) && Math.abs(a10 - b10) <= EPSILON * Math.max(1, Math.abs(a10), Math.abs(b10)) && Math.abs(a11 - b11) <= EPSILON * Math.max(1, Math.abs(a11), Math.abs(b11)) && Math.abs(a12 - b12) <= EPSILON * Math.max(1, Math.abs(a12), Math.abs(b12)) && Math.abs(a13 - b13) <= EPSILON * Math.max(1, Math.abs(a13), Math.abs(b13)) && Math.abs(a14 - b14) <= EPSILON * Math.max(1, Math.abs(a14), Math.abs(b14)) && Math.abs(a15 - b15) <= EPSILON * Math.max(1, Math.abs(a15), Math.abs(b15));
   }
   /**
    * Returns a string representation of a {@link Mat4}
@@ -3125,8 +3125,8 @@ var Mat4 = class _Mat4 extends Float32Array {
    * @param a - matrix to represent as a string
    * @returns string representation of the matrix
    */
-  static str(a2) {
-    return `Mat4(${a2.join(", ")})`;
+  static str(a3) {
+    return `Mat4(${a3.join(", ")})`;
   }
 };
 var tmpVec3 = new Float32Array(3);
@@ -3158,11 +3158,11 @@ var Vec3 = class _Vec3 extends Float32Array {
         super(values[0], values[1], 3);
         break;
       case 1: {
-        const v2 = values[0];
-        if (typeof v2 === "number") {
-          super([v2, v2, v2]);
+        const v3 = values[0];
+        if (typeof v3 === "number") {
+          super([v3, v3, v3]);
         } else {
-          super(v2, 0, 3);
+          super(v3, 0, 3);
         }
         break;
       }
@@ -3246,10 +3246,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * TypedArrays to mean the number of elements in the array.
    */
   get magnitude() {
-    const x2 = this[0];
-    const y2 = this[1];
-    const z2 = this[2];
-    return Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
+    const x3 = this[0];
+    const y3 = this[1];
+    const z3 = this[2];
+    return Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
   }
   /**
    * Alias for {@link Vec3.magnitude}
@@ -3262,10 +3262,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * Equivalent to `Vec3.squaredMagnitude(this);`
    */
   get squaredMagnitude() {
-    const x2 = this[0];
-    const y2 = this[1];
-    const z2 = this[2];
-    return x2 * x2 + y2 * y2 + z2 * z2;
+    const x3 = this[0];
+    const y3 = this[1];
+    const z3 = this[2];
+    return x3 * x3 + y3 * y3 + z3 * z3;
   }
   /**
    * Alias for {@link Vec3.squaredMagnitude}
@@ -3289,8 +3289,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a the source vector
    * @returns `this`
    */
-  copy(a2) {
-    this.set(a2);
+  copy(a3) {
+    this.set(a3);
     return this;
   }
   /**
@@ -3300,10 +3300,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The vector to add to `this`
    * @returns `this`
    */
-  add(b2) {
-    this[0] += b2[0];
-    this[1] += b2[1];
-    this[2] += b2[2];
+  add(b3) {
+    this[0] += b3[0];
+    this[1] += b3[1];
+    this[2] += b3[2];
     return this;
   }
   /**
@@ -3313,16 +3313,16 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The vector to subtract from `this`
    * @returns `this`
    */
-  subtract(b2) {
-    this[0] -= b2[0];
-    this[1] -= b2[1];
-    this[2] -= b2[2];
+  subtract(b3) {
+    this[0] -= b3[0];
+    this[1] -= b3[1];
+    this[2] -= b3[2];
     return this;
   }
   /**
    * Alias for {@link Vec3.subtract}
    */
-  sub(b2) {
+  sub(b3) {
     return this;
   }
   /**
@@ -3332,16 +3332,16 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The vector to multiply `this` by
    * @returns `this`
    */
-  multiply(b2) {
-    this[0] *= b2[0];
-    this[1] *= b2[1];
-    this[2] *= b2[2];
+  multiply(b3) {
+    this[0] *= b3[0];
+    this[1] *= b3[1];
+    this[2] *= b3[2];
     return this;
   }
   /**
    * Alias for {@link Vec3.multiply}
    */
-  mul(b2) {
+  mul(b3) {
     return this;
   }
   /**
@@ -3351,16 +3351,16 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The vector to divide `this` by
    * @returns `this`
    */
-  divide(b2) {
-    this[0] /= b2[0];
-    this[1] /= b2[1];
-    this[2] /= b2[2];
+  divide(b3) {
+    this[0] /= b3[0];
+    this[1] /= b3[1];
+    this[2] /= b3[2];
     return this;
   }
   /**
    * Alias for {@link Vec3.divide}
    */
-  div(b2) {
+  div(b3) {
     return this;
   }
   /**
@@ -3370,10 +3370,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - Amount to scale `this` by
    * @returns `this`
    */
-  scale(b2) {
-    this[0] *= b2;
-    this[1] *= b2;
-    this[2] *= b2;
+  scale(b3) {
+    this[0] *= b3;
+    this[1] *= b3;
+    this[2] *= b3;
     return this;
   }
   /**
@@ -3384,10 +3384,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param scale - The amount to scale `b` by before adding
    * @returns `this`
    */
-  scaleAndAdd(b2, scale) {
-    this[0] += b2[0] * scale;
-    this[1] += b2[1] * scale;
-    this[2] += b2[2] * scale;
+  scaleAndAdd(b3, scale) {
+    this[0] += b3[0] * scale;
+    this[1] += b3[1] * scale;
+    this[2] += b3[2] * scale;
     return this;
   }
   /**
@@ -3397,13 +3397,13 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The vector to calculate the distance to
    * @returns Distance between `this` and `b`
    */
-  distance(b2) {
-    return _Vec3.distance(this, b2);
+  distance(b3) {
+    return _Vec3.distance(this, b3);
   }
   /**
    * Alias for {@link Vec3.distance}
    */
-  dist(b2) {
+  dist(b3) {
     return 0;
   }
   /**
@@ -3413,13 +3413,13 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b The vector to calculate the squared distance to
    * @returns Squared distance between `this` and `b`
    */
-  squaredDistance(b2) {
-    return _Vec3.squaredDistance(this, b2);
+  squaredDistance(b3) {
+    return _Vec3.squaredDistance(this, b3);
   }
   /**
    * Alias for {@link Vec3.squaredDistance}
    */
-  sqrDist(b2) {
+  sqrDist(b3) {
     return 0;
   }
   /**
@@ -3465,8 +3465,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The second operand
    * @returns Dot product of `this` and `b`
    */
-  dot(b2) {
-    return this[0] * b2[0] + this[1] * b2[1] + this[2] * b2[2];
+  dot(b3) {
+    return this[0] * b3[0] + this[1] * b3[1] + this[2] * b3[2];
   }
   /**
    * Normalize `this`.
@@ -3496,8 +3496,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to clone
    * @returns a new 3D vector
    */
-  static clone(a2) {
-    return new _Vec3(a2);
+  static clone(a3) {
+    return new _Vec3(a3);
   }
   /**
    * Calculates the magnitude (length) of a {@link Vec3}
@@ -3506,17 +3506,17 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - Vector to calculate magnitude of
    * @returns Magnitude of a
    */
-  static magnitude(a2) {
-    let x2 = a2[0];
-    let y2 = a2[1];
-    let z2 = a2[2];
-    return Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
+  static magnitude(a3) {
+    let x3 = a3[0];
+    let y3 = a3[1];
+    let z3 = a3[2];
+    return Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
   }
   /**
    * Alias for {@link Vec3.magnitude}
    * @category Static
    */
-  static mag(a2) {
+  static mag(a3) {
     return 0;
   }
   /**
@@ -3528,7 +3528,7 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @returns length of a
    */
   // @ts-ignore: Length conflicts with Function.length
-  static length(a2) {
+  static length(a3) {
     return 0;
   }
   /**
@@ -3536,7 +3536,7 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @category Static
    * @deprecated Use {@link Vec3.mag}
    */
-  static len(a2) {
+  static len(a3) {
     return 0;
   }
   /**
@@ -3548,8 +3548,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param z - Z component
    * @returns a new 3D vector
    */
-  static fromValues(x2, y2, z2) {
-    return new _Vec3(x2, y2, z2);
+  static fromValues(x3, y3, z3) {
+    return new _Vec3(x3, y3, z3);
   }
   /**
    * Copy the values from one vec3 to another
@@ -3559,10 +3559,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - the source vector
    * @returns `out`
    */
-  static copy(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
-    out[2] = a2[2];
+  static copy(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
+    out[2] = a3[2];
     return out;
   }
   /**
@@ -3575,10 +3575,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param z - Z component
    * @returns `out`
    */
-  static set(out, x2, y2, z2) {
-    out[0] = x2;
-    out[1] = y2;
-    out[2] = z2;
+  static set(out, x3, y3, z3) {
+    out[0] = x3;
+    out[1] = y3;
+    out[2] = z3;
     return out;
   }
   /**
@@ -3590,10 +3590,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static add(out, a2, b2) {
-    out[0] = a2[0] + b2[0];
-    out[1] = a2[1] + b2[1];
-    out[2] = a2[2] + b2[2];
+  static add(out, a3, b3) {
+    out[0] = a3[0] + b3[0];
+    out[1] = a3[1] + b3[1];
+    out[2] = a3[2] + b3[2];
     return out;
   }
   /**
@@ -3605,17 +3605,17 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static subtract(out, a2, b2) {
-    out[0] = a2[0] - b2[0];
-    out[1] = a2[1] - b2[1];
-    out[2] = a2[2] - b2[2];
+  static subtract(out, a3, b3) {
+    out[0] = a3[0] - b3[0];
+    out[1] = a3[1] - b3[1];
+    out[2] = a3[2] - b3[2];
     return out;
   }
   /**
    * Alias for {@link Vec3.subtract}
    * @category Static
    */
-  static sub(out, a2, b2) {
+  static sub(out, a3, b3) {
     return [0, 0, 0];
   }
   /**
@@ -3627,17 +3627,17 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static multiply(out, a2, b2) {
-    out[0] = a2[0] * b2[0];
-    out[1] = a2[1] * b2[1];
-    out[2] = a2[2] * b2[2];
+  static multiply(out, a3, b3) {
+    out[0] = a3[0] * b3[0];
+    out[1] = a3[1] * b3[1];
+    out[2] = a3[2] * b3[2];
     return out;
   }
   /**
    * Alias for {@link Vec3.multiply}
    * @category Static
    */
-  static mul(out, a2, b2) {
+  static mul(out, a3, b3) {
     return [0, 0, 0];
   }
   /**
@@ -3649,17 +3649,17 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static divide(out, a2, b2) {
-    out[0] = a2[0] / b2[0];
-    out[1] = a2[1] / b2[1];
-    out[2] = a2[2] / b2[2];
+  static divide(out, a3, b3) {
+    out[0] = a3[0] / b3[0];
+    out[1] = a3[1] / b3[1];
+    out[2] = a3[2] / b3[2];
     return out;
   }
   /**
    * Alias for {@link Vec3.divide}
    * @category Static
    */
-  static div(out, a2, b2) {
+  static div(out, a3, b3) {
     return [0, 0, 0];
   }
   /**
@@ -3670,10 +3670,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to ceil
    * @returns `out`
    */
-  static ceil(out, a2) {
-    out[0] = Math.ceil(a2[0]);
-    out[1] = Math.ceil(a2[1]);
-    out[2] = Math.ceil(a2[2]);
+  static ceil(out, a3) {
+    out[0] = Math.ceil(a3[0]);
+    out[1] = Math.ceil(a3[1]);
+    out[2] = Math.ceil(a3[2]);
     return out;
   }
   /**
@@ -3684,10 +3684,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to floor
    * @returns `out`
    */
-  static floor(out, a2) {
-    out[0] = Math.floor(a2[0]);
-    out[1] = Math.floor(a2[1]);
-    out[2] = Math.floor(a2[2]);
+  static floor(out, a3) {
+    out[0] = Math.floor(a3[0]);
+    out[1] = Math.floor(a3[1]);
+    out[2] = Math.floor(a3[2]);
     return out;
   }
   /**
@@ -3699,10 +3699,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static min(out, a2, b2) {
-    out[0] = Math.min(a2[0], b2[0]);
-    out[1] = Math.min(a2[1], b2[1]);
-    out[2] = Math.min(a2[2], b2[2]);
+  static min(out, a3, b3) {
+    out[0] = Math.min(a3[0], b3[0]);
+    out[1] = Math.min(a3[1], b3[1]);
+    out[2] = Math.min(a3[2], b3[2]);
     return out;
   }
   /**
@@ -3714,10 +3714,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static max(out, a2, b2) {
-    out[0] = Math.max(a2[0], b2[0]);
-    out[1] = Math.max(a2[1], b2[1]);
-    out[2] = Math.max(a2[2], b2[2]);
+  static max(out, a3, b3) {
+    out[0] = Math.max(a3[0], b3[0]);
+    out[1] = Math.max(a3[1], b3[1]);
+    out[2] = Math.max(a3[2], b3[2]);
     return out;
   }
   /**
@@ -3743,10 +3743,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param scale - amount to scale the vector by
    * @returns `out`
    */
-  static scale(out, a2, scale) {
-    out[0] = a2[0] * scale;
-    out[1] = a2[1] * scale;
-    out[2] = a2[2] * scale;
+  static scale(out, a3, scale) {
+    out[0] = a3[0] * scale;
+    out[1] = a3[1] * scale;
+    out[2] = a3[2] * scale;
     return out;
   }
   /**
@@ -3759,10 +3759,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param scale - the amount to scale b by before adding
    * @returns `out`
    */
-  static scaleAndAdd(out, a2, b2, scale) {
-    out[0] = a2[0] + b2[0] * scale;
-    out[1] = a2[1] + b2[1] * scale;
-    out[2] = a2[2] + b2[2] * scale;
+  static scaleAndAdd(out, a3, b3, scale) {
+    out[0] = a3[0] + b3[0] * scale;
+    out[1] = a3[1] + b3[1] * scale;
+    out[2] = a3[2] + b3[2] * scale;
     return out;
   }
   /**
@@ -3773,16 +3773,16 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns distance between a and b
    */
-  static distance(a2, b2) {
-    const x2 = b2[0] - a2[0];
-    const y2 = b2[1] - a2[1];
-    const z2 = b2[2] - a2[2];
-    return Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
+  static distance(a3, b3) {
+    const x3 = b3[0] - a3[0];
+    const y3 = b3[1] - a3[1];
+    const z3 = b3[2] - a3[2];
+    return Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
   }
   /**
    * Alias for {@link Vec3.distance}
    */
-  static dist(a2, b2) {
+  static dist(a3, b3) {
     return 0;
   }
   /**
@@ -3793,16 +3793,16 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns squared distance between a and b
    */
-  static squaredDistance(a2, b2) {
-    const x2 = b2[0] - a2[0];
-    const y2 = b2[1] - a2[1];
-    const z2 = b2[2] - a2[2];
-    return x2 * x2 + y2 * y2 + z2 * z2;
+  static squaredDistance(a3, b3) {
+    const x3 = b3[0] - a3[0];
+    const y3 = b3[1] - a3[1];
+    const z3 = b3[2] - a3[2];
+    return x3 * x3 + y3 * y3 + z3 * z3;
   }
   /**
    * Alias for {@link Vec3.squaredDistance}
    */
-  static sqrDist(a2, b2) {
+  static sqrDist(a3, b3) {
     return 0;
   }
   /**
@@ -3812,16 +3812,16 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to calculate squared length of
    * @returns squared length of a
    */
-  static squaredLength(a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    return x2 * x2 + y2 * y2 + z2 * z2;
+  static squaredLength(a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    return x3 * x3 + y3 * y3 + z3 * z3;
   }
   /**
    * Alias for {@link Vec3.squaredLength}
    */
-  static sqrLen(a2, b2) {
+  static sqrLen(a3, b3) {
     return 0;
   }
   /**
@@ -3832,10 +3832,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to negate
    * @returns `out`
    */
-  static negate(out, a2) {
-    out[0] = -a2[0];
-    out[1] = -a2[1];
-    out[2] = -a2[2];
+  static negate(out, a3) {
+    out[0] = -a3[0];
+    out[1] = -a3[1];
+    out[2] = -a3[2];
     return out;
   }
   /**
@@ -3846,10 +3846,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to invert
    * @returns `out`
    */
-  static inverse(out, a2) {
-    out[0] = 1 / a2[0];
-    out[1] = 1 / a2[1];
-    out[2] = 1 / a2[2];
+  static inverse(out, a3) {
+    out[0] = 1 / a3[0];
+    out[1] = 1 / a3[1];
+    out[2] = 1 / a3[2];
     return out;
   }
   /**
@@ -3860,10 +3860,10 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - Vector to compute the absolute values of
    * @returns `out`
    */
-  static abs(out, a2) {
-    out[0] = Math.abs(a2[0]);
-    out[1] = Math.abs(a2[1]);
-    out[2] = Math.abs(a2[2]);
+  static abs(out, a3) {
+    out[0] = Math.abs(a3[0]);
+    out[1] = Math.abs(a3[1]);
+    out[2] = Math.abs(a3[2]);
     return out;
   }
   /**
@@ -3874,17 +3874,17 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to normalize
    * @returns `out`
    */
-  static normalize(out, a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    let len = x2 * x2 + y2 * y2 + z2 * z2;
+  static normalize(out, a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    let len = x3 * x3 + y3 * y3 + z3 * z3;
     if (len > 0) {
       len = 1 / Math.sqrt(len);
     }
-    out[0] = a2[0] * len;
-    out[1] = a2[1] * len;
-    out[2] = a2[2] * len;
+    out[0] = a3[0] * len;
+    out[1] = a3[1] * len;
+    out[2] = a3[2] * len;
     return out;
   }
   /**
@@ -3895,8 +3895,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns dot product of a and b
    */
-  static dot(a2, b2) {
-    return a2[0] * b2[0] + a2[1] * b2[1] + a2[2] * b2[2];
+  static dot(a3, b3) {
+    return a3[0] * b3[0] + a3[1] * b3[1] + a3[2] * b3[2];
   }
   /**
    * Computes the cross product of two vec3's
@@ -3907,9 +3907,9 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static cross(out, a2, b2) {
-    const ax = a2[0], ay = a2[1], az = a2[2];
-    const bx = b2[0], by = b2[1], bz = b2[2];
+  static cross(out, a3, b3) {
+    const ax = a3[0], ay = a3[1], az = a3[2];
+    const bx = b3[0], by = b3[1], bz = b3[2];
     out[0] = ay * bz - az * by;
     out[1] = az * bx - ax * bz;
     out[2] = ax * by - ay * bx;
@@ -3925,13 +3925,13 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static lerp(out, a2, b2, t2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    out[0] = ax + t2 * (b2[0] - ax);
-    out[1] = ay + t2 * (b2[1] - ay);
-    out[2] = az + t2 * (b2[2] - az);
+  static lerp(out, a3, b3, t3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    out[0] = ax + t3 * (b3[0] - ax);
+    out[1] = ay + t3 * (b3[1] - ay);
+    out[2] = az + t3 * (b3[2] - az);
     return out;
   }
   /**
@@ -3944,14 +3944,14 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static slerp(out, a2, b2, t2) {
-    const angle = Math.acos(Math.min(Math.max(_Vec3.dot(a2, b2), -1), 1));
+  static slerp(out, a3, b3, t3) {
+    const angle = Math.acos(Math.min(Math.max(_Vec3.dot(a3, b3), -1), 1));
     const sinTotal = Math.sin(angle);
-    const ratioA = Math.sin((1 - t2) * angle) / sinTotal;
-    const ratioB = Math.sin(t2 * angle) / sinTotal;
-    out[0] = ratioA * a2[0] + ratioB * b2[0];
-    out[1] = ratioA * a2[1] + ratioB * b2[1];
-    out[2] = ratioA * a2[2] + ratioB * b2[2];
+    const ratioA = Math.sin((1 - t3) * angle) / sinTotal;
+    const ratioB = Math.sin(t3 * angle) / sinTotal;
+    out[0] = ratioA * a3[0] + ratioB * b3[0];
+    out[1] = ratioA * a3[1] + ratioB * b3[1];
+    out[2] = ratioA * a3[2] + ratioB * b3[2];
     return out;
   }
   /**
@@ -3966,15 +3966,15 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static hermite(out, a2, b2, c2, d2, t2) {
-    const factorTimes2 = t2 * t2;
-    const factor1 = factorTimes2 * (2 * t2 - 3) + 1;
-    const factor2 = factorTimes2 * (t2 - 2) + t2;
-    const factor3 = factorTimes2 * (t2 - 1);
-    const factor4 = factorTimes2 * (3 - 2 * t2);
-    out[0] = a2[0] * factor1 + b2[0] * factor2 + c2[0] * factor3 + d2[0] * factor4;
-    out[1] = a2[1] * factor1 + b2[1] * factor2 + c2[1] * factor3 + d2[1] * factor4;
-    out[2] = a2[2] * factor1 + b2[2] * factor2 + c2[2] * factor3 + d2[2] * factor4;
+  static hermite(out, a3, b3, c3, d3, t3) {
+    const factorTimes2 = t3 * t3;
+    const factor1 = factorTimes2 * (2 * t3 - 3) + 1;
+    const factor2 = factorTimes2 * (t3 - 2) + t3;
+    const factor3 = factorTimes2 * (t3 - 1);
+    const factor4 = factorTimes2 * (3 - 2 * t3);
+    out[0] = a3[0] * factor1 + b3[0] * factor2 + c3[0] * factor3 + d3[0] * factor4;
+    out[1] = a3[1] * factor1 + b3[1] * factor2 + c3[1] * factor3 + d3[1] * factor4;
+    out[2] = a3[2] * factor1 + b3[2] * factor2 + c3[2] * factor3 + d3[2] * factor4;
     return out;
   }
   /**
@@ -3989,17 +3989,17 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static bezier(out, a2, b2, c2, d2, t2) {
-    const inverseFactor = 1 - t2;
+  static bezier(out, a3, b3, c3, d3, t3) {
+    const inverseFactor = 1 - t3;
     const inverseFactorTimesTwo = inverseFactor * inverseFactor;
-    const factorTimes2 = t2 * t2;
+    const factorTimes2 = t3 * t3;
     const factor1 = inverseFactorTimesTwo * inverseFactor;
-    const factor2 = 3 * t2 * inverseFactorTimesTwo;
+    const factor2 = 3 * t3 * inverseFactorTimesTwo;
     const factor3 = 3 * factorTimes2 * inverseFactor;
-    const factor4 = factorTimes2 * t2;
-    out[0] = a2[0] * factor1 + b2[0] * factor2 + c2[0] * factor3 + d2[0] * factor4;
-    out[1] = a2[1] * factor1 + b2[1] * factor2 + c2[1] * factor3 + d2[1] * factor4;
-    out[2] = a2[2] * factor1 + b2[2] * factor2 + c2[2] * factor3 + d2[2] * factor4;
+    const factor4 = factorTimes2 * t3;
+    out[0] = a3[0] * factor1 + b3[0] * factor2 + c3[0] * factor3 + d3[0] * factor4;
+    out[1] = a3[1] * factor1 + b3[1] * factor2 + c3[1] * factor3 + d3[1] * factor4;
+    out[2] = a3[2] * factor1 + b3[2] * factor2 + c3[2] * factor3 + d3[2] * factor4;
     return out;
   }
   /**
@@ -4032,12 +4032,12 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param m - matrix to transform with
    * @returns `out`
    */
-  static transformMat4(out, a2, m2) {
-    const x2 = a2[0], y2 = a2[1], z2 = a2[2];
-    const w2 = m2[3] * x2 + m2[7] * y2 + m2[11] * z2 + m2[15] || 1;
-    out[0] = (m2[0] * x2 + m2[4] * y2 + m2[8] * z2 + m2[12]) / w2;
-    out[1] = (m2[1] * x2 + m2[5] * y2 + m2[9] * z2 + m2[13]) / w2;
-    out[2] = (m2[2] * x2 + m2[6] * y2 + m2[10] * z2 + m2[14]) / w2;
+  static transformMat4(out, a3, m3) {
+    const x3 = a3[0], y3 = a3[1], z3 = a3[2];
+    const w3 = m3[3] * x3 + m3[7] * y3 + m3[11] * z3 + m3[15] || 1;
+    out[0] = (m3[0] * x3 + m3[4] * y3 + m3[8] * z3 + m3[12]) / w3;
+    out[1] = (m3[1] * x3 + m3[5] * y3 + m3[9] * z3 + m3[13]) / w3;
+    out[2] = (m3[2] * x3 + m3[6] * y3 + m3[10] * z3 + m3[14]) / w3;
     return out;
   }
   /**
@@ -4049,11 +4049,11 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param m - the 3x3 matrix to transform with
    * @returns `out`
    */
-  static transformMat3(out, a2, m2) {
-    let x2 = a2[0], y2 = a2[1], z2 = a2[2];
-    out[0] = x2 * m2[0] + y2 * m2[3] + z2 * m2[6];
-    out[1] = x2 * m2[1] + y2 * m2[4] + z2 * m2[7];
-    out[2] = x2 * m2[2] + y2 * m2[5] + z2 * m2[8];
+  static transformMat3(out, a3, m3) {
+    let x3 = a3[0], y3 = a3[1], z3 = a3[2];
+    out[0] = x3 * m3[0] + y3 * m3[3] + z3 * m3[6];
+    out[1] = x3 * m3[1] + y3 * m3[4] + z3 * m3[7];
+    out[2] = x3 * m3[2] + y3 * m3[5] + z3 * m3[8];
     return out;
   }
   /**
@@ -4066,23 +4066,23 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param q - quaternion to transform with
    * @returns `out`
    */
-  static transformQuat(out, a2, q2) {
+  static transformQuat(out, a3, q2) {
     const qx = q2[0];
     const qy = q2[1];
     const qz = q2[2];
-    const w2 = q2[3] * 2;
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    const uvx = qy * z2 - qz * y2;
-    const uvy = qz * x2 - qx * z2;
-    const uvz = qx * y2 - qy * x2;
+    const w22 = q2[3] * 2;
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    const uvx = qy * z3 - qz * y3;
+    const uvy = qz * x3 - qx * z3;
+    const uvz = qx * y3 - qy * x3;
     const uuvx = (qy * uvz - qz * uvy) * 2;
     const uuvy = (qz * uvx - qx * uvz) * 2;
     const uuvz = (qx * uvy - qy * uvx) * 2;
-    out[0] = x2 + uvx * w2 + uuvx;
-    out[1] = y2 + uvy * w2 + uuvy;
-    out[2] = z2 + uvz * w2 + uuvz;
+    out[0] = x3 + uvx * w22 + uuvx;
+    out[1] = y3 + uvy * w22 + uuvy;
+    out[2] = z3 + uvz * w22 + uuvz;
     return out;
   }
   /**
@@ -4093,12 +4093,12 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param rad - The angle of rotation in radians
    * @returns `out`
    */
-  static rotateX(out, a2, b2, rad) {
-    const by = b2[1];
-    const bz = b2[2];
-    const py = a2[1] - by;
-    const pz = a2[2] - bz;
-    out[0] = a2[0];
+  static rotateX(out, a3, b3, rad) {
+    const by = b3[1];
+    const bz = b3[2];
+    const py = a3[1] - by;
+    const pz = a3[2] - bz;
+    out[0] = a3[0];
     out[1] = py * Math.cos(rad) - pz * Math.sin(rad) + by;
     out[2] = py * Math.sin(rad) + pz * Math.cos(rad) + bz;
     return out;
@@ -4111,13 +4111,13 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param rad - The angle of rotation in radians
    * @returns `out`
    */
-  static rotateY(out, a2, b2, rad) {
-    const bx = b2[0];
-    const bz = b2[2];
-    const px = a2[0] - bx;
-    const pz = a2[2] - bz;
+  static rotateY(out, a3, b3, rad) {
+    const bx = b3[0];
+    const bz = b3[2];
+    const px = a3[0] - bx;
+    const pz = a3[2] - bz;
     out[0] = pz * Math.sin(rad) + px * Math.cos(rad) + bx;
-    out[1] = a2[1];
+    out[1] = a3[1];
     out[2] = pz * Math.cos(rad) - px * Math.sin(rad) + bz;
     return out;
   }
@@ -4129,14 +4129,14 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param rad - The angle of rotation in radians
    * @returns `out`
    */
-  static rotateZ(out, a2, b2, rad) {
-    const bx = b2[0];
-    const by = b2[1];
-    const px = a2[0] - bx;
-    const py = a2[1] - by;
+  static rotateZ(out, a3, b3, rad) {
+    const bx = b3[0];
+    const by = b3[1];
+    const px = a3[0] - bx;
+    const py = a3[1] - by;
     out[0] = px * Math.cos(rad) - py * Math.sin(rad) + bx;
     out[1] = px * Math.sin(rad) + py * Math.cos(rad) + by;
-    out[2] = b2[2];
+    out[2] = b3[2];
     return out;
   }
   /**
@@ -4145,15 +4145,15 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The second operand
    * @returns The angle in radians
    */
-  static angle(a2, b2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const bx = b2[0];
-    const by = b2[1];
-    const bz = b2[2];
+  static angle(a3, b3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const bx = b3[0];
+    const by = b3[1];
+    const bz = b3[2];
     const mag = Math.sqrt((ax * ax + ay * ay + az * az) * (bx * bx + by * by + bz * bz));
-    const cosine = mag && _Vec3.dot(a2, b2) / mag;
+    const cosine = mag && _Vec3.dot(a3, b3) / mag;
     return Math.acos(Math.min(Math.max(cosine, -1), 1));
   }
   /**
@@ -4176,8 +4176,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param a - vector to represent as a string
    * @returns string representation of the vector
    */
-  static str(a2) {
-    return `Vec3(${a2.join(", ")})`;
+  static str(a3) {
+    return `Vec3(${a3.join(", ")})`;
   }
   /**
    * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
@@ -4187,8 +4187,8 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The second vector.
    * @returns True if the vectors are equal, false otherwise.
    */
-  static exactEquals(a2, b2) {
-    return a2[0] === b2[0] && a2[1] === b2[1] && a2[2] === b2[2];
+  static exactEquals(a3, b3) {
+    return a3[0] === b3[0] && a3[1] === b3[1] && a3[2] === b3[2];
   }
   /**
    * Returns whether or not the vectors have approximately the same elements in the same position.
@@ -4198,13 +4198,13 @@ var Vec3 = class _Vec3 extends Float32Array {
    * @param b - The second vector.
    * @returns True if the vectors are equal, false otherwise.
    */
-  static equals(a2, b2) {
-    const a0 = a2[0];
-    const a1 = a2[1];
-    const a22 = a2[2];
-    const b0 = b2[0];
-    const b1 = b2[1];
-    const b22 = b2[2];
+  static equals(a3, b3) {
+    const a0 = a3[0];
+    const a1 = a3[1];
+    const a22 = a3[2];
+    const b0 = b3[0];
+    const b1 = b3[1];
+    const b22 = b3[2];
     return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22));
   }
 };
@@ -4244,11 +4244,11 @@ var Vec4 = class _Vec4 extends Float32Array {
         super(values[0], values[1], 4);
         break;
       case 1: {
-        const v2 = values[0];
-        if (typeof v2 === "number") {
-          super([v2, v2, v2, v2]);
+        const v3 = values[0];
+        if (typeof v3 === "number") {
+          super([v3, v3, v3, v3]);
         } else {
-          super(v2, 0, 4);
+          super(v3, 0, 4);
         }
         break;
       }
@@ -4352,11 +4352,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * TypedArrays to mean the number of elements in the array.
    */
   get magnitude() {
-    const x2 = this[0];
-    const y2 = this[1];
-    const z2 = this[2];
-    const w2 = this[3];
-    return Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2);
+    const x3 = this[0];
+    const y3 = this[1];
+    const z3 = this[2];
+    const w3 = this[3];
+    return Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3);
   }
   /**
    * Alias for {@link Vec4.magnitude}
@@ -4380,8 +4380,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a the source vector
    * @returns `this`
    */
-  copy(a2) {
-    super.set(a2);
+  copy(a3) {
+    super.set(a3);
     return this;
   }
   /**
@@ -4391,11 +4391,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The vector to add to `this`
    * @returns `this`
    */
-  add(b2) {
-    this[0] += b2[0];
-    this[1] += b2[1];
-    this[2] += b2[2];
-    this[3] += b2[3];
+  add(b3) {
+    this[0] += b3[0];
+    this[1] += b3[1];
+    this[2] += b3[2];
+    this[3] += b3[3];
     return this;
   }
   /**
@@ -4405,17 +4405,17 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The vector to subtract from `this`
    * @returns `this`
    */
-  subtract(b2) {
-    this[0] -= b2[0];
-    this[1] -= b2[1];
-    this[2] -= b2[2];
-    this[3] -= b2[3];
+  subtract(b3) {
+    this[0] -= b3[0];
+    this[1] -= b3[1];
+    this[2] -= b3[2];
+    this[3] -= b3[3];
     return this;
   }
   /**
    * Alias for {@link Vec4.subtract}
    */
-  sub(b2) {
+  sub(b3) {
     return this;
   }
   /**
@@ -4425,17 +4425,17 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The vector to multiply `this` by
    * @returns `this`
    */
-  multiply(b2) {
-    this[0] *= b2[0];
-    this[1] *= b2[1];
-    this[2] *= b2[2];
-    this[3] *= b2[3];
+  multiply(b3) {
+    this[0] *= b3[0];
+    this[1] *= b3[1];
+    this[2] *= b3[2];
+    this[3] *= b3[3];
     return this;
   }
   /**
    * Alias for {@link Vec4.multiply}
    */
-  mul(b2) {
+  mul(b3) {
     return this;
   }
   /**
@@ -4445,17 +4445,17 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The vector to divide `this` by
    * @returns `this`
    */
-  divide(b2) {
-    this[0] /= b2[0];
-    this[1] /= b2[1];
-    this[2] /= b2[2];
-    this[3] /= b2[3];
+  divide(b3) {
+    this[0] /= b3[0];
+    this[1] /= b3[1];
+    this[2] /= b3[2];
+    this[3] /= b3[3];
     return this;
   }
   /**
    * Alias for {@link Vec4.divide}
    */
-  div(b2) {
+  div(b3) {
     return this;
   }
   /**
@@ -4465,11 +4465,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - Amount to scale `this` by
    * @returns `this`
    */
-  scale(b2) {
-    this[0] *= b2;
-    this[1] *= b2;
-    this[2] *= b2;
-    this[3] *= b2;
+  scale(b3) {
+    this[0] *= b3;
+    this[1] *= b3;
+    this[2] *= b3;
+    this[3] *= b3;
     return this;
   }
   /**
@@ -4480,11 +4480,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param scale - The amount to scale `b` by before adding
    * @returns `this`
    */
-  scaleAndAdd(b2, scale) {
-    this[0] += b2[0] * scale;
-    this[1] += b2[1] * scale;
-    this[2] += b2[2] * scale;
-    this[3] += b2[3] * scale;
+  scaleAndAdd(b3, scale) {
+    this[0] += b3[0] * scale;
+    this[1] += b3[1] * scale;
+    this[2] += b3[2] * scale;
+    this[3] += b3[3] * scale;
     return this;
   }
   /**
@@ -4494,13 +4494,13 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The vector to calculate the distance to
    * @returns Distance between `this` and `b`
    */
-  distance(b2) {
-    return _Vec4.distance(this, b2);
+  distance(b3) {
+    return _Vec4.distance(this, b3);
   }
   /**
    * Alias for {@link Vec4.distance}
    */
-  dist(b2) {
+  dist(b3) {
     return 0;
   }
   /**
@@ -4510,13 +4510,13 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b The vector to calculate the squared distance to
    * @returns Squared distance between `this` and `b`
    */
-  squaredDistance(b2) {
-    return _Vec4.squaredDistance(this, b2);
+  squaredDistance(b3) {
+    return _Vec4.squaredDistance(this, b3);
   }
   /**
    * Alias for {@link Vec4.squaredDistance}
    */
-  sqrDist(b2) {
+  sqrDist(b3) {
     return 0;
   }
   /**
@@ -4565,8 +4565,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The second operand
    * @returns Dot product of `this` and `b`
    */
-  dot(b2) {
-    return this[0] * b2[0] + this[1] * b2[1] + this[2] * b2[2] + this[3] * b2[3];
+  dot(b3) {
+    return this[0] * b3[0] + this[1] * b3[1] + this[2] * b3[2] + this[3] * b3[3];
   }
   /**
    * Normalize `this`.
@@ -4596,8 +4596,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to clone
    * @returns a new 4D vector
    */
-  static clone(a2) {
-    return new _Vec4(a2);
+  static clone(a3) {
+    return new _Vec4(a3);
   }
   /**
    * Creates a new {@link Vec4} initialized with the given values
@@ -4609,8 +4609,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param w - W component
    * @returns a new 4D vector
    */
-  static fromValues(x2, y2, z2, w2) {
-    return new _Vec4(x2, y2, z2, w2);
+  static fromValues(x3, y3, z3, w3) {
+    return new _Vec4(x3, y3, z3, w3);
   }
   /**
    * Copy the values from one {@link Vec4} to another
@@ -4620,11 +4620,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - the source vector
    * @returns `out`
    */
-  static copy(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
-    out[2] = a2[2];
-    out[3] = a2[3];
+  static copy(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
+    out[2] = a3[2];
+    out[3] = a3[3];
     return out;
   }
   /**
@@ -4638,11 +4638,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param w - W component
    * @returns `out`
    */
-  static set(out, x2, y2, z2, w2) {
-    out[0] = x2;
-    out[1] = y2;
-    out[2] = z2;
-    out[3] = w2;
+  static set(out, x3, y3, z3, w3) {
+    out[0] = x3;
+    out[1] = y3;
+    out[2] = z3;
+    out[3] = w3;
     return out;
   }
   /**
@@ -4654,11 +4654,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static add(out, a2, b2) {
-    out[0] = a2[0] + b2[0];
-    out[1] = a2[1] + b2[1];
-    out[2] = a2[2] + b2[2];
-    out[3] = a2[3] + b2[3];
+  static add(out, a3, b3) {
+    out[0] = a3[0] + b3[0];
+    out[1] = a3[1] + b3[1];
+    out[2] = a3[2] + b3[2];
+    out[3] = a3[3] + b3[3];
     return out;
   }
   /**
@@ -4670,18 +4670,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static subtract(out, a2, b2) {
-    out[0] = a2[0] - b2[0];
-    out[1] = a2[1] - b2[1];
-    out[2] = a2[2] - b2[2];
-    out[3] = a2[3] - b2[3];
+  static subtract(out, a3, b3) {
+    out[0] = a3[0] - b3[0];
+    out[1] = a3[1] - b3[1];
+    out[2] = a3[2] - b3[2];
+    out[3] = a3[3] - b3[3];
     return out;
   }
   /**
    * Alias for {@link Vec4.subtract}
    * @category Static
    */
-  static sub(out, a2, b2) {
+  static sub(out, a3, b3) {
     return out;
   }
   /**
@@ -4693,18 +4693,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static multiply(out, a2, b2) {
-    out[0] = a2[0] * b2[0];
-    out[1] = a2[1] * b2[1];
-    out[2] = a2[2] * b2[2];
-    out[3] = a2[3] * b2[3];
+  static multiply(out, a3, b3) {
+    out[0] = a3[0] * b3[0];
+    out[1] = a3[1] * b3[1];
+    out[2] = a3[2] * b3[2];
+    out[3] = a3[3] * b3[3];
     return out;
   }
   /**
    * Alias for {@link Vec4.multiply}
    * @category Static
    */
-  static mul(out, a2, b2) {
+  static mul(out, a3, b3) {
     return out;
   }
   /**
@@ -4716,18 +4716,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static divide(out, a2, b2) {
-    out[0] = a2[0] / b2[0];
-    out[1] = a2[1] / b2[1];
-    out[2] = a2[2] / b2[2];
-    out[3] = a2[3] / b2[3];
+  static divide(out, a3, b3) {
+    out[0] = a3[0] / b3[0];
+    out[1] = a3[1] / b3[1];
+    out[2] = a3[2] / b3[2];
+    out[3] = a3[3] / b3[3];
     return out;
   }
   /**
    * Alias for {@link Vec4.divide}
    * @category Static
    */
-  static div(out, a2, b2) {
+  static div(out, a3, b3) {
     return out;
   }
   /**
@@ -4738,11 +4738,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to ceil
    * @returns `out`
    */
-  static ceil(out, a2) {
-    out[0] = Math.ceil(a2[0]);
-    out[1] = Math.ceil(a2[1]);
-    out[2] = Math.ceil(a2[2]);
-    out[3] = Math.ceil(a2[3]);
+  static ceil(out, a3) {
+    out[0] = Math.ceil(a3[0]);
+    out[1] = Math.ceil(a3[1]);
+    out[2] = Math.ceil(a3[2]);
+    out[3] = Math.ceil(a3[3]);
     return out;
   }
   /**
@@ -4753,11 +4753,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to floor
    * @returns `out`
    */
-  static floor(out, a2) {
-    out[0] = Math.floor(a2[0]);
-    out[1] = Math.floor(a2[1]);
-    out[2] = Math.floor(a2[2]);
-    out[3] = Math.floor(a2[3]);
+  static floor(out, a3) {
+    out[0] = Math.floor(a3[0]);
+    out[1] = Math.floor(a3[1]);
+    out[2] = Math.floor(a3[2]);
+    out[3] = Math.floor(a3[3]);
     return out;
   }
   /**
@@ -4769,11 +4769,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static min(out, a2, b2) {
-    out[0] = Math.min(a2[0], b2[0]);
-    out[1] = Math.min(a2[1], b2[1]);
-    out[2] = Math.min(a2[2], b2[2]);
-    out[3] = Math.min(a2[3], b2[3]);
+  static min(out, a3, b3) {
+    out[0] = Math.min(a3[0], b3[0]);
+    out[1] = Math.min(a3[1], b3[1]);
+    out[2] = Math.min(a3[2], b3[2]);
+    out[3] = Math.min(a3[3], b3[3]);
     return out;
   }
   /**
@@ -4785,11 +4785,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static max(out, a2, b2) {
-    out[0] = Math.max(a2[0], b2[0]);
-    out[1] = Math.max(a2[1], b2[1]);
-    out[2] = Math.max(a2[2], b2[2]);
-    out[3] = Math.max(a2[3], b2[3]);
+  static max(out, a3, b3) {
+    out[0] = Math.max(a3[0], b3[0]);
+    out[1] = Math.max(a3[1], b3[1]);
+    out[2] = Math.max(a3[2], b3[2]);
+    out[3] = Math.max(a3[3], b3[3]);
     return out;
   }
   /**
@@ -4800,11 +4800,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to round
    * @returns `out`
    */
-  static round(out, a2) {
-    out[0] = Math.round(a2[0]);
-    out[1] = Math.round(a2[1]);
-    out[2] = Math.round(a2[2]);
-    out[3] = Math.round(a2[3]);
+  static round(out, a3) {
+    out[0] = Math.round(a3[0]);
+    out[1] = Math.round(a3[1]);
+    out[2] = Math.round(a3[2]);
+    out[3] = Math.round(a3[3]);
     return out;
   }
   /**
@@ -4816,11 +4816,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param scale - amount to scale the vector by
    * @returns `out`
    */
-  static scale(out, a2, scale) {
-    out[0] = a2[0] * scale;
-    out[1] = a2[1] * scale;
-    out[2] = a2[2] * scale;
-    out[3] = a2[3] * scale;
+  static scale(out, a3, scale) {
+    out[0] = a3[0] * scale;
+    out[1] = a3[1] * scale;
+    out[2] = a3[2] * scale;
+    out[3] = a3[3] * scale;
     return out;
   }
   /**
@@ -4833,11 +4833,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param scale - the amount to scale b by before adding
    * @returns `out`
    */
-  static scaleAndAdd(out, a2, b2, scale) {
-    out[0] = a2[0] + b2[0] * scale;
-    out[1] = a2[1] + b2[1] * scale;
-    out[2] = a2[2] + b2[2] * scale;
-    out[3] = a2[3] + b2[3] * scale;
+  static scaleAndAdd(out, a3, b3, scale) {
+    out[0] = a3[0] + b3[0] * scale;
+    out[1] = a3[1] + b3[1] * scale;
+    out[2] = a3[2] + b3[2] * scale;
+    out[3] = a3[3] + b3[3] * scale;
     return out;
   }
   /**
@@ -4848,18 +4848,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns distance between a and b
    */
-  static distance(a2, b2) {
-    const x2 = b2[0] - a2[0];
-    const y2 = b2[1] - a2[1];
-    const z2 = b2[2] - a2[2];
-    const w2 = b2[3] - a2[3];
-    return Math.hypot(x2, y2, z2, w2);
+  static distance(a3, b3) {
+    const x3 = b3[0] - a3[0];
+    const y3 = b3[1] - a3[1];
+    const z3 = b3[2] - a3[2];
+    const w3 = b3[3] - a3[3];
+    return Math.hypot(x3, y3, z3, w3);
   }
   /**
    * Alias for {@link Vec4.distance}
    * @category Static
    */
-  static dist(a2, b2) {
+  static dist(a3, b3) {
     return 0;
   }
   /**
@@ -4870,18 +4870,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns squared distance between a and b
    */
-  static squaredDistance(a2, b2) {
-    const x2 = b2[0] - a2[0];
-    const y2 = b2[1] - a2[1];
-    const z2 = b2[2] - a2[2];
-    const w2 = b2[3] - a2[3];
-    return x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2;
+  static squaredDistance(a3, b3) {
+    const x3 = b3[0] - a3[0];
+    const y3 = b3[1] - a3[1];
+    const z3 = b3[2] - a3[2];
+    const w3 = b3[3] - a3[3];
+    return x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3;
   }
   /**
    * Alias for {@link Vec4.squaredDistance}
    * @category Static
    */
-  static sqrDist(a2, b2) {
+  static sqrDist(a3, b3) {
     return 0;
   }
   /**
@@ -4891,18 +4891,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to calculate length of
    * @returns length of `a`
    */
-  static magnitude(a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    const w2 = a2[3];
-    return Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2);
+  static magnitude(a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    const w3 = a3[3];
+    return Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3);
   }
   /**
    * Alias for {@link Vec4.magnitude}
    * @category Static
    */
-  static mag(a2) {
+  static mag(a3) {
     return 0;
   }
   /**
@@ -4911,7 +4911,7 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @deprecated Use {@link Vec4.magnitude} to avoid conflicts with builtin `length` methods/attribs
    */
   // @ts-ignore: Length conflicts with Function.length
-  static length(a2) {
+  static length(a3) {
     return 0;
   }
   /**
@@ -4919,7 +4919,7 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @category Static
    * @deprecated Use {@link Vec4.mag}
    */
-  static len(a2) {
+  static len(a3) {
     return 0;
   }
   /**
@@ -4929,18 +4929,18 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to calculate squared length of
    * @returns squared length of a
    */
-  static squaredLength(a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    const w2 = a2[3];
-    return x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2;
+  static squaredLength(a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    const w3 = a3[3];
+    return x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3;
   }
   /**
    * Alias for {@link Vec4.squaredLength}
    * @category Static
    */
-  static sqrLen(a2) {
+  static sqrLen(a3) {
     return 0;
   }
   /**
@@ -4951,11 +4951,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to negate
    * @returns `out`
    */
-  static negate(out, a2) {
-    out[0] = -a2[0];
-    out[1] = -a2[1];
-    out[2] = -a2[2];
-    out[3] = -a2[3];
+  static negate(out, a3) {
+    out[0] = -a3[0];
+    out[1] = -a3[1];
+    out[2] = -a3[2];
+    out[3] = -a3[3];
     return out;
   }
   /**
@@ -4966,11 +4966,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to invert
    * @returns `out`
    */
-  static inverse(out, a2) {
-    out[0] = 1 / a2[0];
-    out[1] = 1 / a2[1];
-    out[2] = 1 / a2[2];
-    out[3] = 1 / a2[3];
+  static inverse(out, a3) {
+    out[0] = 1 / a3[0];
+    out[1] = 1 / a3[1];
+    out[2] = 1 / a3[2];
+    out[3] = 1 / a3[3];
     return out;
   }
   /**
@@ -4981,11 +4981,11 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - Vector to compute the absolute values of
    * @returns `out`
    */
-  static abs(out, a2) {
-    out[0] = Math.abs(a2[0]);
-    out[1] = Math.abs(a2[1]);
-    out[2] = Math.abs(a2[2]);
-    out[3] = Math.abs(a2[3]);
+  static abs(out, a3) {
+    out[0] = Math.abs(a3[0]);
+    out[1] = Math.abs(a3[1]);
+    out[2] = Math.abs(a3[2]);
+    out[3] = Math.abs(a3[3]);
     return out;
   }
   /**
@@ -4996,19 +4996,19 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to normalize
    * @returns `out`
    */
-  static normalize(out, a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    const w2 = a2[3];
-    let len = x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2;
+  static normalize(out, a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    const w3 = a3[3];
+    let len = x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3;
     if (len > 0) {
       len = 1 / Math.sqrt(len);
     }
-    out[0] = x2 * len;
-    out[1] = y2 * len;
-    out[2] = z2 * len;
-    out[3] = w2 * len;
+    out[0] = x3 * len;
+    out[1] = y3 * len;
+    out[2] = z3 * len;
+    out[3] = w3 * len;
     return out;
   }
   /**
@@ -5019,8 +5019,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - the second operand
    * @returns dot product of a and b
    */
-  static dot(a2, b2) {
-    return a2[0] * b2[0] + a2[1] * b2[1] + a2[2] * b2[2] + a2[3] * b2[3];
+  static dot(a3, b3) {
+    return a3[0] * b3[0] + a3[1] * b3[1] + a3[2] * b3[2] + a3[3] * b3[3];
   }
   /**
    * Returns the cross-product of three vectors in a 4-dimensional space
@@ -5032,21 +5032,21 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param w - the third vector
    * @returns result
    */
-  static cross(out, u2, v2, w2) {
-    const a2 = v2[0] * w2[1] - v2[1] * w2[0];
-    const b2 = v2[0] * w2[2] - v2[2] * w2[0];
-    const c2 = v2[0] * w2[3] - v2[3] * w2[0];
-    const d2 = v2[1] * w2[2] - v2[2] * w2[1];
-    const e2 = v2[1] * w2[3] - v2[3] * w2[1];
-    const f2 = v2[2] * w2[3] - v2[3] * w2[2];
-    const g2 = u2[0];
-    const h2 = u2[1];
-    const i2 = u2[2];
-    const j2 = u2[3];
-    out[0] = h2 * f2 - i2 * e2 + j2 * d2;
-    out[1] = -(g2 * f2) + i2 * c2 - j2 * b2;
-    out[2] = g2 * e2 - h2 * c2 + j2 * a2;
-    out[3] = -(g2 * d2) + h2 * b2 - i2 * a2;
+  static cross(out, u3, v3, w3) {
+    const a3 = v3[0] * w3[1] - v3[1] * w3[0];
+    const b3 = v3[0] * w3[2] - v3[2] * w3[0];
+    const c3 = v3[0] * w3[3] - v3[3] * w3[0];
+    const d3 = v3[1] * w3[2] - v3[2] * w3[1];
+    const e3 = v3[1] * w3[3] - v3[3] * w3[1];
+    const f3 = v3[2] * w3[3] - v3[3] * w3[2];
+    const g3 = u3[0];
+    const h3 = u3[1];
+    const i4 = u3[2];
+    const j3 = u3[3];
+    out[0] = h3 * f3 - i4 * e3 + j3 * d3;
+    out[1] = -(g3 * f3) + i4 * c3 - j3 * b3;
+    out[2] = g3 * e3 - h3 * c3 + j3 * a3;
+    out[3] = -(g3 * d3) + h3 * b3 - i4 * a3;
     return out;
   }
   /**
@@ -5059,15 +5059,15 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static lerp(out, a2, b2, t2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const aw = a2[3];
-    out[0] = ax + t2 * (b2[0] - ax);
-    out[1] = ay + t2 * (b2[1] - ay);
-    out[2] = az + t2 * (b2[2] - az);
-    out[3] = aw + t2 * (b2[3] - aw);
+  static lerp(out, a3, b3, t3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const aw = a3[3];
+    out[0] = ax + t3 * (b3[0] - ax);
+    out[1] = ay + t3 * (b3[1] - ay);
+    out[2] = az + t3 * (b3[2] - az);
+    out[3] = aw + t3 * (b3[3] - aw);
     return out;
   }
   /**
@@ -5113,15 +5113,15 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param m - matrix to transform with
    * @returns `out`
    */
-  static transformMat4(out, a2, m2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
-    const w2 = a2[3];
-    out[0] = m2[0] * x2 + m2[4] * y2 + m2[8] * z2 + m2[12] * w2;
-    out[1] = m2[1] * x2 + m2[5] * y2 + m2[9] * z2 + m2[13] * w2;
-    out[2] = m2[2] * x2 + m2[6] * y2 + m2[10] * z2 + m2[14] * w2;
-    out[3] = m2[3] * x2 + m2[7] * y2 + m2[11] * z2 + m2[15] * w2;
+  static transformMat4(out, a3, m3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
+    const w3 = a3[3];
+    out[0] = m3[0] * x3 + m3[4] * y3 + m3[8] * z3 + m3[12] * w3;
+    out[1] = m3[1] * x3 + m3[5] * y3 + m3[9] * z3 + m3[13] * w3;
+    out[2] = m3[2] * x3 + m3[6] * y3 + m3[10] * z3 + m3[14] * w3;
+    out[3] = m3[3] * x3 + m3[7] * y3 + m3[11] * z3 + m3[15] * w3;
     return out;
   }
   /**
@@ -5133,22 +5133,22 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param q - quaternion to transform with
    * @returns `out`
    */
-  static transformQuat(out, a2, q2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    const z2 = a2[2];
+  static transformQuat(out, a3, q2) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    const z3 = a3[2];
     const qx = q2[0];
     const qy = q2[1];
     const qz = q2[2];
     const qw = q2[3];
-    const ix = qw * x2 + qy * z2 - qz * y2;
-    const iy = qw * y2 + qz * x2 - qx * z2;
-    const iz = qw * z2 + qx * y2 - qy * x2;
-    const iw = -qx * x2 - qy * y2 - qz * z2;
+    const ix = qw * x3 + qy * z3 - qz * y3;
+    const iy = qw * y3 + qz * x3 - qx * z3;
+    const iz = qw * z3 + qx * y3 - qy * x3;
+    const iw = -qx * x3 - qy * y3 - qz * z3;
     out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
     out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
     out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-    out[3] = a2[3];
+    out[3] = a3[3];
     return out;
   }
   /**
@@ -5172,8 +5172,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param a - vector to represent as a string
    * @returns string representation of the vector
    */
-  static str(a2) {
-    return `Vec4(${a2.join(", ")})`;
+  static str(a3) {
+    return `Vec4(${a3.join(", ")})`;
   }
   /**
    * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
@@ -5183,8 +5183,8 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The second vector.
    * @returns True if the vectors are equal, false otherwise.
    */
-  static exactEquals(a2, b2) {
-    return a2[0] === b2[0] && a2[1] === b2[1] && a2[2] === b2[2] && a2[3] === b2[3];
+  static exactEquals(a3, b3) {
+    return a3[0] === b3[0] && a3[1] === b3[1] && a3[2] === b3[2] && a3[3] === b3[3];
   }
   /**
    * Returns whether or not the vectors have approximately the same elements in the same position.
@@ -5194,16 +5194,16 @@ var Vec4 = class _Vec4 extends Float32Array {
    * @param b - The second vector.
    * @returns True if the vectors are equal, false otherwise.
    */
-  static equals(a2, b2) {
-    const a0 = a2[0];
-    const a1 = a2[1];
-    const a22 = a2[2];
-    const a3 = a2[3];
-    const b0 = b2[0];
-    const b1 = b2[1];
-    const b22 = b2[2];
-    const b3 = b2[3];
-    return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22)) && Math.abs(a3 - b3) <= EPSILON * Math.max(1, Math.abs(a3), Math.abs(b3));
+  static equals(a3, b3) {
+    const a0 = a3[0];
+    const a1 = a3[1];
+    const a22 = a3[2];
+    const a32 = a3[3];
+    const b0 = b3[0];
+    const b1 = b3[1];
+    const b22 = b3[2];
+    const b32 = b3[3];
+    return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1)) && Math.abs(a22 - b22) <= EPSILON * Math.max(1, Math.abs(a22), Math.abs(b22)) && Math.abs(a32 - b32) <= EPSILON * Math.max(1, Math.abs(a32), Math.abs(b32));
   }
 };
 Vec4.prototype.sub = Vec4.prototype.subtract;
@@ -5242,11 +5242,11 @@ var Quat = class _Quat extends Float32Array {
         super(values[0], values[1], 4);
         break;
       case 1: {
-        const v2 = values[0];
-        if (typeof v2 === "number") {
-          super([v2, v2, v2, v2]);
+        const v3 = values[0];
+        if (typeof v3 === "number") {
+          super([v3, v3, v3, v3]);
         } else {
-          super(v2, 0, 4);
+          super(v3, 0, 4);
         }
         break;
       }
@@ -5309,11 +5309,11 @@ var Quat = class _Quat extends Float32Array {
    * TypedArrays to mean the number of elements in the array.
    */
   get magnitude() {
-    const x2 = this[0];
-    const y2 = this[1];
-    const z2 = this[2];
-    const w2 = this[3];
-    return Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2);
+    const x3 = this[0];
+    const y3 = this[1];
+    const z3 = this[2];
+    const w3 = this[3];
+    return Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3);
   }
   /**
    * Alias for {@link Quat.magnitude}
@@ -5337,8 +5337,8 @@ var Quat = class _Quat extends Float32Array {
    * @param a the source quaternion
    * @returns `this`
    */
-  copy(a2) {
-    super.set(a2);
+  copy(a3) {
+    super.set(a3);
     return this;
   }
   /**
@@ -5361,13 +5361,13 @@ var Quat = class _Quat extends Float32Array {
    * @param b - The vector to multiply `this` by
    * @returns `this`
    */
-  multiply(b2) {
-    return _Quat.multiply(this, this, b2);
+  multiply(b3) {
+    return _Quat.multiply(this, this, b3);
   }
   /**
    * Alias for {@link Quat.multiply}
    */
-  mul(b2) {
+  mul(b3) {
     return this;
   }
   /**
@@ -5432,8 +5432,8 @@ var Quat = class _Quat extends Float32Array {
    * @param b - the second operand
    * @returns dot product of `this` and b
    */
-  dot(b2) {
-    return _Quat.dot(this, b2);
+  dot(b3) {
+    return _Quat.dot(this, b3);
   }
   //===================
   // Static methods
@@ -5473,10 +5473,10 @@ var Quat = class _Quat extends Float32Array {
    **/
   static setAxisAngle(out, axis, rad) {
     rad = rad * 0.5;
-    const s2 = Math.sin(rad);
-    out[0] = s2 * axis[0];
-    out[1] = s2 * axis[1];
-    out[2] = s2 * axis[2];
+    const s4 = Math.sin(rad);
+    out[0] = s4 * axis[0];
+    out[1] = s4 * axis[1];
+    out[2] = s4 * axis[2];
     out[3] = Math.cos(rad);
     return out;
   }
@@ -5497,11 +5497,11 @@ var Quat = class _Quat extends Float32Array {
    */
   static getAxisAngle(out_axis, q2) {
     const rad = Math.acos(q2[3]) * 2;
-    const s2 = Math.sin(rad / 2);
-    if (s2 > EPSILON) {
-      out_axis[0] = q2[0] / s2;
-      out_axis[1] = q2[1] / s2;
-      out_axis[2] = q2[2] / s2;
+    const s4 = Math.sin(rad / 2);
+    if (s4 > EPSILON) {
+      out_axis[0] = q2[0] / s4;
+      out_axis[1] = q2[1] / s4;
+      out_axis[2] = q2[2] / s4;
     } else {
       out_axis[0] = 1;
       out_axis[1] = 0;
@@ -5517,8 +5517,8 @@ var Quat = class _Quat extends Float32Array {
    * @param  {ReadonlyQuat} b     Destination unit quaternion
    * @return {Number}     Angle, in radians, between the two quaternions
    */
-  static getAngle(a2, b2) {
-    const dotproduct = _Quat.dot(a2, b2);
+  static getAngle(a3, b3) {
+    const dotproduct = _Quat.dot(a3, b3);
     return Math.acos(2 * dotproduct * dotproduct - 1);
   }
   /**
@@ -5530,15 +5530,15 @@ var Quat = class _Quat extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static multiply(out, a2, b2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const aw = a2[3];
-    const bx = b2[0];
-    const by = b2[1];
-    const bz = b2[2];
-    const bw = b2[3];
+  static multiply(out, a3, b3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const aw = a3[3];
+    const bx = b3[0];
+    const by = b3[1];
+    const bz = b3[2];
+    const bw = b3[3];
     out[0] = ax * bw + aw * bx + ay * bz - az * by;
     out[1] = ay * bw + aw * by + az * bx - ax * bz;
     out[2] = az * bw + aw * bz + ax * by - ay * bx;
@@ -5554,12 +5554,12 @@ var Quat = class _Quat extends Float32Array {
    * @param rad - angle (in radians) to rotate
    * @returns `out`
    */
-  static rotateX(out, a2, rad) {
+  static rotateX(out, a3, rad) {
     rad *= 0.5;
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const aw = a2[3];
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const aw = a3[3];
     const bx = Math.sin(rad);
     const bw = Math.cos(rad);
     out[0] = ax * bw + aw * bx;
@@ -5577,12 +5577,12 @@ var Quat = class _Quat extends Float32Array {
    * @param rad - angle (in radians) to rotate
    * @returns `out`
    */
-  static rotateY(out, a2, rad) {
+  static rotateY(out, a3, rad) {
     rad *= 0.5;
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const aw = a2[3];
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const aw = a3[3];
     const by = Math.sin(rad);
     const bw = Math.cos(rad);
     out[0] = ax * bw - az * by;
@@ -5600,12 +5600,12 @@ var Quat = class _Quat extends Float32Array {
    * @param rad - angle (in radians) to rotate
    * @returns `out`
    */
-  static rotateZ(out, a2, rad) {
+  static rotateZ(out, a3, rad) {
     rad *= 0.5;
-    const ax = a2[0];
-    const ay = a2[1];
-    const az = a2[2];
-    const aw = a2[3];
+    const ax = a3[0];
+    const ay = a3[1];
+    const az = a3[2];
+    const aw = a3[3];
     const bz = Math.sin(rad);
     const bw = Math.cos(rad);
     out[0] = ax * bw + ay * bz;
@@ -5624,12 +5624,12 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quat to calculate W component of
    * @returns `out`
    */
-  static calculateW(out, a2) {
-    const x2 = a2[0], y2 = a2[1], z2 = a2[2];
-    out[0] = x2;
-    out[1] = y2;
-    out[2] = z2;
-    out[3] = Math.sqrt(Math.abs(1 - x2 * x2 - y2 * y2 - z2 * z2));
+  static calculateW(out, a3) {
+    const x3 = a3[0], y3 = a3[1], z3 = a3[2];
+    out[0] = x3;
+    out[1] = y3;
+    out[2] = z3;
+    out[3] = Math.sqrt(Math.abs(1 - x3 * x3 - y3 * y3 - z3 * z3));
     return out;
   }
   /**
@@ -5640,15 +5640,15 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quat to calculate the exponential of
    * @returns `out`
    */
-  static exp(out, a2) {
-    const x2 = a2[0], y2 = a2[1], z2 = a2[2], w2 = a2[3];
-    const r2 = Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
-    const et = Math.exp(w2);
-    const s2 = r2 > 0 ? et * Math.sin(r2) / r2 : 0;
-    out[0] = x2 * s2;
-    out[1] = y2 * s2;
-    out[2] = z2 * s2;
-    out[3] = et * Math.cos(r2);
+  static exp(out, a3) {
+    const x3 = a3[0], y3 = a3[1], z3 = a3[2], w3 = a3[3];
+    const r3 = Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
+    const et = Math.exp(w3);
+    const s4 = r3 > 0 ? et * Math.sin(r3) / r3 : 0;
+    out[0] = x3 * s4;
+    out[1] = y3 * s4;
+    out[2] = z3 * s4;
+    out[3] = et * Math.cos(r3);
     return out;
   }
   /**
@@ -5659,14 +5659,14 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quat to calculate the exponential of
    * @returns `out`
    */
-  static ln(out, a2) {
-    const x2 = a2[0], y2 = a2[1], z2 = a2[2], w2 = a2[3];
-    const r2 = Math.sqrt(x2 * x2 + y2 * y2 + z2 * z2);
-    const t2 = r2 > 0 ? Math.atan2(r2, w2) / r2 : 0;
-    out[0] = x2 * t2;
-    out[1] = y2 * t2;
-    out[2] = z2 * t2;
-    out[3] = 0.5 * Math.log(x2 * x2 + y2 * y2 + z2 * z2 + w2 * w2);
+  static ln(out, a3) {
+    const x3 = a3[0], y3 = a3[1], z3 = a3[2], w3 = a3[3];
+    const r3 = Math.sqrt(x3 * x3 + y3 * y3 + z3 * z3);
+    const t3 = r3 > 0 ? Math.atan2(r3, w3) / r3 : 0;
+    out[0] = x3 * t3;
+    out[1] = y3 * t3;
+    out[2] = z3 * t3;
+    out[3] = 0.5 * Math.log(x3 * x3 + y3 * y3 + z3 * z3 + w3 * w3);
     return out;
   }
   /**
@@ -5678,9 +5678,9 @@ var Quat = class _Quat extends Float32Array {
    * @param b - amount to scale the quaternion by
    * @returns `out`
    */
-  static pow(out, a2, b2) {
-    _Quat.ln(out, a2);
-    _Quat.scale(out, out, b2);
+  static pow(out, a3, b3) {
+    _Quat.ln(out, a3);
+    _Quat.scale(out, out, b3);
     _Quat.exp(out, out);
     return out;
   }
@@ -5694,9 +5694,9 @@ var Quat = class _Quat extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static slerp(out, a2, b2, t2) {
-    const ax = a2[0], ay = a2[1], az = a2[2], aw = a2[3];
-    let bx = b2[0], by = b2[1], bz = b2[2], bw = b2[3];
+  static slerp(out, a3, b3, t3) {
+    const ax = a3[0], ay = a3[1], az = a3[2], aw = a3[3];
+    let bx = b3[0], by = b3[1], bz = b3[2], bw = b3[3];
     let scale0;
     let scale1;
     let cosom = ax * bx + ay * by + az * bz + aw * bw;
@@ -5710,11 +5710,11 @@ var Quat = class _Quat extends Float32Array {
     if (1 - cosom > EPSILON) {
       const omega = Math.acos(cosom);
       const sinom = Math.sin(omega);
-      scale0 = Math.sin((1 - t2) * omega) / sinom;
-      scale1 = Math.sin(t2 * omega) / sinom;
+      scale0 = Math.sin((1 - t3) * omega) / sinom;
+      scale1 = Math.sin(t3 * omega) / sinom;
     } else {
-      scale0 = 1 - t2;
-      scale1 = t2;
+      scale0 = 1 - t3;
+      scale1 = t3;
     }
     out[0] = scale0 * ax + scale1 * bx;
     out[1] = scale0 * ay + scale1 * by;
@@ -5753,14 +5753,14 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quat to calculate inverse of
    * @returns `out`
    */
-  static invert(out, a2) {
-    const a0 = a2[0], a1 = a2[1], a22 = a2[2], a3 = a2[3];
-    const dot = a0 * a0 + a1 * a1 + a22 * a22 + a3 * a3;
+  static invert(out, a3) {
+    const a0 = a3[0], a1 = a3[1], a22 = a3[2], a32 = a3[3];
+    const dot = a0 * a0 + a1 * a1 + a22 * a22 + a32 * a32;
     const invDot = dot ? 1 / dot : 0;
     out[0] = -a0 * invDot;
     out[1] = -a1 * invDot;
     out[2] = -a22 * invDot;
-    out[3] = a3 * invDot;
+    out[3] = a32 * invDot;
     return out;
   }
   /**
@@ -5772,11 +5772,11 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quat to calculate conjugate of
    * @returns `out`
    */
-  static conjugate(out, a2) {
-    out[0] = -a2[0];
-    out[1] = -a2[1];
-    out[2] = -a2[2];
-    out[3] = a2[3];
+  static conjugate(out, a3) {
+    out[0] = -a3[0];
+    out[1] = -a3[1];
+    out[2] = -a3[2];
+    out[3] = a3[3];
     return out;
   }
   /**
@@ -5790,30 +5790,30 @@ var Quat = class _Quat extends Float32Array {
    * @param m - rotation matrix
    * @returns `out`
    */
-  static fromMat3(out, m2) {
-    const fTrace = m2[0] + m2[4] + m2[8];
+  static fromMat3(out, m3) {
+    const fTrace = m3[0] + m3[4] + m3[8];
     let fRoot;
     if (fTrace > 0) {
       fRoot = Math.sqrt(fTrace + 1);
       out[3] = 0.5 * fRoot;
       fRoot = 0.5 / fRoot;
-      out[0] = (m2[5] - m2[7]) * fRoot;
-      out[1] = (m2[6] - m2[2]) * fRoot;
-      out[2] = (m2[1] - m2[3]) * fRoot;
+      out[0] = (m3[5] - m3[7]) * fRoot;
+      out[1] = (m3[6] - m3[2]) * fRoot;
+      out[2] = (m3[1] - m3[3]) * fRoot;
     } else {
-      let i2 = 0;
-      if (m2[4] > m2[0])
-        i2 = 1;
-      if (m2[8] > m2[i2 * 3 + i2])
-        i2 = 2;
-      let j2 = (i2 + 1) % 3;
-      let k2 = (i2 + 2) % 3;
-      fRoot = Math.sqrt(m2[i2 * 3 + i2] - m2[j2 * 3 + j2] - m2[k2 * 3 + k2] + 1);
-      out[i2] = 0.5 * fRoot;
+      let i4 = 0;
+      if (m3[4] > m3[0])
+        i4 = 1;
+      if (m3[8] > m3[i4 * 3 + i4])
+        i4 = 2;
+      let j3 = (i4 + 1) % 3;
+      let k3 = (i4 + 2) % 3;
+      fRoot = Math.sqrt(m3[i4 * 3 + i4] - m3[j3 * 3 + j3] - m3[k3 * 3 + k3] + 1);
+      out[i4] = 0.5 * fRoot;
       fRoot = 0.5 / fRoot;
-      out[3] = (m2[j2 * 3 + k2] - m2[k2 * 3 + j2]) * fRoot;
-      out[j2] = (m2[j2 * 3 + i2] + m2[i2 * 3 + j2]) * fRoot;
-      out[k2] = (m2[k2 * 3 + i2] + m2[i2 * 3 + k2]) * fRoot;
+      out[3] = (m3[j3 * 3 + k3] - m3[k3 * 3 + j3]) * fRoot;
+      out[j3] = (m3[j3 * 3 + i4] + m3[i4 * 3 + j3]) * fRoot;
+      out[k3] = (m3[k3 * 3 + i4] + m3[i4 * 3 + k3]) * fRoot;
     }
     return out;
   }
@@ -5828,17 +5828,17 @@ var Quat = class _Quat extends Float32Array {
    * @param {'xyz'|'xzy'|'yxz'|'yzx'|'zxy'|'zyx'} order - Intrinsic order for conversion, default is zyx.
    * @returns `out`
    */
-  static fromEuler(out, x2, y2, z2, order = ANGLE_ORDER) {
+  static fromEuler(out, x3, y3, z3, order = ANGLE_ORDER) {
     let halfToRad = 0.5 * Math.PI / 180;
-    x2 *= halfToRad;
-    y2 *= halfToRad;
-    z2 *= halfToRad;
-    let sx = Math.sin(x2);
-    let cx = Math.cos(x2);
-    let sy = Math.sin(y2);
-    let cy = Math.cos(y2);
-    let sz = Math.sin(z2);
-    let cz = Math.cos(z2);
+    x3 *= halfToRad;
+    y3 *= halfToRad;
+    z3 *= halfToRad;
+    let sx = Math.sin(x3);
+    let cx = Math.cos(x3);
+    let sy = Math.sin(y3);
+    let cy = Math.cos(y3);
+    let sz = Math.sin(z3);
+    let cz = Math.cos(z3);
     switch (order) {
       case "xyz":
         out[0] = sx * cy * cz + cx * sy * sz;
@@ -5888,8 +5888,8 @@ var Quat = class _Quat extends Float32Array {
    * @param a - vector to represent as a string
    * @returns string representation of the vector
    */
-  static str(a2) {
-    return `Quat(${a2.join(", ")})`;
+  static str(a3) {
+    return `Quat(${a3.join(", ")})`;
   }
   /**
    * Creates a new quat initialized with values from an existing quaternion
@@ -5898,8 +5898,8 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quaternion to clone
    * @returns a new quaternion
    */
-  static clone(a2) {
-    return new _Quat(a2);
+  static clone(a3) {
+    return new _Quat(a3);
   }
   /**
    * Creates a new quat initialized with the given values
@@ -5911,8 +5911,8 @@ var Quat = class _Quat extends Float32Array {
    * @param w - W component
    * @returns a new quaternion
    */
-  static fromValues(x2, y2, z2, w2) {
-    return new _Quat(x2, y2, z2, w2);
+  static fromValues(x3, y3, z3, w3) {
+    return new _Quat(x3, y3, z3, w3);
   }
   /**
    * Copy the values from one quat to another
@@ -5922,11 +5922,11 @@ var Quat = class _Quat extends Float32Array {
    * @param a - the source quaternion
    * @returns `out`
    */
-  static copy(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
-    out[2] = a2[2];
-    out[3] = a2[3];
+  static copy(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
+    out[2] = a3[2];
+    out[3] = a3[3];
     return out;
   }
   /**
@@ -5940,7 +5940,7 @@ var Quat = class _Quat extends Float32Array {
    * @param w - W component
    * @returns `out`
    */
-  static set(out, x2, y2, z2, w2) {
+  static set(out, x3, y3, z3, w3) {
     return out;
   }
   /**
@@ -5952,14 +5952,14 @@ var Quat = class _Quat extends Float32Array {
    * @param b - the second operand
    * @returns `out`
    */
-  static add(out, a2, b2) {
+  static add(out, a3, b3) {
     return out;
   }
   /**
    * Alias for {@link Quat.multiply}
    * @category Static
    */
-  static mul(out, a2, b2) {
+  static mul(out, a3, b3) {
     return out;
   }
   /**
@@ -5971,11 +5971,11 @@ var Quat = class _Quat extends Float32Array {
    * @param b - amount to scale the vector by
    * @returns `out`
    */
-  static scale(out, a2, scale) {
-    out[0] = a2[0] * scale;
-    out[1] = a2[1] * scale;
-    out[2] = a2[2] * scale;
-    out[3] = a2[3] * scale;
+  static scale(out, a3, scale) {
+    out[0] = a3[0] * scale;
+    out[1] = a3[1] * scale;
+    out[2] = a3[2] * scale;
+    out[3] = a3[3] * scale;
     return out;
   }
   /**
@@ -5986,8 +5986,8 @@ var Quat = class _Quat extends Float32Array {
    * @param b - the second operand
    * @returns dot product of a and b
    */
-  static dot(a2, b2) {
-    return a2[0] * b2[0] + a2[1] * b2[1] + a2[2] * b2[2] + a2[3] * b2[3];
+  static dot(a3, b3) {
+    return a3[0] * b3[0] + a3[1] * b3[1] + a3[2] * b3[2] + a3[3] * b3[3];
   }
   /**
    * Performs a linear interpolation between two quat's
@@ -5999,7 +5999,7 @@ var Quat = class _Quat extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static lerp(out, a2, b2, t2) {
+  static lerp(out, a3, b3, t3) {
     return out;
   }
   /**
@@ -6009,14 +6009,14 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quaternion to calculate length of
    * @returns length of `a`
    */
-  static magnitude(a2) {
+  static magnitude(a3) {
     return 0;
   }
   /**
    * Alias for {@link Quat.magnitude}
    * @category Static
    */
-  static mag(a2) {
+  static mag(a3) {
     return 0;
   }
   /**
@@ -6025,7 +6025,7 @@ var Quat = class _Quat extends Float32Array {
    * @deprecated Use {@link Quat.magnitude} to avoid conflicts with builtin `length` methods/attribs
    */
   // @ts-ignore: Length conflicts with Function.length
-  static length(a2) {
+  static length(a3) {
     return 0;
   }
   /**
@@ -6033,7 +6033,7 @@ var Quat = class _Quat extends Float32Array {
    * @category Static
    * @deprecated Use {@link Quat.mag}
    */
-  static len(a2) {
+  static len(a3) {
     return 0;
   }
   /**
@@ -6043,14 +6043,14 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quaternion to calculate squared length of
    * @returns squared length of a
    */
-  static squaredLength(a2) {
+  static squaredLength(a3) {
     return 0;
   }
   /**
    * Alias for {@link Quat.squaredLength}
    * @category Static
    */
-  static sqrLen(a2) {
+  static sqrLen(a3) {
     return 0;
   }
   /**
@@ -6061,7 +6061,7 @@ var Quat = class _Quat extends Float32Array {
    * @param a - quaternion to normalize
    * @returns `out`
    */
-  static normalize(out, a2) {
+  static normalize(out, a3) {
     return out;
   }
   /**
@@ -6072,7 +6072,7 @@ var Quat = class _Quat extends Float32Array {
    * @param b - The second quaternion.
    * @returns True if the vectors are equal, false otherwise.
    */
-  static exactEquals(a2, b2) {
+  static exactEquals(a3, b3) {
     return false;
   }
   /**
@@ -6083,7 +6083,7 @@ var Quat = class _Quat extends Float32Array {
    * @param b - The second vector.
    * @returns True if the vectors are equal, false otherwise.
    */
-  static equals(a2, b2) {
+  static equals(a3, b3) {
     return false;
   }
   /**
@@ -6098,12 +6098,12 @@ var Quat = class _Quat extends Float32Array {
    * @param b - the destination vector
    * @returns `out`
    */
-  static rotationTo(out, a2, b2) {
-    let dot = Vec3.dot(a2, b2);
+  static rotationTo(out, a3, b3) {
+    let dot = Vec3.dot(a3, b3);
     if (dot < -0.999999) {
-      Vec3.cross(tmpVec32, xUnitVec3, a2);
+      Vec3.cross(tmpVec32, xUnitVec3, a3);
       if (Vec3.mag(tmpVec32) < 1e-6)
-        Vec3.cross(tmpVec32, yUnitVec3, a2);
+        Vec3.cross(tmpVec32, yUnitVec3, a3);
       Vec3.normalize(tmpVec32, tmpVec32);
       _Quat.setAxisAngle(out, tmpVec32, Math.PI);
       return out;
@@ -6114,7 +6114,7 @@ var Quat = class _Quat extends Float32Array {
       out[3] = 1;
       return out;
     } else {
-      Vec3.cross(tmpVec32, a2, b2);
+      Vec3.cross(tmpVec32, a3, b3);
       out[0] = tmpVec32[0];
       out[1] = tmpVec32[1];
       out[2] = tmpVec32[2];
@@ -6134,10 +6134,10 @@ var Quat = class _Quat extends Float32Array {
    * @param t - interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static sqlerp(out, a2, b2, c2, d2, t2) {
-    _Quat.slerp(tmpQuat1, a2, d2, t2);
-    _Quat.slerp(tmpQuat2, b2, c2, t2);
-    _Quat.slerp(out, tmpQuat1, tmpQuat2, 2 * t2 * (1 - t2));
+  static sqlerp(out, a3, b3, c3, d3, t3) {
+    _Quat.slerp(tmpQuat1, a3, d3, t3);
+    _Quat.slerp(tmpQuat2, b3, c3, t3);
+    _Quat.slerp(out, tmpQuat1, tmpQuat2, 2 * t3 * (1 - t3));
     return out;
   }
   /**
@@ -6201,20 +6201,20 @@ var Vec2 = class _Vec2 extends Float32Array {
   constructor(...values) {
     switch (values.length) {
       case 2: {
-        const v2 = values[0];
-        if (typeof v2 === "number") {
-          super([v2, values[1]]);
+        const v3 = values[0];
+        if (typeof v3 === "number") {
+          super([v3, values[1]]);
         } else {
-          super(v2, values[1], 2);
+          super(v3, values[1], 2);
         }
         break;
       }
       case 1: {
-        const v2 = values[0];
-        if (typeof v2 === "number") {
-          super([v2, v2]);
+        const v3 = values[0];
+        if (typeof v3 === "number") {
+          super([v3, v3]);
         } else {
-          super(v2, 0, 2);
+          super(v3, 0, 2);
         }
         break;
       }
@@ -6291,9 +6291,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * Equivalent to `Vec2.squaredMagnitude(this);`
    */
   get squaredMagnitude() {
-    const x2 = this[0];
-    const y2 = this[1];
-    return x2 * x2 + y2 * y2;
+    const x3 = this[0];
+    const y3 = this[1];
+    return x3 * x3 + y3 * y3;
   }
   /**
    * Alias for {@link Vec2.squaredMagnitude}
@@ -6317,8 +6317,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a the source vector
    * @returns `this`
    */
-  copy(a2) {
-    this.set(a2);
+  copy(a3) {
+    this.set(a3);
     return this;
   }
   // Instead of zero(), use a.fill(0) for instances;
@@ -6329,9 +6329,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The vector to add to `this`
    * @returns `this`
    */
-  add(b2) {
-    this[0] += b2[0];
-    this[1] += b2[1];
+  add(b3) {
+    this[0] += b3[0];
+    this[1] += b3[1];
     return this;
   }
   /**
@@ -6341,15 +6341,15 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The vector to subtract from `this`
    * @returns `this`
    */
-  subtract(b2) {
-    this[0] -= b2[0];
-    this[1] -= b2[1];
+  subtract(b3) {
+    this[0] -= b3[0];
+    this[1] -= b3[1];
     return this;
   }
   /**
    * Alias for {@link Vec2.subtract}
    */
-  sub(b2) {
+  sub(b3) {
     return this;
   }
   /**
@@ -6359,15 +6359,15 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The vector to multiply `this` by
    * @returns `this`
    */
-  multiply(b2) {
-    this[0] *= b2[0];
-    this[1] *= b2[1];
+  multiply(b3) {
+    this[0] *= b3[0];
+    this[1] *= b3[1];
     return this;
   }
   /**
    * Alias for {@link Vec2.multiply}
    */
-  mul(b2) {
+  mul(b3) {
     return this;
   }
   /**
@@ -6377,15 +6377,15 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The vector to divide `this` by
    * @returns {Vec2} `this`
    */
-  divide(b2) {
-    this[0] /= b2[0];
-    this[1] /= b2[1];
+  divide(b3) {
+    this[0] /= b3[0];
+    this[1] /= b3[1];
     return this;
   }
   /**
    * Alias for {@link Vec2.divide}
    */
-  div(b2) {
+  div(b3) {
     return this;
   }
   /**
@@ -6395,9 +6395,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - Amount to scale `this` by
    * @returns `this`
    */
-  scale(b2) {
-    this[0] *= b2;
-    this[1] *= b2;
+  scale(b3) {
+    this[0] *= b3;
+    this[1] *= b3;
     return this;
   }
   /**
@@ -6408,9 +6408,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param scale - The amount to scale `b` by before adding
    * @returns `this`
    */
-  scaleAndAdd(b2, scale) {
-    this[0] += b2[0] * scale;
-    this[1] += b2[1] * scale;
+  scaleAndAdd(b3, scale) {
+    this[0] += b3[0] * scale;
+    this[1] += b3[1] * scale;
     return this;
   }
   /**
@@ -6420,13 +6420,13 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The vector to calculate the distance to
    * @returns Distance between `this` and `b`
    */
-  distance(b2) {
-    return _Vec2.distance(this, b2);
+  distance(b3) {
+    return _Vec2.distance(this, b3);
   }
   /**
    * Alias for {@link Vec2.distance}
    */
-  dist(b2) {
+  dist(b3) {
     return 0;
   }
   /**
@@ -6436,13 +6436,13 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b The vector to calculate the squared distance to
    * @returns Squared distance between `this` and `b`
    */
-  squaredDistance(b2) {
-    return _Vec2.squaredDistance(this, b2);
+  squaredDistance(b3) {
+    return _Vec2.squaredDistance(this, b3);
   }
   /**
    * Alias for {@link Vec2.squaredDistance}
    */
-  sqrDist(b2) {
+  sqrDist(b3) {
     return 0;
   }
   /**
@@ -6485,8 +6485,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns Dot product of `this` and `b`
    */
-  dot(b2) {
-    return this[0] * b2[0] + this[1] * b2[1];
+  dot(b3) {
+    return this[0] * b3[0] + this[1] * b3[1];
   }
   /**
    * Normalize `this`.
@@ -6516,8 +6516,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to clone
    * @returns A new 2D vector
    */
-  static clone(a2) {
-    return new _Vec2(a2);
+  static clone(a3) {
+    return new _Vec2(a3);
   }
   /**
    * Creates a new {@link Vec2} initialized with the given values
@@ -6527,8 +6527,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param y - Y component
    * @returns A new 2D vector
    */
-  static fromValues(x2, y2) {
-    return new _Vec2(x2, y2);
+  static fromValues(x3, y3) {
+    return new _Vec2(x3, y3);
   }
   /**
    * Copy the values from one {@link Vec2} to another
@@ -6538,9 +6538,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - The source vector
    * @returns `out`
    */
-  static copy(out, a2) {
-    out[0] = a2[0];
-    out[1] = a2[1];
+  static copy(out, a3) {
+    out[0] = a3[0];
+    out[1] = a3[1];
     return out;
   }
   /**
@@ -6552,9 +6552,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param y - Y component
    * @returns `out`
    */
-  static set(out, x2, y2) {
-    out[0] = x2;
-    out[1] = y2;
+  static set(out, x3, y3) {
+    out[0] = x3;
+    out[1] = y3;
     return out;
   }
   /**
@@ -6566,9 +6566,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static add(out, a2, b2) {
-    out[0] = a2[0] + b2[0];
-    out[1] = a2[1] + b2[1];
+  static add(out, a3, b3) {
+    out[0] = a3[0] + b3[0];
+    out[1] = a3[1] + b3[1];
     return out;
   }
   /**
@@ -6580,16 +6580,16 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static subtract(out, a2, b2) {
-    out[0] = a2[0] - b2[0];
-    out[1] = a2[1] - b2[1];
+  static subtract(out, a3, b3) {
+    out[0] = a3[0] - b3[0];
+    out[1] = a3[1] - b3[1];
     return out;
   }
   /**
    * Alias for {@link Vec2.subtract}
    * @category Static
    */
-  static sub(out, a2, b2) {
+  static sub(out, a3, b3) {
     return [0, 0];
   }
   /**
@@ -6601,16 +6601,16 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static multiply(out, a2, b2) {
-    out[0] = a2[0] * b2[0];
-    out[1] = a2[1] * b2[1];
+  static multiply(out, a3, b3) {
+    out[0] = a3[0] * b3[0];
+    out[1] = a3[1] * b3[1];
     return out;
   }
   /**
    * Alias for {@link Vec2.multiply}
    * @category Static
    */
-  static mul(out, a2, b2) {
+  static mul(out, a3, b3) {
     return [0, 0];
   }
   /**
@@ -6622,16 +6622,16 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static divide(out, a2, b2) {
-    out[0] = a2[0] / b2[0];
-    out[1] = a2[1] / b2[1];
+  static divide(out, a3, b3) {
+    out[0] = a3[0] / b3[0];
+    out[1] = a3[1] / b3[1];
     return out;
   }
   /**
    * Alias for {@link Vec2.divide}
    * @category Static
    */
-  static div(out, a2, b2) {
+  static div(out, a3, b3) {
     return [0, 0];
   }
   /**
@@ -6642,9 +6642,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to ceil
    * @returns `out`
    */
-  static ceil(out, a2) {
-    out[0] = Math.ceil(a2[0]);
-    out[1] = Math.ceil(a2[1]);
+  static ceil(out, a3) {
+    out[0] = Math.ceil(a3[0]);
+    out[1] = Math.ceil(a3[1]);
     return out;
   }
   /**
@@ -6655,9 +6655,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to floor
    * @returns `out`
    */
-  static floor(out, a2) {
-    out[0] = Math.floor(a2[0]);
-    out[1] = Math.floor(a2[1]);
+  static floor(out, a3) {
+    out[0] = Math.floor(a3[0]);
+    out[1] = Math.floor(a3[1]);
     return out;
   }
   /**
@@ -6669,9 +6669,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static min(out, a2, b2) {
-    out[0] = Math.min(a2[0], b2[0]);
-    out[1] = Math.min(a2[1], b2[1]);
+  static min(out, a3, b3) {
+    out[0] = Math.min(a3[0], b3[0]);
+    out[1] = Math.min(a3[1], b3[1]);
     return out;
   }
   /**
@@ -6683,9 +6683,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static max(out, a2, b2) {
-    out[0] = Math.max(a2[0], b2[0]);
-    out[1] = Math.max(a2[1], b2[1]);
+  static max(out, a3, b3) {
+    out[0] = Math.max(a3[0], b3[0]);
+    out[1] = Math.max(a3[1], b3[1]);
     return out;
   }
   /**
@@ -6696,9 +6696,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to round
    * @returns `out`
    */
-  static round(out, a2) {
-    out[0] = Math.round(a2[0]);
-    out[1] = Math.round(a2[1]);
+  static round(out, a3) {
+    out[0] = Math.round(a3[0]);
+    out[1] = Math.round(a3[1]);
     return out;
   }
   /**
@@ -6710,9 +6710,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - Amount to scale the vector by
    * @returns `out`
    */
-  static scale(out, a2, b2) {
-    out[0] = a2[0] * b2;
-    out[1] = a2[1] * b2;
+  static scale(out, a3, b3) {
+    out[0] = a3[0] * b3;
+    out[1] = a3[1] * b3;
     return out;
   }
   /**
@@ -6725,9 +6725,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param scale - The amount to scale b by before adding
    * @returns `out`
    */
-  static scaleAndAdd(out, a2, b2, scale) {
-    out[0] = a2[0] + b2[0] * scale;
-    out[1] = a2[1] + b2[1] * scale;
+  static scaleAndAdd(out, a3, b3, scale) {
+    out[0] = a3[0] + b3[0] * scale;
+    out[1] = a3[1] + b3[1] * scale;
     return out;
   }
   /**
@@ -6738,14 +6738,14 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns distance between `a` and `b`
    */
-  static distance(a2, b2) {
-    return Math.hypot(b2[0] - a2[0], b2[1] - a2[1]);
+  static distance(a3, b3) {
+    return Math.hypot(b3[0] - a3[0], b3[1] - a3[1]);
   }
   /**
    * Alias for {@link Vec2.distance}
    * @category Static
    */
-  static dist(a2, b2) {
+  static dist(a3, b3) {
     return 0;
   }
   /**
@@ -6756,16 +6756,16 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns Squared distance between `a` and `b`
    */
-  static squaredDistance(a2, b2) {
-    const x2 = b2[0] - a2[0];
-    const y2 = b2[1] - a2[1];
-    return x2 * x2 + y2 * y2;
+  static squaredDistance(a3, b3) {
+    const x3 = b3[0] - a3[0];
+    const y3 = b3[1] - a3[1];
+    return x3 * x3 + y3 * y3;
   }
   /**
    * Alias for {@link Vec2.distance}
    * @category Static
    */
-  static sqrDist(a2, b2) {
+  static sqrDist(a3, b3) {
     return 0;
   }
   /**
@@ -6775,16 +6775,16 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to calculate magnitude of
    * @returns Magnitude of a
    */
-  static magnitude(a2) {
-    let x2 = a2[0];
-    let y2 = a2[1];
-    return Math.sqrt(x2 * x2 + y2 * y2);
+  static magnitude(a3) {
+    let x3 = a3[0];
+    let y3 = a3[1];
+    return Math.sqrt(x3 * x3 + y3 * y3);
   }
   /**
    * Alias for {@link Vec2.magnitude}
    * @category Static
    */
-  static mag(a2) {
+  static mag(a3) {
     return 0;
   }
   /**
@@ -6796,7 +6796,7 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @returns length of a
    */
   // @ts-ignore: Length conflicts with Function.length
-  static length(a2) {
+  static length(a3) {
     return 0;
   }
   /**
@@ -6804,7 +6804,7 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @category Static
    * @deprecated Use {@link Vec2.mag}
    */
-  static len(a2) {
+  static len(a3) {
     return 0;
   }
   /**
@@ -6814,15 +6814,15 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to calculate squared length of
    * @returns Squared length of a
    */
-  static squaredLength(a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    return x2 * x2 + y2 * y2;
+  static squaredLength(a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    return x3 * x3 + y3 * y3;
   }
   /**
    * Alias for {@link Vec2.squaredLength}
    */
-  static sqrLen(a2, b2) {
+  static sqrLen(a3, b3) {
     return 0;
   }
   /**
@@ -6833,9 +6833,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to negate
    * @returns `out`
    */
-  static negate(out, a2) {
-    out[0] = -a2[0];
-    out[1] = -a2[1];
+  static negate(out, a3) {
+    out[0] = -a3[0];
+    out[1] = -a3[1];
     return out;
   }
   /**
@@ -6846,9 +6846,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to invert
    * @returns `out`
    */
-  static inverse(out, a2) {
-    out[0] = 1 / a2[0];
-    out[1] = 1 / a2[1];
+  static inverse(out, a3) {
+    out[0] = 1 / a3[0];
+    out[1] = 1 / a3[1];
     return out;
   }
   /**
@@ -6859,9 +6859,9 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to compute the absolute values of
    * @returns `out`
    */
-  static abs(out, a2) {
-    out[0] = Math.abs(a2[0]);
-    out[1] = Math.abs(a2[1]);
+  static abs(out, a3) {
+    out[0] = Math.abs(a3[0]);
+    out[1] = Math.abs(a3[1]);
     return out;
   }
   /**
@@ -6872,15 +6872,15 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to normalize
    * @returns `out`
    */
-  static normalize(out, a2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    let len = x2 * x2 + y2 * y2;
+  static normalize(out, a3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    let len = x3 * x3 + y3 * y3;
     if (len > 0) {
       len = 1 / Math.sqrt(len);
     }
-    out[0] = a2[0] * len;
-    out[1] = a2[1] * len;
+    out[0] = a3[0] * len;
+    out[1] = a3[1] * len;
     return out;
   }
   /**
@@ -6891,8 +6891,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns Dot product of `a` and `b`
    */
-  static dot(a2, b2) {
-    return a2[0] * b2[0] + a2[1] * b2[1];
+  static dot(a3, b3) {
+    return a3[0] * b3[0] + a3[1] * b3[1];
   }
   /**
    * Computes the cross product of two {@link Vec2}s
@@ -6905,10 +6905,10 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns `out`
    */
-  static cross(out, a2, b2) {
-    const z2 = a2[0] * b2[1] - a2[1] * b2[0];
+  static cross(out, a3, b3) {
+    const z3 = a3[0] * b3[1] - a3[1] * b3[0];
     out[0] = out[1] = 0;
-    out[2] = z2;
+    out[2] = z3;
     return out;
   }
   /**
@@ -6921,11 +6921,11 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param t - Interpolation amount, in the range [0-1], between the two inputs
    * @returns `out`
    */
-  static lerp(out, a2, b2, t2) {
-    const ax = a2[0];
-    const ay = a2[1];
-    out[0] = ax + t2 * (b2[0] - ax);
-    out[1] = ay + t2 * (b2[1] - ay);
+  static lerp(out, a3, b3, t3) {
+    const ax = a3[0];
+    const ay = a3[1];
+    out[0] = ax + t3 * (b3[0] - ax);
+    out[1] = ay + t3 * (b3[1] - ay);
     return out;
   }
   /**
@@ -6936,11 +6936,11 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param m - Matrix to transform with
    * @returns `out`
    */
-  static transformMat2(out, a2, m2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    out[0] = m2[0] * x2 + m2[2] * y2;
-    out[1] = m2[1] * x2 + m2[3] * y2;
+  static transformMat2(out, a3, m3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    out[0] = m3[0] * x3 + m3[2] * y3;
+    out[1] = m3[1] * x3 + m3[3] * y3;
     return out;
   }
   /**
@@ -6951,11 +6951,11 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param m - Matrix to transform with
    * @returns `out`
    */
-  static transformMat2d(out, a2, m2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    out[0] = m2[0] * x2 + m2[2] * y2 + m2[4];
-    out[1] = m2[1] * x2 + m2[3] * y2 + m2[5];
+  static transformMat2d(out, a3, m3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    out[0] = m3[0] * x3 + m3[2] * y3 + m3[4];
+    out[1] = m3[1] * x3 + m3[3] * y3 + m3[5];
     return out;
   }
   /**
@@ -6967,11 +6967,11 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param m - Matrix to transform with
    * @returns `out`
    */
-  static transformMat3(out, a2, m2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    out[0] = m2[0] * x2 + m2[3] * y2 + m2[6];
-    out[1] = m2[1] * x2 + m2[4] * y2 + m2[7];
+  static transformMat3(out, a3, m3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    out[0] = m3[0] * x3 + m3[3] * y3 + m3[6];
+    out[1] = m3[1] * x3 + m3[4] * y3 + m3[7];
     return out;
   }
   /**
@@ -6984,11 +6984,11 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param m - Matrix to transform with
    * @returns `out`
    */
-  static transformMat4(out, a2, m2) {
-    const x2 = a2[0];
-    const y2 = a2[1];
-    out[0] = m2[0] * x2 + m2[4] * y2 + m2[12];
-    out[1] = m2[1] * x2 + m2[5] * y2 + m2[13];
+  static transformMat4(out, a3, m3) {
+    const x3 = a3[0];
+    const y3 = a3[1];
+    out[0] = m3[0] * x3 + m3[4] * y3 + m3[12];
+    out[1] = m3[1] * x3 + m3[5] * y3 + m3[13];
     return out;
   }
   /**
@@ -7001,13 +7001,13 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param rad - The angle of rotation in radians
    * @returns `out`
    */
-  static rotate(out, a2, b2, rad) {
-    const p0 = a2[0] - b2[0];
-    const p1 = a2[1] - b2[1];
+  static rotate(out, a3, b3, rad) {
+    const p0 = a3[0] - b3[0];
+    const p1 = a3[1] - b3[1];
     const sinC = Math.sin(rad);
     const cosC = Math.cos(rad);
-    out[0] = p0 * cosC - p1 * sinC + b2[0];
-    out[1] = p0 * sinC + p1 * cosC + b2[1];
+    out[0] = p0 * cosC - p1 * sinC + b3[0];
+    out[1] = p0 * sinC + p1 * cosC + b3[1];
     return out;
   }
   /**
@@ -7018,13 +7018,13 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second operand
    * @returns The angle in radians
    */
-  static angle(a2, b2) {
-    const x1 = a2[0];
-    const y1 = a2[1];
-    const x2 = b2[0];
-    const y2 = b2[1];
-    const mag = Math.sqrt(x1 * x1 + y1 * y1) * Math.sqrt(x2 * x2 + y2 * y2);
-    const cosine = mag && (x1 * x2 + y1 * y2) / mag;
+  static angle(a3, b3) {
+    const x1 = a3[0];
+    const y1 = a3[1];
+    const x22 = b3[0];
+    const y22 = b3[1];
+    const mag = Math.sqrt(x1 * x1 + y1 * y1) * Math.sqrt(x22 * x22 + y22 * y22);
+    const cosine = mag && (x1 * x22 + y1 * y22) / mag;
     return Math.acos(Math.min(Math.max(cosine, -1), 1));
   }
   /**
@@ -7047,8 +7047,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second vector.
    * @returns `true` if the vectors components are ===, `false` otherwise.
    */
-  static exactEquals(a2, b2) {
-    return a2[0] === b2[0] && a2[1] === b2[1];
+  static exactEquals(a3, b3) {
+    return a3[0] === b3[0] && a3[1] === b3[1];
   }
   /**
    * Returns whether or not the vectors have approximately the same elements in the same position.
@@ -7058,11 +7058,11 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param b - The second vector.
    * @returns `true` if the vectors are approximately equal, `false` otherwise.
    */
-  static equals(a2, b2) {
-    const a0 = a2[0];
-    const a1 = a2[1];
-    const b0 = b2[0];
-    const b1 = b2[1];
+  static equals(a3, b3) {
+    const a0 = a3[0];
+    const a1 = a3[1];
+    const b0 = b3[0];
+    const b1 = b3[1];
     return Math.abs(a0 - b0) <= EPSILON * Math.max(1, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= EPSILON * Math.max(1, Math.abs(a1), Math.abs(b1));
   }
   /**
@@ -7072,8 +7072,8 @@ var Vec2 = class _Vec2 extends Float32Array {
    * @param a - Vector to represent as a string
    * @returns String representation of the vector
    */
-  static str(a2) {
-    return `Vec2(${a2.join(", ")})`;
+  static str(a3) {
+    return `Vec2(${a3.join(", ")})`;
   }
 };
 Vec2.prototype.sub = Vec2.prototype.subtract;
@@ -7552,7 +7552,7 @@ var StageData = class {
         order: componentType.TickOrder ?? 0,
         componentType
       });
-      this.tickTypes = this.tickTypes.sort((a2, b2) => a2.order - b2.order);
+      this.tickTypes = this.tickTypes.sort((a3, b3) => a3.order - b3.order);
     }
   }
   #getComponentSet(componentType) {
@@ -7681,15 +7681,15 @@ var StageQuery = class _StageQuery {
         this.#queryWatching = true;
       }
       let queryActors = /* @__PURE__ */ new Set();
-      for (let i2 = 0; i2 < this.include.length; ++i2) {
-        const componentType = this.include[i2];
+      for (let i4 = 0; i4 < this.include.length; ++i4) {
+        const componentType = this.include[i4];
         const componentSet = this.#stageData.components.get(componentType);
         const componentActors = componentSet?.actors;
         if (!componentActors) {
           queryActors.clear();
           break;
         }
-        if (i2 == 0) {
+        if (i4 == 0) {
           queryActors = componentActors;
         } else {
           queryActors = queryActors.intersection(componentActors);
@@ -7719,8 +7719,8 @@ var StageQuery = class _StageQuery {
       if (excluded) {
         continue;
       }
-      for (let i2 = 0; i2 < this.include.length; ++i2) {
-        args[i2] = actor.get(this.include[i2]);
+      for (let i4 = 0; i4 < this.include.length; ++i4) {
+        args[i4] = actor.get(this.include[i4]);
       }
       const keepIterating = callback(actor, ...args);
       if (keepIterating === false) {
@@ -7816,8 +7816,8 @@ var uint8ToHex;
 function GetUint8ToHex() {
   if (!uint8ToHex) {
     uint8ToHex = new Array(256);
-    for (let i2 = 0; i2 <= 255; ++i2) {
-      uint8ToHex[i2] = i2.toString(16).padStart(2, "0");
+    for (let i4 = 0; i4 <= 255; ++i4) {
+      uint8ToHex[i4] = i4.toString(16).padStart(2, "0");
     }
   }
   return uint8ToHex;
@@ -7827,8 +7827,8 @@ var hexToUint8;
 function GetHexToUint8() {
   if (!hexToUint8) {
     hexToUint8 = /* @__PURE__ */ new Map();
-    for (let i2 = 0; i2 <= 255; ++i2) {
-      hexToUint8.set(i2.toString(16).padStart(2, "0"), i2);
+    for (let i4 = 0; i4 <= 255; ++i4) {
+      hexToUint8.set(i4.toString(16).padStart(2, "0"), i4);
     }
   }
   return hexToUint8;
@@ -7838,8 +7838,8 @@ function BufferToHexString(buffer) {
   const lut = GetUint8ToHex();
   const array = new Uint8Array(buffer);
   let outStr = "";
-  for (let i2 = 0; i2 < array.length; ++i2) {
-    outStr += lut[array[i2]];
+  for (let i4 = 0; i4 < array.length; ++i4) {
+    outStr += lut[array[i4]];
   }
   return outStr;
 }
@@ -7847,9 +7847,9 @@ __name(BufferToHexString, "BufferToHexString");
 function HexStringToBuffer(value) {
   const lut = GetHexToUint8();
   const array = new Uint8Array(value.length / 2);
-  for (let i2 = 0; i2 < array.length; ++i2) {
-    const strOffset = i2 * 2;
-    array[i2] = lut.get(value.substring(strOffset, strOffset + 2));
+  for (let i4 = 0; i4 < array.length; ++i4) {
+    const strOffset = i4 * 2;
+    array[i4] = lut.get(value.substring(strOffset, strOffset + 2));
   }
   return array.buffer;
 }
@@ -7900,8 +7900,8 @@ function wgsl(strings, ...values) {
       throw new Error(`#${match[1]} must be immediately followed by a template expression (ie: \${value})`);
     }
   }, "assertTemplateFollows");
-  for (let i2 = 0; i2 < strings.length; ++i2) {
-    const str = strings[i2];
+  for (let i4 = 0; i4 < strings.length; ++i4) {
+    const str = strings[i4];
     const matchedSymbols = str.matchAll(preprocessorSymbols);
     let lastIndex = 0;
     let valueConsumed = false;
@@ -7912,12 +7912,12 @@ function wgsl(strings, ...values) {
           assertTemplateFollows(match, str);
           valueConsumed = true;
           stateStack.push(state);
-          state = new ConditionalState(values[i2]);
+          state = new ConditionalState(values[i4]);
           break;
         case "elif":
           assertTemplateFollows(match, str);
           valueConsumed = true;
-          state.pushBranch(match[1], values[i2]);
+          state.pushBranch(match[1], values[i4]);
           break;
         case "else":
           state.pushBranch(match[1], true);
@@ -7940,8 +7940,8 @@ function wgsl(strings, ...values) {
     if (lastIndex != str.length) {
       state.appendStringToCurrentBranch(str.substring(lastIndex, str.length));
     }
-    if (!valueConsumed && values.length > i2) {
-      state.appendStringToCurrentBranch(values[i2]);
+    if (!valueConsumed && values.length > i4) {
+      state.appendStringToCurrentBranch(values[i4]);
     }
   }
   if (stateStack.length) {
@@ -8057,9 +8057,9 @@ var GeometryLayout = class _GeometryLayout {
       };
       buffers.push(buffer);
       offset += 2;
-      for (let i2 = 0; i2 < attribCount; ++i2) {
+      for (let i4 = 0; i4 < attribCount; ++i4) {
         const attribData16 = dataView.getUint16(offset, true);
-        buffer.attributes[i2] = {
+        buffer.attributes[i4] = {
           offset: attribData16 & 4095,
           shaderLocation: attribData16 >> 12 & 15,
           format: FormatId[dataView.getUint8(offset + 2)]
@@ -8107,11 +8107,11 @@ var GeometryLayout = class _GeometryLayout {
   getLocationInfo(shaderLocation) {
     if (!this.#locationsInfo) {
       this.#locationsInfo = /* @__PURE__ */ new Map();
-      for (let i2 = 0; i2 < this.buffers.length; ++i2) {
-        const buffer = this.buffers[i2];
+      for (let i4 = 0; i4 < this.buffers.length; ++i4) {
+        const buffer = this.buffers[i4];
         for (const attrib of buffer.attributes) {
           this.#locationsInfo.set(attrib.shaderLocation, {
-            bufferIndex: i2,
+            bufferIndex: i4,
             stride: buffer.arrayStride,
             offset: attrib.offset,
             format: attrib.format
@@ -8618,12 +8618,12 @@ function NormalizeBufferLayout(bufferLayouts) {
       buffer,
       bufferOffset,
       arrayStride,
-      attributes: attributes.sort((a2, b2) => a2.shaderLocation - b2.shaderLocation)
+      attributes: attributes.sort((a3, b3) => a3.shaderLocation - b3.shaderLocation)
     });
   }, "pushLayout");
   for (const [buffer, strideAttribs] of bufferStrideAttribs) {
     for (const [stride, attribs] of strideAttribs) {
-      attribs.sort((a2, b2) => a2.offset - b2.offset);
+      attribs.sort((a3, b3) => a3.offset - b3.offset);
       let minAttribOffset = attribs[0].offset;
       let attributes = [];
       for (const attrib of attribs) {
@@ -8643,7 +8643,7 @@ function NormalizeBufferLayout(bufferLayouts) {
       pushLayout(buffer, minAttribOffset, stride, attributes);
     }
   }
-  return normalizedLayouts.sort((a2, b2) => a2.attributes[0].shaderLocation - b2.attributes[0].shaderLocation);
+  return normalizedLayouts.sort((a3, b3) => a3.attributes[0].shaderLocation - b3.attributes[0].shaderLocation);
 }
 __name(NormalizeBufferLayout, "NormalizeBufferLayout");
 
@@ -9140,8 +9140,8 @@ var GltfState = class {
       return this.gpu.textureLoader.fromBlob(blob, textureOptions);
     }, "loadImage");
     annotateImages();
-    for (let i2 = 0; i2 < gltf.images.length; ++i2) {
-      this.#imageTextures[i2] = loadImage(i2);
+    for (let i4 = 0; i4 < gltf.images.length; ++i4) {
+      this.#imageTextures[i4] = loadImage(i4);
     }
   }
   #loadSamplers() {
@@ -9243,20 +9243,20 @@ var GltfState = class {
     function gpuFormatForAccessor(accessor) {
       const norm = accessor.normalized ? "norm" : "int";
       const count = accessor.extras.componentCount;
-      let x2 = count > 1 ? `x${count}` : "";
+      let x3 = count > 1 ? `x${count}` : "";
       switch (accessor.componentType) {
         case GL.BYTE:
-          return `s${norm}8${x2}`;
+          return `s${norm}8${x3}`;
         case GL.UNSIGNED_BYTE:
-          return `u${norm}8${x2}`;
+          return `u${norm}8${x3}`;
         case GL.SHORT:
-          return `s${norm}16${x2}`;
+          return `s${norm}16${x3}`;
         case GL.UNSIGNED_SHORT:
-          return `u${norm}16${x2}`;
+          return `u${norm}16${x3}`;
         case GL.UNSIGNED_INT:
-          return `u${norm}32${x2}`;
+          return `u${norm}32${x3}`;
         case GL.FLOAT:
-          return `float32${x2}`;
+          return `float32${x3}`;
         default:
           throw new Error(`Unsupported vertex format: ${accessor.componentType}`);
       }
@@ -9442,9 +9442,9 @@ var A = class _A2 {
   static {
     __name(this, "A");
   }
-  static __wrap(I2) {
-    const g2 = Object.create(_A2.prototype);
-    return g2.__wbg_ptr = I2, n.register(g2, g2.__wbg_ptr, g2), g2;
+  static __wrap(I3) {
+    const g3 = Object.create(_A2.prototype);
+    return g3.__wbg_ptr = I3, n.register(g3, g3.__wbg_ptr, g3), g3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -9454,67 +9454,67 @@ var A = class _A2 {
     const A2 = this.__destroy_into_raw();
     mA.__wbg_rawbroadphase_free(A2, 0);
   }
-  castRay(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2, w2, K2) {
+  castRay(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3, w3, K2) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), MA(Q2, d);
-      const U2 = mA.rawbroadphase_castRay(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2, i2, D2, bA(S2) ? Number.MAX_SAFE_INTEGER : S2 >>> 0, !bA(o2), bA(o2) ? 0 : o2, !bA(w2), bA(w2) ? 0 : w2, NA(K2));
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), MA(Q2, d);
+      const U2 = mA.rawbroadphase_castRay(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3, i4, D3, bA(S3) ? Number.MAX_SAFE_INTEGER : S3 >>> 0, !bA(o3), bA(o3) ? 0 : o3, !bA(w3), bA(w3) ? 0 : w3, NA(K2));
       return 0 === U2 ? void 0 : a.__wrap(U2);
     } finally {
       nA[xA++] = void 0;
     }
   }
-  castRayAndGetNormal(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2, w2, K2) {
+  castRayAndGetNormal(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3, w3, K2) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), MA(Q2, d);
-      const U2 = mA.rawbroadphase_castRayAndGetNormal(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2, i2, D2, bA(S2) ? Number.MAX_SAFE_INTEGER : S2 >>> 0, !bA(o2), bA(o2) ? 0 : o2, !bA(w2), bA(w2) ? 0 : w2, NA(K2));
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), MA(Q2, d);
+      const U2 = mA.rawbroadphase_castRayAndGetNormal(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3, i4, D3, bA(S3) ? Number.MAX_SAFE_INTEGER : S3 >>> 0, !bA(o3), bA(o3) ? 0 : o3, !bA(w3), bA(w3) ? 0 : w3, NA(K2));
       return 0 === U2 ? void 0 : l.__wrap(U2);
     } finally {
       nA[xA++] = void 0;
     }
   }
-  castShape(A2, I2, g2, Q2, E2, i2, D2, S2, o2, w2, K2, U2, k2, h2, y2) {
+  castShape(A2, I3, g3, Q2, E3, i4, D3, S3, o3, w3, K2, U2, k3, h3, y3) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(Q2, d), MA(E2, H), MA(i2, d), MA(D2, t);
-      const J2 = mA.rawbroadphase_castShape(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2.__wbg_ptr, D2.__wbg_ptr, S2, o2, w2, K2, bA(U2) ? Number.MAX_SAFE_INTEGER : U2 >>> 0, !bA(k2), bA(k2) ? 0 : k2, !bA(h2), bA(h2) ? 0 : h2, NA(y2));
-      return 0 === J2 ? void 0 : B.__wrap(J2);
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(Q2, d), MA(E3, H), MA(i4, d), MA(D3, t);
+      const J3 = mA.rawbroadphase_castShape(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4.__wbg_ptr, D3.__wbg_ptr, S3, o3, w3, K2, bA(U2) ? Number.MAX_SAFE_INTEGER : U2 >>> 0, !bA(k3), bA(k3) ? 0 : k3, !bA(h3), bA(h3) ? 0 : h3, NA(y3));
+      return 0 === J3 ? void 0 : B.__wrap(J3);
     } finally {
       nA[xA++] = void 0;
     }
   }
-  collidersWithAabbIntersectingAabb(A2, I2, g2, B2, Q2, E2) {
+  collidersWithAabbIntersectingAabb(A2, I3, g3, B2, Q2, E3) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), MA(Q2, d), mA.rawbroadphase_collidersWithAabbIntersectingAabb(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, NA(E2));
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), MA(Q2, d), mA.rawbroadphase_collidersWithAabbIntersectingAabb(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, NA(E3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  intersectionWithShape(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2, w2) {
+  intersectionWithShape(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3, w3) {
     try {
-      const k2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), MA(Q2, H), MA(E2, t), mA.rawbroadphase_intersectionWithShape(k2, this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2, bA(D2) ? Number.MAX_SAFE_INTEGER : D2 >>> 0, !bA(S2), bA(S2) ? 0 : S2, !bA(o2), bA(o2) ? 0 : o2, NA(w2));
-      var K2 = lA().getInt32(k2 + 0, true), U2 = lA().getFloat64(k2 + 8, true);
+      const k3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), MA(Q2, H), MA(E3, t), mA.rawbroadphase_intersectionWithShape(k3, this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4, bA(D3) ? Number.MAX_SAFE_INTEGER : D3 >>> 0, !bA(S3), bA(S3) ? 0 : S3, !bA(o3), bA(o3) ? 0 : o3, NA(w3));
+      var K2 = lA().getInt32(k3 + 0, true), U2 = lA().getFloat64(k3 + 8, true);
       return 0 === K2 ? void 0 : U2;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16), nA[xA++] = void 0;
     }
   }
-  intersectionsWithPoint(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2) {
+  intersectionsWithPoint(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), mA.rawbroadphase_intersectionsWithPoint(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, NA(Q2), E2, bA(i2) ? Number.MAX_SAFE_INTEGER : i2 >>> 0, !bA(D2), bA(D2) ? 0 : D2, !bA(S2), bA(S2) ? 0 : S2, NA(o2));
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), mA.rawbroadphase_intersectionsWithPoint(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, NA(Q2), E3, bA(i4) ? Number.MAX_SAFE_INTEGER : i4 >>> 0, !bA(D3), bA(D3) ? 0 : D3, !bA(S3), bA(S3) ? 0 : S3, NA(o3));
     } finally {
       nA[xA++] = void 0, nA[xA++] = void 0;
     }
   }
-  intersectionsWithRay(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2, w2, K2, U2) {
+  intersectionsWithRay(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3, w3, K2, U2) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), MA(Q2, d), mA.rawbroadphase_intersectionsWithRay(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2, i2, NA(D2), S2, bA(o2) ? Number.MAX_SAFE_INTEGER : o2 >>> 0, !bA(w2), bA(w2) ? 0 : w2, !bA(K2), bA(K2) ? 0 : K2, NA(U2));
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), MA(Q2, d), mA.rawbroadphase_intersectionsWithRay(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3, i4, NA(D3), S3, bA(o3) ? Number.MAX_SAFE_INTEGER : o3 >>> 0, !bA(w3), bA(w3) ? 0 : w3, !bA(K2), bA(K2) ? 0 : K2, NA(U2));
     } finally {
       nA[xA++] = void 0, nA[xA++] = void 0;
     }
   }
-  intersectionsWithShape(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2, w2, K2) {
+  intersectionsWithShape(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3, w3, K2) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d), MA(Q2, H), MA(E2, t), mA.rawbroadphase_intersectionsWithShape(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, NA(i2), D2, bA(S2) ? Number.MAX_SAFE_INTEGER : S2 >>> 0, !bA(o2), bA(o2) ? 0 : o2, !bA(w2), bA(w2) ? 0 : w2, NA(K2));
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d), MA(Q2, H), MA(E3, t), mA.rawbroadphase_intersectionsWithShape(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, NA(i4), D3, bA(S3) ? Number.MAX_SAFE_INTEGER : S3 >>> 0, !bA(o3), bA(o3) ? 0 : o3, !bA(w3), bA(w3) ? 0 : w3, NA(K2));
     } finally {
       nA[xA++] = void 0, nA[xA++] = void 0;
     }
@@ -9523,20 +9523,20 @@ var A = class _A2 {
     const A2 = mA.rawbroadphase_new();
     return this.__wbg_ptr = A2, n.register(this, this.__wbg_ptr, this), this;
   }
-  projectPoint(A2, I2, g2, B2, Q2, E2, i2, D2, S2, o2) {
+  projectPoint(A2, I3, g3, B2, Q2, E3, i4, D3, S3, o3) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d);
-      const w2 = mA.rawbroadphase_projectPoint(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2, E2, bA(i2) ? Number.MAX_SAFE_INTEGER : i2 >>> 0, !bA(D2), bA(D2) ? 0 : D2, !bA(S2), bA(S2) ? 0 : S2, NA(o2));
-      return 0 === w2 ? void 0 : Y.__wrap(w2);
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d);
+      const w3 = mA.rawbroadphase_projectPoint(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2, E3, bA(i4) ? Number.MAX_SAFE_INTEGER : i4 >>> 0, !bA(D3), bA(D3) ? 0 : D3, !bA(S3), bA(S3) ? 0 : S3, NA(o3));
+      return 0 === w3 ? void 0 : Y.__wrap(w3);
     } finally {
       nA[xA++] = void 0;
     }
   }
-  projectPointAndGetFeature(A2, I2, g2, B2, Q2, E2, i2, D2, S2) {
+  projectPointAndGetFeature(A2, I3, g3, B2, Q2, E3, i4, D3, S3) {
     try {
-      MA(A2, N), MA(I2, q), MA(g2, C), MA(B2, d);
-      const o2 = mA.rawbroadphase_projectPointAndGetFeature(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2, bA(E2) ? Number.MAX_SAFE_INTEGER : E2 >>> 0, !bA(i2), bA(i2) ? 0 : i2, !bA(D2), bA(D2) ? 0 : D2, NA(S2));
-      return 0 === o2 ? void 0 : Y.__wrap(o2);
+      MA(A2, N), MA(I3, q), MA(g3, C), MA(B2, d);
+      const o3 = mA.rawbroadphase_projectPointAndGetFeature(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2, bA(E3) ? Number.MAX_SAFE_INTEGER : E3 >>> 0, !bA(i4), bA(i4) ? 0 : i4, !bA(D3), bA(D3) ? 0 : D3, NA(S3));
+      return 0 === o3 ? void 0 : Y.__wrap(o3);
     } finally {
       nA[xA++] = void 0;
     }
@@ -9632,8 +9632,8 @@ var C = class _C {
     __name(this, "C");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_C.prototype);
-    return I2.__wbg_ptr = A2, j.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_C.prototype);
+    return I3.__wbg_ptr = A2, j.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -9652,49 +9652,49 @@ var C = class _C {
   coActiveHooks(A2) {
     return mA.rawcolliderset_coActiveHooks(this.__wbg_ptr, A2) >>> 0;
   }
-  coCastCollider(A2, I2, g2, C2, Q2, E2, i2) {
-    MA(I2, d), MA(C2, d);
-    const D2 = mA.rawcolliderset_coCastCollider(this.__wbg_ptr, A2, I2.__wbg_ptr, g2, C2.__wbg_ptr, Q2, E2, i2);
-    return 0 === D2 ? void 0 : B.__wrap(D2);
+  coCastCollider(A2, I3, g3, C3, Q2, E3, i4) {
+    MA(I3, d), MA(C3, d);
+    const D3 = mA.rawcolliderset_coCastCollider(this.__wbg_ptr, A2, I3.__wbg_ptr, g3, C3.__wbg_ptr, Q2, E3, i4);
+    return 0 === D3 ? void 0 : B.__wrap(D3);
   }
-  coCastRay(A2, I2, g2, C2, B2) {
-    MA(I2, d), MA(g2, d);
-    return mA.rawcolliderset_coCastRay(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2, B2);
+  coCastRay(A2, I3, g3, C3, B2) {
+    MA(I3, d), MA(g3, d);
+    return mA.rawcolliderset_coCastRay(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3, B2);
   }
-  coCastRayAndGetNormal(A2, I2, g2, C2, B2) {
-    MA(I2, d), MA(g2, d);
-    const Q2 = mA.rawcolliderset_coCastRayAndGetNormal(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2, B2);
+  coCastRayAndGetNormal(A2, I3, g3, C3, B2) {
+    MA(I3, d), MA(g3, d);
+    const Q2 = mA.rawcolliderset_coCastRayAndGetNormal(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3, B2);
     return 0 === Q2 ? void 0 : L.__wrap(Q2);
   }
-  coCastShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2) {
-    MA(I2, d), MA(g2, t), MA(C2, d), MA(B2, H), MA(Q2, d);
-    const S2 = mA.rawcolliderset_coCastShape(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2, i2, D2);
-    return 0 === S2 ? void 0 : r.__wrap(S2);
+  coCastShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3) {
+    MA(I3, d), MA(g3, t), MA(C3, d), MA(B2, H), MA(Q2, d);
+    const S3 = mA.rawcolliderset_coCastShape(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3, i4, D3);
+    return 0 === S3 ? void 0 : r.__wrap(S3);
   }
   coCollisionGroups(A2) {
     return mA.rawcolliderset_coCollisionGroups(this.__wbg_ptr, A2) >>> 0;
   }
-  coCombineVoxelStates(A2, I2, g2, C2, B2) {
-    mA.rawcolliderset_coCombineVoxelStates(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  coCombineVoxelStates(A2, I3, g3, C3, B2) {
+    mA.rawcolliderset_coCombineVoxelStates(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  coContactCollider(A2, I2, g2) {
-    const C2 = mA.rawcolliderset_coContactCollider(this.__wbg_ptr, A2, I2, g2);
-    return 0 === C2 ? void 0 : O.__wrap(C2);
+  coContactCollider(A2, I3, g3) {
+    const C3 = mA.rawcolliderset_coContactCollider(this.__wbg_ptr, A2, I3, g3);
+    return 0 === C3 ? void 0 : O.__wrap(C3);
   }
   coContactForceEventThreshold(A2) {
     return mA.rawcolliderset_coContactForceEventThreshold(this.__wbg_ptr, A2);
   }
-  coContactShape(A2, I2, g2, C2, B2) {
-    MA(I2, t), MA(g2, d), MA(C2, H);
-    const Q2 = mA.rawcolliderset_coContactShape(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2);
+  coContactShape(A2, I3, g3, C3, B2) {
+    MA(I3, t), MA(g3, d), MA(C3, H);
+    const Q2 = mA.rawcolliderset_coContactShape(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2);
     return 0 === Q2 ? void 0 : O.__wrap(Q2);
   }
   coContactSkin(A2) {
     return mA.rawcolliderset_coContactSkin(this.__wbg_ptr, A2);
   }
-  coContainsPoint(A2, I2) {
-    MA(I2, d);
-    return 0 !== mA.rawcolliderset_coContainsPoint(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  coContainsPoint(A2, I3) {
+    MA(I3, d);
+    return 0 !== mA.rawcolliderset_coContainsPoint(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
   coDensity(A2) {
     return mA.rawcolliderset_coDensity(this.__wbg_ptr, A2);
@@ -9705,72 +9705,72 @@ var C = class _C {
   coFrictionCombineRule(A2) {
     return mA.rawcolliderset_coFrictionCombineRule(this.__wbg_ptr, A2) >>> 0;
   }
-  coHalfExtents(A2, I2) {
+  coHalfExtents(A2, I3) {
     try {
-      return 0 !== mA.rawcolliderset_coHalfExtents(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcolliderset_coHalfExtents(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   coHalfHeight(A2) {
-    const I2 = mA.rawcolliderset_coHalfHeight(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coHalfHeight(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
-  coHalfspaceNormal(A2, I2) {
+  coHalfspaceNormal(A2, I3) {
     try {
-      return 0 !== mA.rawcolliderset_coHalfspaceNormal(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcolliderset_coHalfspaceNormal(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   coHeightFieldFlags(A2) {
-    const I2 = mA.rawcolliderset_coHeightFieldFlags(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coHeightFieldFlags(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   coHeightfieldHeights(A2) {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawcolliderset_coHeightfieldHeights(C2, this.__wbg_ptr, A2);
-      var I2 = lA().getInt32(C2 + 0, true), g2 = lA().getInt32(C2 + 4, true);
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawcolliderset_coHeightfieldHeights(C3, this.__wbg_ptr, A2);
+      var I3 = lA().getInt32(C3 + 0, true), g3 = lA().getInt32(C3 + 4, true);
       let B2;
-      return 0 !== I2 && (B2 = sA(I2, g2).slice(), mA.__wbindgen_export2(I2, 4 * g2, 4)), B2;
+      return 0 !== I3 && (B2 = sA(I3, g3).slice(), mA.__wbindgen_export2(I3, 4 * g3, 4)), B2;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
   coHeightfieldNCols(A2) {
-    const I2 = mA.rawcolliderset_coHeightfieldNCols(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coHeightfieldNCols(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   coHeightfieldNRows(A2) {
-    const I2 = mA.rawcolliderset_coHeightfieldNRows(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coHeightfieldNRows(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
-  coHeightfieldScale(A2, I2) {
+  coHeightfieldScale(A2, I3) {
     try {
-      return 0 !== mA.rawcolliderset_coHeightfieldScale(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcolliderset_coHeightfieldScale(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   coIndices(A2) {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawcolliderset_coIndices(C2, this.__wbg_ptr, A2);
-      var I2 = lA().getInt32(C2 + 0, true), g2 = lA().getInt32(C2 + 4, true);
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawcolliderset_coIndices(C3, this.__wbg_ptr, A2);
+      var I3 = lA().getInt32(C3 + 0, true), g3 = lA().getInt32(C3 + 4, true);
       let B2;
-      return 0 !== I2 && (B2 = YA(I2, g2).slice(), mA.__wbindgen_export2(I2, 4 * g2, 4)), B2;
+      return 0 !== I3 && (B2 = YA(I3, g3).slice(), mA.__wbindgen_export2(I3, 4 * g3, 4)), B2;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
-  coIntersectsRay(A2, I2, g2, C2) {
-    MA(I2, d), MA(g2, d);
-    return 0 !== mA.rawcolliderset_coIntersectsRay(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  coIntersectsRay(A2, I3, g3, C3) {
+    MA(I3, d), MA(g3, d);
+    return 0 !== mA.rawcolliderset_coIntersectsRay(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3);
   }
-  coIntersectsShape(A2, I2, g2, C2) {
-    MA(I2, t), MA(g2, d), MA(C2, H);
-    return 0 !== mA.rawcolliderset_coIntersectsShape(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr);
+  coIntersectsShape(A2, I3, g3, C3) {
+    MA(I3, t), MA(g3, d), MA(C3, H);
+    return 0 !== mA.rawcolliderset_coIntersectsShape(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr);
   }
   coIsEnabled(A2) {
     return 0 !== mA.rawcolliderset_coIsEnabled(this.__wbg_ptr, A2);
@@ -9783,25 +9783,25 @@ var C = class _C {
   }
   coParent(A2) {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawcolliderset_coParent(C2, this.__wbg_ptr, A2);
-      var I2 = lA().getInt32(C2 + 0, true), g2 = lA().getFloat64(C2 + 8, true);
-      return 0 === I2 ? void 0 : g2;
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawcolliderset_coParent(C3, this.__wbg_ptr, A2);
+      var I3 = lA().getInt32(C3 + 0, true), g3 = lA().getFloat64(C3 + 8, true);
+      return 0 === I3 ? void 0 : g3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
-  coProjectPoint(A2, I2, g2) {
-    MA(I2, d);
-    const C2 = mA.rawcolliderset_coProjectPoint(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
-    return c.__wrap(C2);
+  coProjectPoint(A2, I3, g3) {
+    MA(I3, d);
+    const C3 = mA.rawcolliderset_coProjectPoint(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
+    return c.__wrap(C3);
   }
-  coPropagateVoxelChange(A2, I2, g2, C2, B2, Q2, E2, i2) {
-    mA.rawcolliderset_coPropagateVoxelChange(this.__wbg_ptr, A2, I2, g2, C2, B2, Q2, E2, i2);
+  coPropagateVoxelChange(A2, I3, g3, C3, B2, Q2, E3, i4) {
+    mA.rawcolliderset_coPropagateVoxelChange(this.__wbg_ptr, A2, I3, g3, C3, B2, Q2, E3, i4);
   }
   coRadius(A2) {
-    const I2 = mA.rawcolliderset_coRadius(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coRadius(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   coRestitution(A2) {
     return mA.rawcolliderset_coRestitution(this.__wbg_ptr, A2);
@@ -9809,105 +9809,105 @@ var C = class _C {
   coRestitutionCombineRule(A2) {
     return mA.rawcolliderset_coRestitutionCombineRule(this.__wbg_ptr, A2) >>> 0;
   }
-  coRotation(A2, I2) {
+  coRotation(A2, I3) {
     try {
-      mA.rawcolliderset_coRotation(this.__wbg_ptr, A2, NA(I2));
+      mA.rawcolliderset_coRotation(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  coRotationWrtParent(A2, I2) {
+  coRotationWrtParent(A2, I3) {
     try {
-      return 0 !== mA.rawcolliderset_coRotationWrtParent(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcolliderset_coRotationWrtParent(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   coRoundRadius(A2) {
-    const I2 = mA.rawcolliderset_coRoundRadius(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coRoundRadius(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
-  coSetActiveCollisionTypes(A2, I2) {
-    mA.rawcolliderset_coSetActiveCollisionTypes(this.__wbg_ptr, A2, I2);
+  coSetActiveCollisionTypes(A2, I3) {
+    mA.rawcolliderset_coSetActiveCollisionTypes(this.__wbg_ptr, A2, I3);
   }
-  coSetActiveEvents(A2, I2) {
-    mA.rawcolliderset_coSetActiveEvents(this.__wbg_ptr, A2, I2);
+  coSetActiveEvents(A2, I3) {
+    mA.rawcolliderset_coSetActiveEvents(this.__wbg_ptr, A2, I3);
   }
-  coSetActiveHooks(A2, I2) {
-    mA.rawcolliderset_coSetActiveHooks(this.__wbg_ptr, A2, I2);
+  coSetActiveHooks(A2, I3) {
+    mA.rawcolliderset_coSetActiveHooks(this.__wbg_ptr, A2, I3);
   }
-  coSetCollisionGroups(A2, I2) {
-    mA.rawcolliderset_coSetCollisionGroups(this.__wbg_ptr, A2, I2);
+  coSetCollisionGroups(A2, I3) {
+    mA.rawcolliderset_coSetCollisionGroups(this.__wbg_ptr, A2, I3);
   }
-  coSetContactForceEventThreshold(A2, I2) {
-    mA.rawcolliderset_coSetContactForceEventThreshold(this.__wbg_ptr, A2, I2);
+  coSetContactForceEventThreshold(A2, I3) {
+    mA.rawcolliderset_coSetContactForceEventThreshold(this.__wbg_ptr, A2, I3);
   }
-  coSetContactSkin(A2, I2) {
-    mA.rawcolliderset_coSetContactSkin(this.__wbg_ptr, A2, I2);
+  coSetContactSkin(A2, I3) {
+    mA.rawcolliderset_coSetContactSkin(this.__wbg_ptr, A2, I3);
   }
-  coSetDensity(A2, I2) {
-    mA.rawcolliderset_coSetDensity(this.__wbg_ptr, A2, I2);
+  coSetDensity(A2, I3) {
+    mA.rawcolliderset_coSetDensity(this.__wbg_ptr, A2, I3);
   }
-  coSetEnabled(A2, I2) {
-    mA.rawcolliderset_coSetEnabled(this.__wbg_ptr, A2, I2);
+  coSetEnabled(A2, I3) {
+    mA.rawcolliderset_coSetEnabled(this.__wbg_ptr, A2, I3);
   }
-  coSetFriction(A2, I2) {
-    mA.rawcolliderset_coSetFriction(this.__wbg_ptr, A2, I2);
+  coSetFriction(A2, I3) {
+    mA.rawcolliderset_coSetFriction(this.__wbg_ptr, A2, I3);
   }
-  coSetFrictionCombineRule(A2, I2) {
-    mA.rawcolliderset_coSetFrictionCombineRule(this.__wbg_ptr, A2, I2);
+  coSetFrictionCombineRule(A2, I3) {
+    mA.rawcolliderset_coSetFrictionCombineRule(this.__wbg_ptr, A2, I3);
   }
-  coSetHalfExtents(A2, I2) {
-    MA(I2, d), mA.rawcolliderset_coSetHalfExtents(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  coSetHalfExtents(A2, I3) {
+    MA(I3, d), mA.rawcolliderset_coSetHalfExtents(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  coSetHalfHeight(A2, I2) {
-    mA.rawcolliderset_coSetHalfHeight(this.__wbg_ptr, A2, I2);
+  coSetHalfHeight(A2, I3) {
+    mA.rawcolliderset_coSetHalfHeight(this.__wbg_ptr, A2, I3);
   }
-  coSetMass(A2, I2) {
-    mA.rawcolliderset_coSetMass(this.__wbg_ptr, A2, I2);
+  coSetMass(A2, I3) {
+    mA.rawcolliderset_coSetMass(this.__wbg_ptr, A2, I3);
   }
-  coSetMassProperties(A2, I2, g2, C2, B2) {
-    MA(g2, d), MA(C2, d), MA(B2, H), mA.rawcolliderset_coSetMassProperties(this.__wbg_ptr, A2, I2, g2.__wbg_ptr, C2.__wbg_ptr, B2.__wbg_ptr);
+  coSetMassProperties(A2, I3, g3, C3, B2) {
+    MA(g3, d), MA(C3, d), MA(B2, H), mA.rawcolliderset_coSetMassProperties(this.__wbg_ptr, A2, I3, g3.__wbg_ptr, C3.__wbg_ptr, B2.__wbg_ptr);
   }
-  coSetRadius(A2, I2) {
-    mA.rawcolliderset_coSetRadius(this.__wbg_ptr, A2, I2);
+  coSetRadius(A2, I3) {
+    mA.rawcolliderset_coSetRadius(this.__wbg_ptr, A2, I3);
   }
-  coSetRestitution(A2, I2) {
-    mA.rawcolliderset_coSetRestitution(this.__wbg_ptr, A2, I2);
+  coSetRestitution(A2, I3) {
+    mA.rawcolliderset_coSetRestitution(this.__wbg_ptr, A2, I3);
   }
-  coSetRestitutionCombineRule(A2, I2) {
-    mA.rawcolliderset_coSetRestitutionCombineRule(this.__wbg_ptr, A2, I2);
+  coSetRestitutionCombineRule(A2, I3) {
+    mA.rawcolliderset_coSetRestitutionCombineRule(this.__wbg_ptr, A2, I3);
   }
-  coSetRotation(A2, I2, g2, C2, B2) {
-    mA.rawcolliderset_coSetRotation(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  coSetRotation(A2, I3, g3, C3, B2) {
+    mA.rawcolliderset_coSetRotation(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  coSetRotationWrtParent(A2, I2, g2, C2, B2) {
-    mA.rawcolliderset_coSetRotationWrtParent(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  coSetRotationWrtParent(A2, I3, g3, C3, B2) {
+    mA.rawcolliderset_coSetRotationWrtParent(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  coSetRoundRadius(A2, I2) {
-    mA.rawcolliderset_coSetRoundRadius(this.__wbg_ptr, A2, I2);
+  coSetRoundRadius(A2, I3) {
+    mA.rawcolliderset_coSetRoundRadius(this.__wbg_ptr, A2, I3);
   }
-  coSetSensor(A2, I2) {
-    mA.rawcolliderset_coSetSensor(this.__wbg_ptr, A2, I2);
+  coSetSensor(A2, I3) {
+    mA.rawcolliderset_coSetSensor(this.__wbg_ptr, A2, I3);
   }
-  coSetShape(A2, I2) {
-    MA(I2, t), mA.rawcolliderset_coSetShape(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  coSetShape(A2, I3) {
+    MA(I3, t), mA.rawcolliderset_coSetShape(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  coSetSolverGroups(A2, I2) {
-    mA.rawcolliderset_coSetSolverGroups(this.__wbg_ptr, A2, I2);
+  coSetSolverGroups(A2, I3) {
+    mA.rawcolliderset_coSetSolverGroups(this.__wbg_ptr, A2, I3);
   }
-  coSetTranslation(A2, I2, g2, C2) {
-    mA.rawcolliderset_coSetTranslation(this.__wbg_ptr, A2, I2, g2, C2);
+  coSetTranslation(A2, I3, g3, C3) {
+    mA.rawcolliderset_coSetTranslation(this.__wbg_ptr, A2, I3, g3, C3);
   }
-  coSetTranslationWrtParent(A2, I2, g2, C2) {
-    mA.rawcolliderset_coSetTranslationWrtParent(this.__wbg_ptr, A2, I2, g2, C2);
+  coSetTranslationWrtParent(A2, I3, g3, C3) {
+    mA.rawcolliderset_coSetTranslationWrtParent(this.__wbg_ptr, A2, I3, g3, C3);
   }
-  coSetVoxel(A2, I2, g2, C2, B2) {
-    mA.rawcolliderset_coSetVoxel(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  coSetVoxel(A2, I3, g3, C3, B2) {
+    mA.rawcolliderset_coSetVoxel(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
   coShape(A2) {
-    const I2 = mA.rawcolliderset_coShape(this.__wbg_ptr, A2);
-    return t.__wrap(I2);
+    const I3 = mA.rawcolliderset_coShape(this.__wbg_ptr, A2);
+    return t.__wrap(I3);
   }
   coShapeType(A2) {
     return mA.rawcolliderset_coShapeType(this.__wbg_ptr, A2);
@@ -9915,31 +9915,31 @@ var C = class _C {
   coSolverGroups(A2) {
     return mA.rawcolliderset_coSolverGroups(this.__wbg_ptr, A2) >>> 0;
   }
-  coTranslation(A2, I2) {
+  coTranslation(A2, I3) {
     try {
-      mA.rawcolliderset_coTranslation(this.__wbg_ptr, A2, NA(I2));
+      mA.rawcolliderset_coTranslation(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  coTranslationWrtParent(A2, I2) {
+  coTranslationWrtParent(A2, I3) {
     try {
-      return 0 !== mA.rawcolliderset_coTranslationWrtParent(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcolliderset_coTranslationWrtParent(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   coTriMeshFlags(A2) {
-    const I2 = mA.rawcolliderset_coTriMeshFlags(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawcolliderset_coTriMeshFlags(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   coVertices(A2) {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawcolliderset_coVertices(C2, this.__wbg_ptr, A2);
-      var I2 = lA().getInt32(C2 + 0, true), g2 = lA().getInt32(C2 + 4, true);
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawcolliderset_coVertices(C3, this.__wbg_ptr, A2);
+      var I3 = lA().getInt32(C3 + 0, true), g3 = lA().getInt32(C3 + 4, true);
       let B2;
-      return 0 !== I2 && (B2 = sA(I2, g2).slice(), mA.__wbindgen_export2(I2, 4 * g2, 4)), B2;
+      return 0 !== I3 && (B2 = sA(I3, g3).slice(), mA.__wbindgen_export2(I3, 4 * g3, 4)), B2;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
@@ -9949,28 +9949,28 @@ var C = class _C {
   }
   coVoxelData(A2) {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawcolliderset_coVoxelData(C2, this.__wbg_ptr, A2);
-      var I2 = lA().getInt32(C2 + 0, true), g2 = lA().getInt32(C2 + 4, true);
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawcolliderset_coVoxelData(C3, this.__wbg_ptr, A2);
+      var I3 = lA().getInt32(C3 + 0, true), g3 = lA().getInt32(C3 + 4, true);
       let B2;
-      return 0 !== I2 && (B2 = RA(I2, g2).slice(), mA.__wbindgen_export2(I2, 4 * g2, 4)), B2;
+      return 0 !== I3 && (B2 = RA(I3, g3).slice(), mA.__wbindgen_export2(I3, 4 * g3, 4)), B2;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
   coVoxelSize(A2) {
-    const I2 = mA.rawcolliderset_coVoxelSize(this.__wbg_ptr, A2);
-    return 0 === I2 ? void 0 : d.__wrap(I2);
+    const I3 = mA.rawcolliderset_coVoxelSize(this.__wbg_ptr, A2);
+    return 0 === I3 ? void 0 : d.__wrap(I3);
   }
   contains(A2) {
     return 0 !== mA.rawcolliderset_contains(this.__wbg_ptr, A2);
   }
-  createCollider(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2, K2, U2, k2, h2, y2, J2, G2, F2, M2, N2, s2, R2, Y2) {
+  createCollider(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3, K2, U2, k3, h3, y3, J3, G2, F2, M2, N2, s4, R2, Y2) {
     try {
-      const l2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      MA(I2, t), MA(g2, d), MA(C2, H), MA(E2, d), MA(i2, d), MA(D2, H), MA(Y2, q), mA.rawcolliderset_createCollider(l2, this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2, Q2, E2.__wbg_ptr, i2.__wbg_ptr, D2.__wbg_ptr, S2, o2, w2, K2, U2, k2, h2, y2, J2, G2, F2, M2, N2, s2, R2, Y2.__wbg_ptr);
-      var c2 = lA().getInt32(l2 + 0, true), a2 = lA().getFloat64(l2 + 8, true);
-      return 0 === c2 ? void 0 : a2;
+      const l3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      MA(I3, t), MA(g3, d), MA(C3, H), MA(E3, d), MA(i4, d), MA(D3, H), MA(Y2, q), mA.rawcolliderset_createCollider(l3, this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2, Q2, E3.__wbg_ptr, i4.__wbg_ptr, D3.__wbg_ptr, S3, o3, w3, K2, U2, k3, h3, y3, J3, G2, F2, M2, N2, s4, R2, Y2.__wbg_ptr);
+      var c3 = lA().getInt32(l3 + 0, true), a3 = lA().getFloat64(l3 + 8, true);
+      return 0 === c3 ? void 0 : a3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
@@ -9992,8 +9992,8 @@ var C = class _C {
     const A2 = mA.rawcolliderset_new();
     return this.__wbg_ptr = A2, j.register(this, this.__wbg_ptr, this), this;
   }
-  remove(A2, I2, g2, C2) {
-    MA(I2, y), MA(g2, q), mA.rawcolliderset_remove(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  remove(A2, I3, g3, C3) {
+    MA(I3, y), MA(g3, q), mA.rawcolliderset_remove(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3);
   }
 };
 Symbol.dispose && (C.prototype[Symbol.dispose] = C.prototype.free);
@@ -10002,8 +10002,8 @@ var B = class _B {
     __name(this, "B");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_B.prototype);
-    return I2.__wbg_ptr = A2, W.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_B.prototype);
+    return I3.__wbg_ptr = A2, W.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10030,8 +10030,8 @@ var Q = class _Q {
     __name(this, "Q");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_Q.prototype);
-    return I2.__wbg_ptr = A2, x.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_Q.prototype);
+    return I3.__wbg_ptr = A2, x.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10074,8 +10074,8 @@ var E = class _E {
     __name(this, "E");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_E.prototype);
-    return I2.__wbg_ptr = A2, f.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_E.prototype);
+    return I3.__wbg_ptr = A2, f.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10097,16 +10097,16 @@ var E = class _E {
   contact_impulse(A2) {
     return mA.rawcontactmanifold_contact_impulse(this.__wbg_ptr, A2);
   }
-  contact_local_p1(A2, I2) {
+  contact_local_p1(A2, I3) {
     try {
-      return 0 !== mA.rawcontactmanifold_contact_local_p1(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcontactmanifold_contact_local_p1(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  contact_local_p2(A2, I2) {
+  contact_local_p2(A2, I3) {
     try {
-      return 0 !== mA.rawcontactmanifold_contact_local_p2(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawcontactmanifold_contact_local_p2(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -10153,17 +10153,17 @@ var E = class _E {
   solver_contact_dist(A2) {
     return mA.rawcontactmanifold_solver_contact_dist(this.__wbg_ptr, A2);
   }
-  solver_contact_point(A2, I2, g2) {
+  solver_contact_point(A2, I3, g3) {
     try {
       MA(A2, q);
-      return 0 !== mA.rawcontactmanifold_solver_contact_point(this.__wbg_ptr, A2.__wbg_ptr, I2, NA(g2));
+      return 0 !== mA.rawcontactmanifold_solver_contact_point(this.__wbg_ptr, A2.__wbg_ptr, I3, NA(g3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  solver_contact_tangent_velocity(A2, I2) {
+  solver_contact_tangent_velocity(A2, I3) {
     try {
-      mA.rawcontactmanifold_solver_contact_tangent_velocity(this.__wbg_ptr, A2, NA(I2));
+      mA.rawcontactmanifold_solver_contact_tangent_velocity(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -10181,8 +10181,8 @@ var i = class _i {
     __name(this, "i");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_i.prototype);
-    return I2.__wbg_ptr = A2, X.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_i.prototype);
+    return I3.__wbg_ptr = A2, X.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10199,8 +10199,8 @@ var i = class _i {
     return mA.rawcontactpair_collider2(this.__wbg_ptr);
   }
   contactManifold(A2) {
-    const I2 = mA.rawcontactpair_contactManifold(this.__wbg_ptr, A2);
-    return 0 === I2 ? void 0 : E.__wrap(I2);
+    const I3 = mA.rawcontactpair_contactManifold(this.__wbg_ptr, A2);
+    return 0 === I3 ? void 0 : E.__wrap(I3);
   }
   numContactManifolds() {
     return mA.rawcontactpair_numContactManifolds(this.__wbg_ptr) >>> 0;
@@ -10212,8 +10212,8 @@ var D = class _D {
     __name(this, "D");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_D.prototype);
-    return I2.__wbg_ptr = A2, P.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_D.prototype);
+    return I3.__wbg_ptr = A2, P.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10225,31 +10225,31 @@ var D = class _D {
   }
   get indices() {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.__wbg_get_rawconvexmeshdata_indices(C2, this.__wbg_ptr);
-      var A2 = lA().getInt32(C2 + 0, true), I2 = lA().getInt32(C2 + 4, true), g2 = YA(A2, I2).slice();
-      return mA.__wbindgen_export2(A2, 4 * I2, 4), g2;
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.__wbg_get_rawconvexmeshdata_indices(C3, this.__wbg_ptr);
+      var A2 = lA().getInt32(C3 + 0, true), I3 = lA().getInt32(C3 + 4, true), g3 = YA(A2, I3).slice();
+      return mA.__wbindgen_export2(A2, 4 * I3, 4), g3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
   get vertices() {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.__wbg_get_rawconvexmeshdata_vertices(C2, this.__wbg_ptr);
-      var A2 = lA().getInt32(C2 + 0, true), I2 = lA().getInt32(C2 + 4, true), g2 = sA(A2, I2).slice();
-      return mA.__wbindgen_export2(A2, 4 * I2, 4), g2;
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.__wbg_get_rawconvexmeshdata_vertices(C3, this.__wbg_ptr);
+      var A2 = lA().getInt32(C3 + 0, true), I3 = lA().getInt32(C3 + 4, true), g3 = sA(A2, I3).slice();
+      return mA.__wbindgen_export2(A2, 4 * I3, 4), g3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
   set indices(A2) {
-    const I2 = jA(A2, mA.__wbindgen_export3), g2 = VA;
-    mA.__wbg_set_rawconvexmeshdata_indices(this.__wbg_ptr, I2, g2);
+    const I3 = jA(A2, mA.__wbindgen_export3), g3 = VA;
+    mA.__wbg_set_rawconvexmeshdata_indices(this.__wbg_ptr, I3, g3);
   }
   set vertices(A2) {
-    const I2 = WA(A2, mA.__wbindgen_export3), g2 = VA;
-    mA.__wbg_set_rawconvexmeshdata_vertices(this.__wbg_ptr, I2, g2);
+    const I3 = WA(A2, mA.__wbindgen_export3), g3 = VA;
+    mA.__wbg_set_rawconvexmeshdata_vertices(this.__wbg_ptr, I3, g3);
   }
 };
 Symbol.dispose && (D.prototype[Symbol.dispose] = D.prototype.free);
@@ -10272,9 +10272,9 @@ var S = class {
     const A2 = mA.rawdebugrenderpipeline_new();
     return this.__wbg_ptr = A2, m.register(this, this.__wbg_ptr, this), this;
   }
-  render(A2, I2, g2, B2, Q2, E2, i2) {
+  render(A2, I3, g3, B2, Q2, E3, i4) {
     try {
-      MA(A2, q), MA(I2, C), MA(g2, k), MA(B2, M), MA(Q2, N), mA.rawdebugrenderpipeline_render(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2, NA(i2));
+      MA(A2, q), MA(I3, C), MA(g3, k), MA(B2, M), MA(Q2, N), mA.rawdebugrenderpipeline_render(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3, NA(i4));
     } finally {
       nA[xA++] = void 0;
     }
@@ -10289,8 +10289,8 @@ var o = class _o {
     __name(this, "o");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_o.prototype);
-    return I2.__wbg_ptr = A2, V.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_o.prototype);
+    return I3.__wbg_ptr = A2, V.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10305,8 +10305,8 @@ var o = class _o {
     return 0 === A2 ? void 0 : q.__wrap(A2);
   }
   takeBroadPhase() {
-    const I2 = mA.rawdeserializedworld_takeBroadPhase(this.__wbg_ptr);
-    return 0 === I2 ? void 0 : A.__wrap(I2);
+    const I3 = mA.rawdeserializedworld_takeBroadPhase(this.__wbg_ptr);
+    return 0 === I3 ? void 0 : A.__wrap(I3);
   }
   takeColliders() {
     const A2 = mA.rawdeserializedworld_takeColliders(this.__wbg_ptr);
@@ -10350,8 +10350,8 @@ var w = class {
     const A2 = this.__destroy_into_raw();
     mA.__wbg_rawdynamicraycastvehiclecontroller_free(A2, 0);
   }
-  add_wheel(A2, I2, g2, C2, B2) {
-    MA(A2, d), MA(I2, d), MA(g2, d), mA.rawdynamicraycastvehiclecontroller_add_wheel(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2, B2);
+  add_wheel(A2, I3, g3, C3, B2) {
+    MA(A2, d), MA(I3, d), MA(g3, d), mA.rawdynamicraycastvehiclecontroller_add_wheel(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3, B2);
   }
   chassis() {
     return mA.rawdynamicraycastvehiclecontroller_chassis(this.__wbg_ptr);
@@ -10366,8 +10366,8 @@ var w = class {
     return mA.rawdynamicraycastvehiclecontroller_index_up_axis(this.__wbg_ptr) >>> 0;
   }
   constructor(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_new(A2);
-    return this.__wbg_ptr = I2, u.register(this, this.__wbg_ptr, this), this;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_new(A2);
+    return this.__wbg_ptr = I3, u.register(this, this.__wbg_ptr, this), this;
   }
   num_wheels() {
     return mA.rawdynamicraycastvehiclecontroller_num_wheels(this.__wbg_ptr) >>> 0;
@@ -10378,122 +10378,122 @@ var w = class {
   set_index_up_axis(A2) {
     mA.rawdynamicraycastvehiclecontroller_set_index_up_axis(this.__wbg_ptr, A2);
   }
-  set_wheel_axle_cs(A2, I2) {
-    MA(I2, d), mA.rawdynamicraycastvehiclecontroller_set_wheel_axle_cs(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  set_wheel_axle_cs(A2, I3) {
+    MA(I3, d), mA.rawdynamicraycastvehiclecontroller_set_wheel_axle_cs(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  set_wheel_brake(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_brake(this.__wbg_ptr, A2, I2);
+  set_wheel_brake(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_brake(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_chassis_connection_point_cs(A2, I2) {
-    MA(I2, d), mA.rawdynamicraycastvehiclecontroller_set_wheel_chassis_connection_point_cs(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  set_wheel_chassis_connection_point_cs(A2, I3) {
+    MA(I3, d), mA.rawdynamicraycastvehiclecontroller_set_wheel_chassis_connection_point_cs(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  set_wheel_direction_cs(A2, I2) {
-    MA(I2, d), mA.rawdynamicraycastvehiclecontroller_set_wheel_direction_cs(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  set_wheel_direction_cs(A2, I3) {
+    MA(I3, d), mA.rawdynamicraycastvehiclecontroller_set_wheel_direction_cs(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  set_wheel_engine_force(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_engine_force(this.__wbg_ptr, A2, I2);
+  set_wheel_engine_force(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_engine_force(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_friction_slip(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_friction_slip(this.__wbg_ptr, A2, I2);
+  set_wheel_friction_slip(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_friction_slip(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_max_suspension_force(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_force(this.__wbg_ptr, A2, I2);
+  set_wheel_max_suspension_force(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_force(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_max_suspension_travel(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_travel(this.__wbg_ptr, A2, I2);
+  set_wheel_max_suspension_travel(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_max_suspension_travel(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_radius(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_radius(this.__wbg_ptr, A2, I2);
+  set_wheel_radius(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_radius(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_side_friction_stiffness(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_side_friction_stiffness(this.__wbg_ptr, A2, I2);
+  set_wheel_side_friction_stiffness(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_side_friction_stiffness(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_steering(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_steering(this.__wbg_ptr, A2, I2);
+  set_wheel_steering(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_steering(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_suspension_compression(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_compression(this.__wbg_ptr, A2, I2);
+  set_wheel_suspension_compression(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_compression(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_suspension_relaxation(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_relaxation(this.__wbg_ptr, A2, I2);
+  set_wheel_suspension_relaxation(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_relaxation(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_suspension_rest_length(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_rest_length(this.__wbg_ptr, A2, I2);
+  set_wheel_suspension_rest_length(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_rest_length(this.__wbg_ptr, A2, I3);
   }
-  set_wheel_suspension_stiffness(A2, I2) {
-    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_stiffness(this.__wbg_ptr, A2, I2);
+  set_wheel_suspension_stiffness(A2, I3) {
+    mA.rawdynamicraycastvehiclecontroller_set_wheel_suspension_stiffness(this.__wbg_ptr, A2, I3);
   }
-  update_vehicle(I2, g2, B2, Q2, E2, i2, D2, S2) {
+  update_vehicle(I3, g3, B2, Q2, E3, i4, D3, S3) {
     try {
-      MA(g2, A), MA(B2, N), MA(Q2, q), MA(E2, C), mA.rawdynamicraycastvehiclecontroller_update_vehicle(this.__wbg_ptr, I2, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2, bA(D2) ? Number.MAX_SAFE_INTEGER : D2 >>> 0, NA(S2));
+      MA(g3, A), MA(B2, N), MA(Q2, q), MA(E3, C), mA.rawdynamicraycastvehiclecontroller_update_vehicle(this.__wbg_ptr, I3, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4, bA(D3) ? Number.MAX_SAFE_INTEGER : D3 >>> 0, NA(S3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  wheel_axle_cs(A2, I2) {
+  wheel_axle_cs(A2, I3) {
     try {
-      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_axle_cs(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_axle_cs(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   wheel_brake(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_brake(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_brake(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
-  wheel_chassis_connection_point_cs(A2, I2) {
+  wheel_chassis_connection_point_cs(A2, I3) {
     try {
-      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_chassis_connection_point_cs(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_chassis_connection_point_cs(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  wheel_contact_normal_ws(A2, I2) {
+  wheel_contact_normal_ws(A2, I3) {
     try {
-      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_contact_normal_ws(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_contact_normal_ws(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  wheel_contact_point_ws(A2, I2) {
+  wheel_contact_point_ws(A2, I3) {
     try {
-      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_contact_point_ws(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_contact_point_ws(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  wheel_direction_cs(A2, I2) {
+  wheel_direction_cs(A2, I3) {
     try {
-      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_direction_cs(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_direction_cs(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
   wheel_engine_force(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_engine_force(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_engine_force(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_forward_impulse(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_forward_impulse(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_forward_impulse(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_friction_slip(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_friction_slip(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_friction_slip(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_ground_object(A2) {
     try {
-      const C2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawdynamicraycastvehiclecontroller_wheel_ground_object(C2, this.__wbg_ptr, A2);
-      var I2 = lA().getInt32(C2 + 0, true), g2 = lA().getFloat64(C2 + 8, true);
-      return 0 === I2 ? void 0 : g2;
+      const C3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawdynamicraycastvehiclecontroller_wheel_ground_object(C3, this.__wbg_ptr, A2);
+      var I3 = lA().getInt32(C3 + 0, true), g3 = lA().getFloat64(C3 + 8, true);
+      return 0 === I3 ? void 0 : g3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
-  wheel_hard_point_ws(A2, I2) {
+  wheel_hard_point_ws(A2, I3) {
     try {
-      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_hard_point_ws(this.__wbg_ptr, A2, NA(I2));
+      return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_hard_point_ws(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -10502,56 +10502,56 @@ var w = class {
     return 0 !== mA.rawdynamicraycastvehiclecontroller_wheel_is_in_contact(this.__wbg_ptr, A2);
   }
   wheel_max_suspension_force(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_max_suspension_force(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_max_suspension_force(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_max_suspension_travel(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_max_suspension_travel(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_max_suspension_travel(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_radius(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_radius(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_radius(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_rotation(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_rotation(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_rotation(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_side_friction_stiffness(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_side_friction_stiffness(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_side_friction_stiffness(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_side_impulse(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_side_impulse(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_side_impulse(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_steering(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_steering(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_steering(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_suspension_compression(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_compression(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_compression(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_suspension_force(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_force(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_force(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_suspension_length(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_length(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_length(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_suspension_relaxation(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_relaxation(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_relaxation(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_suspension_rest_length(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_rest_length(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_rest_length(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
   wheel_suspension_stiffness(A2) {
-    const I2 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_stiffness(this.__wbg_ptr, A2);
-    return I2 === Number.MAX_SAFE_INTEGER ? void 0 : I2;
+    const I3 = mA.rawdynamicraycastvehiclecontroller_wheel_suspension_stiffness(this.__wbg_ptr, A2);
+    return I3 === Number.MAX_SAFE_INTEGER ? void 0 : I3;
   }
 };
 Symbol.dispose && (w.prototype[Symbol.dispose] = w.prototype.free);
@@ -10585,8 +10585,8 @@ var K = class {
     }
   }
   constructor(A2) {
-    const I2 = mA.raweventqueue_new(A2);
-    return this.__wbg_ptr = I2, z.register(this, this.__wbg_ptr, this), this;
+    const I3 = mA.raweventqueue_new(A2);
+    return this.__wbg_ptr = I3, z.register(this, this.__wbg_ptr, this), this;
   }
 };
 Symbol.dispose && (K.prototype[Symbol.dispose] = K.prototype.free), Object.freeze({ Vertex: 0, 0: "Vertex", Edge: 1, 1: "Edge", Face: 2, 2: "Face", Unknown: 3, 3: "Unknown" });
@@ -10595,8 +10595,8 @@ var U = class _U {
     __name(this, "U");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_U.prototype);
-    return I2.__wbg_ptr = A2, v.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_U.prototype);
+    return I3.__wbg_ptr = A2, v.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10606,44 +10606,44 @@ var U = class _U {
     const A2 = this.__destroy_into_raw();
     mA.__wbg_rawgenericjoint_free(A2, 0);
   }
-  static fixed(A2, I2, g2, C2) {
-    MA(A2, d), MA(I2, H), MA(g2, d), MA(C2, H);
-    const B2 = mA.rawgenericjoint_fixed(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr);
+  static fixed(A2, I3, g3, C3) {
+    MA(A2, d), MA(I3, H), MA(g3, d), MA(C3, H);
+    const B2 = mA.rawgenericjoint_fixed(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr);
     return _U.__wrap(B2);
   }
-  static generic(A2, I2, g2, C2) {
-    MA(A2, d), MA(I2, d), MA(g2, d);
-    const B2 = mA.rawgenericjoint_generic(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  static generic(A2, I3, g3, C3) {
+    MA(A2, d), MA(I3, d), MA(g3, d);
+    const B2 = mA.rawgenericjoint_generic(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3);
     return 0 === B2 ? void 0 : _U.__wrap(B2);
   }
-  static prismatic(A2, I2, g2, C2, B2, Q2) {
-    MA(A2, d), MA(I2, d), MA(g2, d);
-    const E2 = mA.rawgenericjoint_prismatic(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2, B2, Q2);
-    return 0 === E2 ? void 0 : _U.__wrap(E2);
+  static prismatic(A2, I3, g3, C3, B2, Q2) {
+    MA(A2, d), MA(I3, d), MA(g3, d);
+    const E3 = mA.rawgenericjoint_prismatic(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3, B2, Q2);
+    return 0 === E3 ? void 0 : _U.__wrap(E3);
   }
-  static revolute(A2, I2, g2) {
-    MA(A2, d), MA(I2, d), MA(g2, d);
-    const C2 = mA.rawgenericjoint_revolute(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr);
-    return 0 === C2 ? void 0 : _U.__wrap(C2);
+  static revolute(A2, I3, g3) {
+    MA(A2, d), MA(I3, d), MA(g3, d);
+    const C3 = mA.rawgenericjoint_revolute(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr);
+    return 0 === C3 ? void 0 : _U.__wrap(C3);
   }
-  static revoluteWithAxes(A2, I2, g2, C2) {
-    MA(A2, d), MA(I2, d), MA(g2, d), MA(C2, d);
-    const B2 = mA.rawgenericjoint_revoluteWithAxes(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr);
+  static revoluteWithAxes(A2, I3, g3, C3) {
+    MA(A2, d), MA(I3, d), MA(g3, d), MA(C3, d);
+    const B2 = mA.rawgenericjoint_revoluteWithAxes(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr);
     return 0 === B2 ? void 0 : _U.__wrap(B2);
   }
-  static rope(A2, I2, g2) {
-    MA(I2, d), MA(g2, d);
-    const C2 = mA.rawgenericjoint_rope(A2, I2.__wbg_ptr, g2.__wbg_ptr);
-    return _U.__wrap(C2);
+  static rope(A2, I3, g3) {
+    MA(I3, d), MA(g3, d);
+    const C3 = mA.rawgenericjoint_rope(A2, I3.__wbg_ptr, g3.__wbg_ptr);
+    return _U.__wrap(C3);
   }
-  static spherical(A2, I2) {
-    MA(A2, d), MA(I2, d);
-    const g2 = mA.rawgenericjoint_spherical(A2.__wbg_ptr, I2.__wbg_ptr);
-    return _U.__wrap(g2);
+  static spherical(A2, I3) {
+    MA(A2, d), MA(I3, d);
+    const g3 = mA.rawgenericjoint_spherical(A2.__wbg_ptr, I3.__wbg_ptr);
+    return _U.__wrap(g3);
   }
-  static spring(A2, I2, g2, C2, B2) {
-    MA(C2, d), MA(B2, d);
-    const Q2 = mA.rawgenericjoint_spring(A2, I2, g2, C2.__wbg_ptr, B2.__wbg_ptr);
+  static spring(A2, I3, g3, C3, B2) {
+    MA(C3, d), MA(B2, d);
+    const Q2 = mA.rawgenericjoint_spring(A2, I3, g3, C3.__wbg_ptr, B2.__wbg_ptr);
     return _U.__wrap(Q2);
   }
 };
@@ -10653,8 +10653,8 @@ var k = class _k {
     __name(this, "k");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_k.prototype);
-    return I2.__wbg_ptr = A2, _.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_k.prototype);
+    return I3.__wbg_ptr = A2, _.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10667,13 +10667,13 @@ var k = class _k {
   contains(A2) {
     return 0 !== mA.rawimpulsejointset_contains(this.__wbg_ptr, A2);
   }
-  createJoint(A2, I2, g2, C2) {
+  createJoint(A2, I3, g3, C3) {
     MA(A2, U);
-    return mA.rawimpulsejointset_createJoint(this.__wbg_ptr, A2.__wbg_ptr, I2, g2, C2);
+    return mA.rawimpulsejointset_createJoint(this.__wbg_ptr, A2.__wbg_ptr, I3, g3, C3);
   }
-  forEachJointAttachedToRigidBody(A2, I2) {
+  forEachJointAttachedToRigidBody(A2, I3) {
     try {
-      mA.rawimpulsejointset_forEachJointAttachedToRigidBody(this.__wbg_ptr, A2, NA(I2));
+      mA.rawimpulsejointset_forEachJointAttachedToRigidBody(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -10685,16 +10685,16 @@ var k = class _k {
       nA[xA++] = void 0;
     }
   }
-  jointAnchor1(A2, I2) {
+  jointAnchor1(A2, I3) {
     try {
-      mA.rawimpulsejointset_jointAnchor1(this.__wbg_ptr, A2, NA(I2));
+      mA.rawimpulsejointset_jointAnchor1(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  jointAnchor2(A2, I2) {
+  jointAnchor2(A2, I3) {
     try {
-      mA.rawimpulsejointset_jointAnchor2(this.__wbg_ptr, A2, NA(I2));
+      mA.rawimpulsejointset_jointAnchor2(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -10705,70 +10705,70 @@ var k = class _k {
   jointBodyHandle2(A2) {
     return mA.rawimpulsejointset_jointBodyHandle2(this.__wbg_ptr, A2);
   }
-  jointConfigureMotor(A2, I2, g2, C2, B2, Q2) {
-    mA.rawimpulsejointset_jointConfigureMotor(this.__wbg_ptr, A2, I2, g2, C2, B2, Q2);
+  jointConfigureMotor(A2, I3, g3, C3, B2, Q2) {
+    mA.rawimpulsejointset_jointConfigureMotor(this.__wbg_ptr, A2, I3, g3, C3, B2, Q2);
   }
-  jointConfigureMotorModel(A2, I2, g2) {
-    mA.rawimpulsejointset_jointConfigureMotorModel(this.__wbg_ptr, A2, I2, g2);
+  jointConfigureMotorModel(A2, I3, g3) {
+    mA.rawimpulsejointset_jointConfigureMotorModel(this.__wbg_ptr, A2, I3, g3);
   }
-  jointConfigureMotorPosition(A2, I2, g2, C2, B2) {
-    mA.rawimpulsejointset_jointConfigureMotorPosition(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  jointConfigureMotorPosition(A2, I3, g3, C3, B2) {
+    mA.rawimpulsejointset_jointConfigureMotorPosition(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  jointConfigureMotorVelocity(A2, I2, g2, C2) {
-    mA.rawimpulsejointset_jointConfigureMotorVelocity(this.__wbg_ptr, A2, I2, g2, C2);
+  jointConfigureMotorVelocity(A2, I3, g3, C3) {
+    mA.rawimpulsejointset_jointConfigureMotorVelocity(this.__wbg_ptr, A2, I3, g3, C3);
   }
   jointContactsEnabled(A2) {
     return 0 !== mA.rawimpulsejointset_jointContactsEnabled(this.__wbg_ptr, A2);
   }
-  jointFrameX1(A2, I2) {
+  jointFrameX1(A2, I3) {
     try {
-      mA.rawimpulsejointset_jointFrameX1(this.__wbg_ptr, A2, NA(I2));
+      mA.rawimpulsejointset_jointFrameX1(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  jointFrameX2(A2, I2) {
+  jointFrameX2(A2, I3) {
     try {
-      mA.rawimpulsejointset_jointFrameX2(this.__wbg_ptr, A2, NA(I2));
+      mA.rawimpulsejointset_jointFrameX2(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  jointLimitsEnabled(A2, I2) {
-    return 0 !== mA.rawimpulsejointset_jointLimitsEnabled(this.__wbg_ptr, A2, I2);
+  jointLimitsEnabled(A2, I3) {
+    return 0 !== mA.rawimpulsejointset_jointLimitsEnabled(this.__wbg_ptr, A2, I3);
   }
-  jointLimitsMax(A2, I2) {
-    return mA.rawimpulsejointset_jointLimitsMax(this.__wbg_ptr, A2, I2);
+  jointLimitsMax(A2, I3) {
+    return mA.rawimpulsejointset_jointLimitsMax(this.__wbg_ptr, A2, I3);
   }
-  jointLimitsMin(A2, I2) {
-    return mA.rawimpulsejointset_jointLimitsMin(this.__wbg_ptr, A2, I2);
+  jointLimitsMin(A2, I3) {
+    return mA.rawimpulsejointset_jointLimitsMin(this.__wbg_ptr, A2, I3);
   }
-  jointSetAnchor1(A2, I2) {
-    MA(I2, d), mA.rawimpulsejointset_jointSetAnchor1(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  jointSetAnchor1(A2, I3) {
+    MA(I3, d), mA.rawimpulsejointset_jointSetAnchor1(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  jointSetAnchor2(A2, I2) {
-    MA(I2, d), mA.rawimpulsejointset_jointSetAnchor2(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  jointSetAnchor2(A2, I3) {
+    MA(I3, d), mA.rawimpulsejointset_jointSetAnchor2(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  jointSetContactsEnabled(A2, I2) {
-    mA.rawimpulsejointset_jointSetContactsEnabled(this.__wbg_ptr, A2, I2);
+  jointSetContactsEnabled(A2, I3) {
+    mA.rawimpulsejointset_jointSetContactsEnabled(this.__wbg_ptr, A2, I3);
   }
-  jointSetFrameX1(A2, I2) {
-    MA(I2, H), mA.rawimpulsejointset_jointSetFrameX1(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  jointSetFrameX1(A2, I3) {
+    MA(I3, H), mA.rawimpulsejointset_jointSetFrameX1(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  jointSetFrameX2(A2, I2) {
-    MA(I2, H), mA.rawimpulsejointset_jointSetFrameX2(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  jointSetFrameX2(A2, I3) {
+    MA(I3, H), mA.rawimpulsejointset_jointSetFrameX2(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  jointSetLimits(A2, I2, g2, C2) {
-    mA.rawimpulsejointset_jointSetLimits(this.__wbg_ptr, A2, I2, g2, C2);
+  jointSetLimits(A2, I3, g3, C3) {
+    mA.rawimpulsejointset_jointSetLimits(this.__wbg_ptr, A2, I3, g3, C3);
   }
-  jointSetLocalFrame1(A2, I2, g2) {
-    MA(I2, d), MA(g2, H), mA.rawimpulsejointset_jointSetLocalFrame1(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr);
+  jointSetLocalFrame1(A2, I3, g3) {
+    MA(I3, d), MA(g3, H), mA.rawimpulsejointset_jointSetLocalFrame1(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr);
   }
-  jointSetLocalFrame2(A2, I2, g2) {
-    MA(I2, d), MA(g2, H), mA.rawimpulsejointset_jointSetLocalFrame2(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr);
+  jointSetLocalFrame2(A2, I3, g3) {
+    MA(I3, d), MA(g3, H), mA.rawimpulsejointset_jointSetLocalFrame2(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr);
   }
-  jointSetMotorMaxForce(A2, I2, g2) {
-    mA.rawimpulsejointset_jointSetMotorMaxForce(this.__wbg_ptr, A2, I2, g2);
+  jointSetMotorMaxForce(A2, I3, g3) {
+    mA.rawimpulsejointset_jointSetMotorMaxForce(this.__wbg_ptr, A2, I3, g3);
   }
   jointType(A2) {
     return mA.rawimpulsejointset_jointType(this.__wbg_ptr, A2);
@@ -10780,8 +10780,8 @@ var k = class _k {
     const A2 = mA.rawimpulsejointset_new();
     return this.__wbg_ptr = A2, _.register(this, this.__wbg_ptr, this), this;
   }
-  remove(A2, I2) {
-    mA.rawimpulsejointset_remove(this.__wbg_ptr, A2, I2);
+  remove(A2, I3) {
+    mA.rawimpulsejointset_remove(this.__wbg_ptr, A2, I3);
   }
 };
 Symbol.dispose && (k.prototype[Symbol.dispose] = k.prototype.free);
@@ -10790,8 +10790,8 @@ var h = class _h {
     __name(this, "h");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_h.prototype);
-    return I2.__wbg_ptr = A2, $.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_h.prototype);
+    return I3.__wbg_ptr = A2, $.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10860,8 +10860,8 @@ var y = class _y {
     __name(this, "y");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_y.prototype);
-    return I2.__wbg_ptr = A2, AA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_y.prototype);
+    return I3.__wbg_ptr = A2, AA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -10913,16 +10913,16 @@ var F = class {
     const A2 = mA.rawkinematiccharactercontroller_autostepMinWidth(this.__wbg_ptr);
     return A2 === Number.MAX_SAFE_INTEGER ? void 0 : A2;
   }
-  computeColliderMovement(I2, g2, B2, Q2, E2, i2, D2, S2, o2, w2, K2, U2) {
+  computeColliderMovement(I3, g3, B2, Q2, E3, i4, D3, S3, o3, w3, K2, U2) {
     try {
-      MA(g2, A), MA(B2, N), MA(Q2, q), MA(E2, C), MA(D2, d), mA.rawkinematiccharactercontroller_computeColliderMovement(this.__wbg_ptr, I2, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2, D2.__wbg_ptr, S2, bA(o2) ? Number.MAX_SAFE_INTEGER : Math.fround(o2), w2, bA(K2) ? Number.MAX_SAFE_INTEGER : K2 >>> 0, NA(U2));
+      MA(g3, A), MA(B2, N), MA(Q2, q), MA(E3, C), MA(D3, d), mA.rawkinematiccharactercontroller_computeColliderMovement(this.__wbg_ptr, I3, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4, D3.__wbg_ptr, S3, bA(o3) ? Number.MAX_SAFE_INTEGER : Math.fround(o3), w3, bA(K2) ? Number.MAX_SAFE_INTEGER : K2 >>> 0, NA(U2));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  computedCollision(A2, I2) {
-    MA(I2, g);
-    return 0 !== mA.rawkinematiccharactercontroller_computedCollision(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  computedCollision(A2, I3) {
+    MA(I3, g);
+    return 0 !== mA.rawkinematiccharactercontroller_computedCollision(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
   computedGrounded() {
     return 0 !== mA.rawkinematiccharactercontroller_computedGrounded(this.__wbg_ptr);
@@ -10940,8 +10940,8 @@ var F = class {
   disableSnapToGround() {
     mA.rawkinematiccharactercontroller_disableSnapToGround(this.__wbg_ptr);
   }
-  enableAutostep(A2, I2, g2) {
-    mA.rawkinematiccharactercontroller_enableAutostep(this.__wbg_ptr, A2, I2, g2);
+  enableAutostep(A2, I3, g3) {
+    mA.rawkinematiccharactercontroller_enableAutostep(this.__wbg_ptr, A2, I3, g3);
   }
   enableSnapToGround(A2) {
     mA.rawkinematiccharactercontroller_enableSnapToGround(this.__wbg_ptr, A2);
@@ -10953,8 +10953,8 @@ var F = class {
     return mA.rawkinematiccharactercontroller_minSlopeSlideAngle(this.__wbg_ptr);
   }
   constructor(A2) {
-    const I2 = mA.rawkinematiccharactercontroller_new(A2);
-    return this.__wbg_ptr = I2, IA.register(this, this.__wbg_ptr, this), this;
+    const I3 = mA.rawkinematiccharactercontroller_new(A2);
+    return this.__wbg_ptr = I3, IA.register(this, this.__wbg_ptr, this), this;
   }
   normalNudgeFactor() {
     return mA.rawkinematiccharactercontroller_normalNudgeFactor(this.__wbg_ptr);
@@ -11004,8 +11004,8 @@ var M = class _M {
     __name(this, "M");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_M.prototype);
-    return I2.__wbg_ptr = A2, gA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_M.prototype);
+    return I3.__wbg_ptr = A2, gA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11018,13 +11018,13 @@ var M = class _M {
   contains(A2) {
     return 0 !== mA.rawmultibodyjointset_contains(this.__wbg_ptr, A2);
   }
-  createJoint(A2, I2, g2, C2) {
+  createJoint(A2, I3, g3, C3) {
     MA(A2, U);
-    return mA.rawmultibodyjointset_createJoint(this.__wbg_ptr, A2.__wbg_ptr, I2, g2, C2);
+    return mA.rawmultibodyjointset_createJoint(this.__wbg_ptr, A2.__wbg_ptr, I3, g3, C3);
   }
-  forEachJointAttachedToRigidBody(A2, I2) {
+  forEachJointAttachedToRigidBody(A2, I3) {
     try {
-      mA.rawmultibodyjointset_forEachJointAttachedToRigidBody(this.__wbg_ptr, A2, NA(I2));
+      mA.rawmultibodyjointset_forEachJointAttachedToRigidBody(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -11037,35 +11037,35 @@ var M = class _M {
     }
   }
   jointAnchor1(A2) {
-    const I2 = mA.rawmultibodyjointset_jointAnchor1(this.__wbg_ptr, A2);
-    return d.__wrap(I2);
+    const I3 = mA.rawmultibodyjointset_jointAnchor1(this.__wbg_ptr, A2);
+    return d.__wrap(I3);
   }
   jointAnchor2(A2) {
-    const I2 = mA.rawmultibodyjointset_jointAnchor2(this.__wbg_ptr, A2);
-    return d.__wrap(I2);
+    const I3 = mA.rawmultibodyjointset_jointAnchor2(this.__wbg_ptr, A2);
+    return d.__wrap(I3);
   }
   jointContactsEnabled(A2) {
     return 0 !== mA.rawmultibodyjointset_jointContactsEnabled(this.__wbg_ptr, A2);
   }
   jointFrameX1(A2) {
-    const I2 = mA.rawmultibodyjointset_jointFrameX1(this.__wbg_ptr, A2);
-    return H.__wrap(I2);
+    const I3 = mA.rawmultibodyjointset_jointFrameX1(this.__wbg_ptr, A2);
+    return H.__wrap(I3);
   }
   jointFrameX2(A2) {
-    const I2 = mA.rawmultibodyjointset_jointFrameX2(this.__wbg_ptr, A2);
-    return H.__wrap(I2);
+    const I3 = mA.rawmultibodyjointset_jointFrameX2(this.__wbg_ptr, A2);
+    return H.__wrap(I3);
   }
-  jointLimitsEnabled(A2, I2) {
-    return 0 !== mA.rawmultibodyjointset_jointLimitsEnabled(this.__wbg_ptr, A2, I2);
+  jointLimitsEnabled(A2, I3) {
+    return 0 !== mA.rawmultibodyjointset_jointLimitsEnabled(this.__wbg_ptr, A2, I3);
   }
-  jointLimitsMax(A2, I2) {
-    return mA.rawmultibodyjointset_jointLimitsMax(this.__wbg_ptr, A2, I2);
+  jointLimitsMax(A2, I3) {
+    return mA.rawmultibodyjointset_jointLimitsMax(this.__wbg_ptr, A2, I3);
   }
-  jointLimitsMin(A2, I2) {
-    return mA.rawmultibodyjointset_jointLimitsMin(this.__wbg_ptr, A2, I2);
+  jointLimitsMin(A2, I3) {
+    return mA.rawmultibodyjointset_jointLimitsMin(this.__wbg_ptr, A2, I3);
   }
-  jointSetContactsEnabled(A2, I2) {
-    mA.rawmultibodyjointset_jointSetContactsEnabled(this.__wbg_ptr, A2, I2);
+  jointSetContactsEnabled(A2, I3) {
+    mA.rawmultibodyjointset_jointSetContactsEnabled(this.__wbg_ptr, A2, I3);
   }
   jointType(A2) {
     return mA.rawmultibodyjointset_jointType(this.__wbg_ptr, A2);
@@ -11074,8 +11074,8 @@ var M = class _M {
     const A2 = mA.rawmultibodyjointset_new();
     return this.__wbg_ptr = A2, gA.register(this, this.__wbg_ptr, this), this;
   }
-  remove(A2, I2) {
-    mA.rawmultibodyjointset_remove(this.__wbg_ptr, A2, I2);
+  remove(A2, I3) {
+    mA.rawmultibodyjointset_remove(this.__wbg_ptr, A2, I3);
   }
 };
 Symbol.dispose && (M.prototype[Symbol.dispose] = M.prototype.free);
@@ -11084,8 +11084,8 @@ var N = class _N {
     __name(this, "N");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_N.prototype);
-    return I2.__wbg_ptr = A2, CA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_N.prototype);
+    return I3.__wbg_ptr = A2, CA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11095,18 +11095,18 @@ var N = class _N {
     const A2 = this.__destroy_into_raw();
     mA.__wbg_rawnarrowphase_free(A2, 0);
   }
-  contact_pair(A2, I2) {
-    const g2 = mA.rawnarrowphase_contact_pair(this.__wbg_ptr, A2, I2);
-    return 0 === g2 ? void 0 : i.__wrap(g2);
+  contact_pair(A2, I3) {
+    const g3 = mA.rawnarrowphase_contact_pair(this.__wbg_ptr, A2, I3);
+    return 0 === g3 ? void 0 : i.__wrap(g3);
   }
-  contact_pairs_with(A2, I2) {
-    mA.rawnarrowphase_contact_pairs_with(this.__wbg_ptr, A2, FA(I2));
+  contact_pairs_with(A2, I3) {
+    mA.rawnarrowphase_contact_pairs_with(this.__wbg_ptr, A2, FA(I3));
   }
-  intersection_pair(A2, I2) {
-    return 0 !== mA.rawnarrowphase_intersection_pair(this.__wbg_ptr, A2, I2);
+  intersection_pair(A2, I3) {
+    return 0 !== mA.rawnarrowphase_intersection_pair(this.__wbg_ptr, A2, I3);
   }
-  intersection_pairs_with(A2, I2) {
-    mA.rawnarrowphase_intersection_pairs_with(this.__wbg_ptr, A2, FA(I2));
+  intersection_pairs_with(A2, I3) {
+    mA.rawnarrowphase_intersection_pairs_with(this.__wbg_ptr, A2, FA(I3));
   }
   constructor() {
     const A2 = mA.rawnarrowphase_new();
@@ -11136,11 +11136,11 @@ var s = class {
   set_profiler_enabled(A2) {
     mA.rawphysicspipeline_set_profiler_enabled(this.__wbg_ptr, A2);
   }
-  step(g2, B2, Q2, E2, i2, D2, S2, o2, w2, K2) {
-    MA(g2, d), MA(B2, h), MA(Q2, y), MA(E2, A), MA(i2, N), MA(D2, q), MA(S2, C), MA(o2, k), MA(w2, M), MA(K2, I), mA.rawphysicspipeline_step(this.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2.__wbg_ptr, D2.__wbg_ptr, S2.__wbg_ptr, o2.__wbg_ptr, w2.__wbg_ptr, K2.__wbg_ptr);
+  step(g3, B2, Q2, E3, i4, D3, S3, o3, w3, K2) {
+    MA(g3, d), MA(B2, h), MA(Q2, y), MA(E3, A), MA(i4, N), MA(D3, q), MA(S3, C), MA(o3, k), MA(w3, M), MA(K2, I), mA.rawphysicspipeline_step(this.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4.__wbg_ptr, D3.__wbg_ptr, S3.__wbg_ptr, o3.__wbg_ptr, w3.__wbg_ptr, K2.__wbg_ptr);
   }
-  stepWithEvents(g2, B2, Q2, E2, i2, D2, S2, o2, w2, U2, J2, G2, F2, s2) {
-    MA(g2, d), MA(B2, h), MA(Q2, y), MA(E2, A), MA(i2, N), MA(D2, q), MA(S2, C), MA(o2, k), MA(w2, M), MA(U2, I), MA(J2, K), mA.rawphysicspipeline_stepWithEvents(this.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2.__wbg_ptr, D2.__wbg_ptr, S2.__wbg_ptr, o2.__wbg_ptr, w2.__wbg_ptr, U2.__wbg_ptr, J2.__wbg_ptr, FA(G2), FA(F2), FA(s2));
+  stepWithEvents(g3, B2, Q2, E3, i4, D3, S3, o3, w3, U2, J3, G2, F2, s4) {
+    MA(g3, d), MA(B2, h), MA(Q2, y), MA(E3, A), MA(i4, N), MA(D3, q), MA(S3, C), MA(o3, k), MA(w3, M), MA(U2, I), MA(J3, K), mA.rawphysicspipeline_stepWithEvents(this.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4.__wbg_ptr, D3.__wbg_ptr, S3.__wbg_ptr, o3.__wbg_ptr, w3.__wbg_ptr, U2.__wbg_ptr, J3.__wbg_ptr, FA(G2), FA(F2), FA(s4));
   }
   timing_broad_phase() {
     return mA.rawphysicspipeline_timing_broad_phase(this.__wbg_ptr);
@@ -11204,28 +11204,28 @@ var R = class {
     const A2 = this.__destroy_into_raw();
     mA.__wbg_rawpidcontroller_free(A2, 0);
   }
-  angular_correction(A2, I2, g2, C2, B2, Q2) {
+  angular_correction(A2, I3, g3, C3, B2, Q2) {
     try {
-      MA(I2, q), MA(C2, H), MA(B2, d), mA.rawpidcontroller_angular_correction(this.__wbg_ptr, A2, I2.__wbg_ptr, g2, C2.__wbg_ptr, B2.__wbg_ptr, NA(Q2));
+      MA(I3, q), MA(C3, H), MA(B2, d), mA.rawpidcontroller_angular_correction(this.__wbg_ptr, A2, I3.__wbg_ptr, g3, C3.__wbg_ptr, B2.__wbg_ptr, NA(Q2));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  apply_angular_correction(A2, I2, g2, C2, B2) {
-    MA(I2, q), MA(C2, H), MA(B2, d), mA.rawpidcontroller_apply_angular_correction(this.__wbg_ptr, A2, I2.__wbg_ptr, g2, C2.__wbg_ptr, B2.__wbg_ptr);
+  apply_angular_correction(A2, I3, g3, C3, B2) {
+    MA(I3, q), MA(C3, H), MA(B2, d), mA.rawpidcontroller_apply_angular_correction(this.__wbg_ptr, A2, I3.__wbg_ptr, g3, C3.__wbg_ptr, B2.__wbg_ptr);
   }
-  apply_linear_correction(A2, I2, g2, C2, B2) {
-    MA(I2, q), MA(C2, d), MA(B2, d), mA.rawpidcontroller_apply_linear_correction(this.__wbg_ptr, A2, I2.__wbg_ptr, g2, C2.__wbg_ptr, B2.__wbg_ptr);
+  apply_linear_correction(A2, I3, g3, C3, B2) {
+    MA(I3, q), MA(C3, d), MA(B2, d), mA.rawpidcontroller_apply_linear_correction(this.__wbg_ptr, A2, I3.__wbg_ptr, g3, C3.__wbg_ptr, B2.__wbg_ptr);
   }
-  linear_correction(A2, I2, g2, C2, B2, Q2) {
+  linear_correction(A2, I3, g3, C3, B2, Q2) {
     try {
-      MA(I2, q), MA(C2, d), MA(B2, d), mA.rawpidcontroller_linear_correction(this.__wbg_ptr, A2, I2.__wbg_ptr, g2, C2.__wbg_ptr, B2.__wbg_ptr, NA(Q2));
+      MA(I3, q), MA(C3, d), MA(B2, d), mA.rawpidcontroller_linear_correction(this.__wbg_ptr, A2, I3.__wbg_ptr, g3, C3.__wbg_ptr, B2.__wbg_ptr, NA(Q2));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  constructor(A2, I2, g2, C2) {
-    const B2 = mA.rawpidcontroller_new(A2, I2, g2, C2);
+  constructor(A2, I3, g3, C3) {
+    const B2 = mA.rawpidcontroller_new(A2, I3, g3, C3);
     return this.__wbg_ptr = B2, QA.register(this, this.__wbg_ptr, this), this;
   }
   reset_integrals() {
@@ -11234,14 +11234,14 @@ var R = class {
   set_axes_mask(A2) {
     mA.rawpidcontroller_set_axes_mask(this.__wbg_ptr, A2);
   }
-  set_kd(A2, I2) {
-    mA.rawpidcontroller_set_kd(this.__wbg_ptr, A2, I2);
+  set_kd(A2, I3) {
+    mA.rawpidcontroller_set_kd(this.__wbg_ptr, A2, I3);
   }
-  set_ki(A2, I2) {
-    mA.rawpidcontroller_set_ki(this.__wbg_ptr, A2, I2);
+  set_ki(A2, I3) {
+    mA.rawpidcontroller_set_ki(this.__wbg_ptr, A2, I3);
   }
-  set_kp(A2, I2) {
-    mA.rawpidcontroller_set_kp(this.__wbg_ptr, A2, I2);
+  set_kp(A2, I3) {
+    mA.rawpidcontroller_set_kp(this.__wbg_ptr, A2, I3);
   }
 };
 Symbol.dispose && (R.prototype[Symbol.dispose] = R.prototype.free);
@@ -11250,8 +11250,8 @@ var Y = class _Y {
     __name(this, "Y");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_Y.prototype);
-    return I2.__wbg_ptr = A2, EA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_Y.prototype);
+    return I3.__wbg_ptr = A2, EA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11288,8 +11288,8 @@ var c = class _c {
     __name(this, "c");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_c.prototype);
-    return I2.__wbg_ptr = A2, iA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_c.prototype);
+    return I3.__wbg_ptr = A2, iA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11316,8 +11316,8 @@ var a = class _a {
     __name(this, "a");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_a.prototype);
-    return I2.__wbg_ptr = A2, DA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_a.prototype);
+    return I3.__wbg_ptr = A2, DA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11340,8 +11340,8 @@ var l = class _l {
     __name(this, "l");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_l.prototype);
-    return I2.__wbg_ptr = A2, SA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_l.prototype);
+    return I3.__wbg_ptr = A2, SA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11378,8 +11378,8 @@ var L = class _L {
     __name(this, "L");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_L.prototype);
-    return I2.__wbg_ptr = A2, oA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_L.prototype);
+    return I3.__wbg_ptr = A2, oA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11413,8 +11413,8 @@ var q = class _q {
     __name(this, "q");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_q.prototype);
-    return I2.__wbg_ptr = A2, wA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_q.prototype);
+    return I3.__wbg_ptr = A2, wA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11427,9 +11427,9 @@ var q = class _q {
   contains(A2) {
     return 0 !== mA.rawrigidbodyset_contains(this.__wbg_ptr, A2);
   }
-  createRigidBody(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2, K2, U2, k2, h2, y2, J2, G2, F2, M2, N2, s2, R2, Y2, c2) {
-    MA(I2, d), MA(g2, H), MA(E2, d), MA(i2, d), MA(D2, d), MA(S2, d), MA(o2, H);
-    return mA.rawrigidbodyset_createRigidBody(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2, B2, Q2, E2.__wbg_ptr, i2.__wbg_ptr, D2.__wbg_ptr, S2.__wbg_ptr, o2.__wbg_ptr, w2, K2, U2, k2, h2, y2, J2, G2, F2, M2, N2, s2, R2, Y2, c2);
+  createRigidBody(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3, K2, U2, k3, h3, y3, J3, G2, F2, M2, N2, s4, R2, Y2, c3) {
+    MA(I3, d), MA(g3, H), MA(E3, d), MA(i4, d), MA(D3, d), MA(S3, d), MA(o3, H);
+    return mA.rawrigidbodyset_createRigidBody(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3, B2, Q2, E3.__wbg_ptr, i4.__wbg_ptr, D3.__wbg_ptr, S3.__wbg_ptr, o3.__wbg_ptr, w3, K2, U2, k3, h3, y3, J3, G2, F2, M2, N2, s4, R2, Y2, c3);
   }
   forEachRigidBodyHandle(A2) {
     try {
@@ -11448,14 +11448,14 @@ var q = class _q {
   propagateModifiedBodyPositionsToColliders(A2) {
     MA(A2, C), mA.rawrigidbodyset_propagateModifiedBodyPositionsToColliders(this.__wbg_ptr, A2.__wbg_ptr);
   }
-  rbAddForce(A2, I2, g2) {
-    MA(I2, d), mA.rawrigidbodyset_rbAddForce(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
+  rbAddForce(A2, I3, g3) {
+    MA(I3, d), mA.rawrigidbodyset_rbAddForce(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
   }
-  rbAddForceAtPoint(A2, I2, g2, C2) {
-    MA(I2, d), MA(g2, d), mA.rawrigidbodyset_rbAddForceAtPoint(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  rbAddForceAtPoint(A2, I3, g3, C3) {
+    MA(I3, d), MA(g3, d), mA.rawrigidbodyset_rbAddForceAtPoint(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3);
   }
-  rbAddTorque(A2, I2, g2) {
-    MA(I2, d), mA.rawrigidbodyset_rbAddTorque(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
+  rbAddTorque(A2, I3, g3) {
+    MA(I3, d), mA.rawrigidbodyset_rbAddTorque(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
   }
   rbAdditionalSolverIterations(A2) {
     return mA.rawrigidbodyset_rbAdditionalSolverIterations(this.__wbg_ptr, A2) >>> 0;
@@ -11463,54 +11463,54 @@ var q = class _q {
   rbAngularDamping(A2) {
     return mA.rawrigidbodyset_rbAngularDamping(this.__wbg_ptr, A2);
   }
-  rbAngvel(A2, I2) {
+  rbAngvel(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbAngvel(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbAngvel(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbApplyImpulse(A2, I2, g2) {
-    MA(I2, d), mA.rawrigidbodyset_rbApplyImpulse(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
+  rbApplyImpulse(A2, I3, g3) {
+    MA(I3, d), mA.rawrigidbodyset_rbApplyImpulse(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
   }
-  rbApplyImpulseAtPoint(A2, I2, g2, C2) {
-    MA(I2, d), MA(g2, d), mA.rawrigidbodyset_rbApplyImpulseAtPoint(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  rbApplyImpulseAtPoint(A2, I3, g3, C3) {
+    MA(I3, d), MA(g3, d), mA.rawrigidbodyset_rbApplyImpulseAtPoint(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, C3);
   }
-  rbApplyTorqueImpulse(A2, I2, g2) {
-    MA(I2, d), mA.rawrigidbodyset_rbApplyTorqueImpulse(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
+  rbApplyTorqueImpulse(A2, I3, g3) {
+    MA(I3, d), mA.rawrigidbodyset_rbApplyTorqueImpulse(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
   }
   rbBodyType(A2) {
     return mA.rawrigidbodyset_rbBodyType(this.__wbg_ptr, A2);
   }
-  rbCollider(A2, I2) {
-    return mA.rawrigidbodyset_rbCollider(this.__wbg_ptr, A2, I2);
+  rbCollider(A2, I3) {
+    return mA.rawrigidbodyset_rbCollider(this.__wbg_ptr, A2, I3);
   }
   rbDominanceGroup(A2) {
     return mA.rawrigidbodyset_rbDominanceGroup(this.__wbg_ptr, A2);
   }
-  rbEffectiveAngularInertia(A2, I2) {
+  rbEffectiveAngularInertia(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbEffectiveAngularInertia(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbEffectiveAngularInertia(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbEffectiveInvMass(A2, I2) {
+  rbEffectiveInvMass(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbEffectiveInvMass(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbEffectiveInvMass(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbEffectiveWorldInvInertia(A2, I2) {
+  rbEffectiveWorldInvInertia(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbEffectiveWorldInvInertia(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbEffectiveWorldInvInertia(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbEnableCcd(A2, I2) {
-    mA.rawrigidbodyset_rbEnableCcd(this.__wbg_ptr, A2, I2);
+  rbEnableCcd(A2, I3) {
+    mA.rawrigidbodyset_rbEnableCcd(this.__wbg_ptr, A2, I3);
   }
   rbGravityScale(A2) {
     return mA.rawrigidbodyset_rbGravityScale(this.__wbg_ptr, A2);
@@ -11518,9 +11518,9 @@ var q = class _q {
   rbInvMass(A2) {
     return mA.rawrigidbodyset_rbInvMass(this.__wbg_ptr, A2);
   }
-  rbInvPrincipalInertia(A2, I2) {
+  rbInvPrincipalInertia(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbInvPrincipalInertia(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbInvPrincipalInertia(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -11549,39 +11549,39 @@ var q = class _q {
   rbLinearDamping(A2) {
     return mA.rawrigidbodyset_rbLinearDamping(this.__wbg_ptr, A2);
   }
-  rbLinvel(A2, I2) {
+  rbLinvel(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbLinvel(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbLinvel(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbLocalCom(A2, I2) {
+  rbLocalCom(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbLocalCom(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbLocalCom(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbLockRotations(A2, I2, g2) {
-    mA.rawrigidbodyset_rbLockRotations(this.__wbg_ptr, A2, I2, g2);
+  rbLockRotations(A2, I3, g3) {
+    mA.rawrigidbodyset_rbLockRotations(this.__wbg_ptr, A2, I3, g3);
   }
-  rbLockTranslations(A2, I2, g2) {
-    mA.rawrigidbodyset_rbLockTranslations(this.__wbg_ptr, A2, I2, g2);
+  rbLockTranslations(A2, I3, g3) {
+    mA.rawrigidbodyset_rbLockTranslations(this.__wbg_ptr, A2, I3, g3);
   }
   rbMass(A2) {
     return mA.rawrigidbodyset_rbMass(this.__wbg_ptr, A2);
   }
-  rbNextRotation(A2, I2) {
+  rbNextRotation(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbNextRotation(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbNextRotation(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbNextTranslation(A2, I2) {
+  rbNextTranslation(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbNextTranslation(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbNextTranslation(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -11589,92 +11589,92 @@ var q = class _q {
   rbNumColliders(A2) {
     return mA.rawrigidbodyset_rbNumColliders(this.__wbg_ptr, A2) >>> 0;
   }
-  rbPrincipalInertia(A2, I2) {
+  rbPrincipalInertia(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbPrincipalInertia(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbPrincipalInertia(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbPrincipalInertiaLocalFrame(A2, I2) {
+  rbPrincipalInertiaLocalFrame(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbPrincipalInertiaLocalFrame(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbPrincipalInertiaLocalFrame(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbRecomputeMassPropertiesFromColliders(A2, I2) {
-    MA(I2, C), mA.rawrigidbodyset_rbRecomputeMassPropertiesFromColliders(this.__wbg_ptr, A2, I2.__wbg_ptr);
+  rbRecomputeMassPropertiesFromColliders(A2, I3) {
+    MA(I3, C), mA.rawrigidbodyset_rbRecomputeMassPropertiesFromColliders(this.__wbg_ptr, A2, I3.__wbg_ptr);
   }
-  rbResetForces(A2, I2) {
-    mA.rawrigidbodyset_rbResetForces(this.__wbg_ptr, A2, I2);
+  rbResetForces(A2, I3) {
+    mA.rawrigidbodyset_rbResetForces(this.__wbg_ptr, A2, I3);
   }
-  rbResetTorques(A2, I2) {
-    mA.rawrigidbodyset_rbResetTorques(this.__wbg_ptr, A2, I2);
+  rbResetTorques(A2, I3) {
+    mA.rawrigidbodyset_rbResetTorques(this.__wbg_ptr, A2, I3);
   }
-  rbRotation(A2, I2) {
+  rbRotation(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbRotation(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbRotation(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbSetAdditionalMass(A2, I2, g2) {
-    mA.rawrigidbodyset_rbSetAdditionalMass(this.__wbg_ptr, A2, I2, g2);
+  rbSetAdditionalMass(A2, I3, g3) {
+    mA.rawrigidbodyset_rbSetAdditionalMass(this.__wbg_ptr, A2, I3, g3);
   }
-  rbSetAdditionalMassProperties(A2, I2, g2, C2, B2, Q2) {
-    MA(g2, d), MA(C2, d), MA(B2, H), mA.rawrigidbodyset_rbSetAdditionalMassProperties(this.__wbg_ptr, A2, I2, g2.__wbg_ptr, C2.__wbg_ptr, B2.__wbg_ptr, Q2);
+  rbSetAdditionalMassProperties(A2, I3, g3, C3, B2, Q2) {
+    MA(g3, d), MA(C3, d), MA(B2, H), mA.rawrigidbodyset_rbSetAdditionalMassProperties(this.__wbg_ptr, A2, I3, g3.__wbg_ptr, C3.__wbg_ptr, B2.__wbg_ptr, Q2);
   }
-  rbSetAdditionalSolverIterations(A2, I2) {
-    mA.rawrigidbodyset_rbSetAdditionalSolverIterations(this.__wbg_ptr, A2, I2);
+  rbSetAdditionalSolverIterations(A2, I3) {
+    mA.rawrigidbodyset_rbSetAdditionalSolverIterations(this.__wbg_ptr, A2, I3);
   }
-  rbSetAngularDamping(A2, I2) {
-    mA.rawrigidbodyset_rbSetAngularDamping(this.__wbg_ptr, A2, I2);
+  rbSetAngularDamping(A2, I3) {
+    mA.rawrigidbodyset_rbSetAngularDamping(this.__wbg_ptr, A2, I3);
   }
-  rbSetAngvel(A2, I2, g2) {
-    MA(I2, d), mA.rawrigidbodyset_rbSetAngvel(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
+  rbSetAngvel(A2, I3, g3) {
+    MA(I3, d), mA.rawrigidbodyset_rbSetAngvel(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
   }
-  rbSetBodyType(A2, I2, g2) {
-    mA.rawrigidbodyset_rbSetBodyType(this.__wbg_ptr, A2, I2, g2);
+  rbSetBodyType(A2, I3, g3) {
+    mA.rawrigidbodyset_rbSetBodyType(this.__wbg_ptr, A2, I3, g3);
   }
-  rbSetDominanceGroup(A2, I2) {
-    mA.rawrigidbodyset_rbSetDominanceGroup(this.__wbg_ptr, A2, I2);
+  rbSetDominanceGroup(A2, I3) {
+    mA.rawrigidbodyset_rbSetDominanceGroup(this.__wbg_ptr, A2, I3);
   }
-  rbSetEnabled(A2, I2) {
-    mA.rawrigidbodyset_rbSetEnabled(this.__wbg_ptr, A2, I2);
+  rbSetEnabled(A2, I3) {
+    mA.rawrigidbodyset_rbSetEnabled(this.__wbg_ptr, A2, I3);
   }
-  rbSetEnabledRotations(A2, I2, g2, C2, B2) {
-    mA.rawrigidbodyset_rbSetEnabledRotations(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  rbSetEnabledRotations(A2, I3, g3, C3, B2) {
+    mA.rawrigidbodyset_rbSetEnabledRotations(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  rbSetEnabledTranslations(A2, I2, g2, C2, B2) {
-    mA.rawrigidbodyset_rbSetEnabledTranslations(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  rbSetEnabledTranslations(A2, I3, g3, C3, B2) {
+    mA.rawrigidbodyset_rbSetEnabledTranslations(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  rbSetGravityScale(A2, I2, g2) {
-    mA.rawrigidbodyset_rbSetGravityScale(this.__wbg_ptr, A2, I2, g2);
+  rbSetGravityScale(A2, I3, g3) {
+    mA.rawrigidbodyset_rbSetGravityScale(this.__wbg_ptr, A2, I3, g3);
   }
-  rbSetLinearDamping(A2, I2) {
-    mA.rawrigidbodyset_rbSetLinearDamping(this.__wbg_ptr, A2, I2);
+  rbSetLinearDamping(A2, I3) {
+    mA.rawrigidbodyset_rbSetLinearDamping(this.__wbg_ptr, A2, I3);
   }
-  rbSetLinvel(A2, I2, g2) {
-    MA(I2, d), mA.rawrigidbodyset_rbSetLinvel(this.__wbg_ptr, A2, I2.__wbg_ptr, g2);
+  rbSetLinvel(A2, I3, g3) {
+    MA(I3, d), mA.rawrigidbodyset_rbSetLinvel(this.__wbg_ptr, A2, I3.__wbg_ptr, g3);
   }
-  rbSetNextKinematicRotation(A2, I2, g2, C2, B2) {
-    mA.rawrigidbodyset_rbSetNextKinematicRotation(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  rbSetNextKinematicRotation(A2, I3, g3, C3, B2) {
+    mA.rawrigidbodyset_rbSetNextKinematicRotation(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  rbSetNextKinematicTranslation(A2, I2, g2, C2) {
-    mA.rawrigidbodyset_rbSetNextKinematicTranslation(this.__wbg_ptr, A2, I2, g2, C2);
+  rbSetNextKinematicTranslation(A2, I3, g3, C3) {
+    mA.rawrigidbodyset_rbSetNextKinematicTranslation(this.__wbg_ptr, A2, I3, g3, C3);
   }
-  rbSetRotation(A2, I2, g2, C2, B2, Q2) {
-    mA.rawrigidbodyset_rbSetRotation(this.__wbg_ptr, A2, I2, g2, C2, B2, Q2);
+  rbSetRotation(A2, I3, g3, C3, B2, Q2) {
+    mA.rawrigidbodyset_rbSetRotation(this.__wbg_ptr, A2, I3, g3, C3, B2, Q2);
   }
-  rbSetSoftCcdPrediction(A2, I2) {
-    mA.rawrigidbodyset_rbSetSoftCcdPrediction(this.__wbg_ptr, A2, I2);
+  rbSetSoftCcdPrediction(A2, I3) {
+    mA.rawrigidbodyset_rbSetSoftCcdPrediction(this.__wbg_ptr, A2, I3);
   }
-  rbSetTranslation(A2, I2, g2, C2, B2) {
-    mA.rawrigidbodyset_rbSetTranslation(this.__wbg_ptr, A2, I2, g2, C2, B2);
+  rbSetTranslation(A2, I3, g3, C3, B2) {
+    mA.rawrigidbodyset_rbSetTranslation(this.__wbg_ptr, A2, I3, g3, C3, B2);
   }
-  rbSetUserData(A2, I2) {
-    mA.rawrigidbodyset_rbSetUserData(this.__wbg_ptr, A2, I2);
+  rbSetUserData(A2, I3) {
+    mA.rawrigidbodyset_rbSetUserData(this.__wbg_ptr, A2, I3);
   }
   rbSleep(A2) {
     mA.rawrigidbodyset_rbSleep(this.__wbg_ptr, A2);
@@ -11682,9 +11682,9 @@ var q = class _q {
   rbSoftCcdPrediction(A2) {
     return mA.rawrigidbodyset_rbSoftCcdPrediction(this.__wbg_ptr, A2);
   }
-  rbTranslation(A2, I2) {
+  rbTranslation(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbTranslation(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbTranslation(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -11692,23 +11692,23 @@ var q = class _q {
   rbUserData(A2) {
     return mA.rawrigidbodyset_rbUserData(this.__wbg_ptr, A2) >>> 0;
   }
-  rbUserForce(A2, I2) {
+  rbUserForce(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbUserForce(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbUserForce(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbUserTorque(A2, I2) {
+  rbUserTorque(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbUserTorque(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbUserTorque(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  rbVelocityAtPoint(A2, I2, g2) {
+  rbVelocityAtPoint(A2, I3, g3) {
     try {
-      MA(I2, d), mA.rawrigidbodyset_rbVelocityAtPoint(this.__wbg_ptr, A2, I2.__wbg_ptr, NA(g2));
+      MA(I3, d), mA.rawrigidbodyset_rbVelocityAtPoint(this.__wbg_ptr, A2, I3.__wbg_ptr, NA(g3));
     } finally {
       nA[xA++] = void 0;
     }
@@ -11716,15 +11716,15 @@ var q = class _q {
   rbWakeUp(A2) {
     mA.rawrigidbodyset_rbWakeUp(this.__wbg_ptr, A2);
   }
-  rbWorldCom(A2, I2) {
+  rbWorldCom(A2, I3) {
     try {
-      mA.rawrigidbodyset_rbWorldCom(this.__wbg_ptr, A2, NA(I2));
+      mA.rawrigidbodyset_rbWorldCom(this.__wbg_ptr, A2, NA(I3));
     } finally {
       nA[xA++] = void 0;
     }
   }
-  remove(A2, I2, g2, B2, Q2) {
-    MA(I2, y), MA(g2, C), MA(B2, k), MA(Q2, M), mA.rawrigidbodyset_remove(this.__wbg_ptr, A2, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr);
+  remove(A2, I3, g3, B2, Q2) {
+    MA(I3, y), MA(g3, C), MA(B2, k), MA(Q2, M), mA.rawrigidbodyset_remove(this.__wbg_ptr, A2, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr);
   }
 };
 Symbol.dispose && (q.prototype[Symbol.dispose] = q.prototype.free), Object.freeze({ Dynamic: 0, 0: "Dynamic", Fixed: 1, 1: "Fixed", KinematicPositionBased: 2, 2: "KinematicPositionBased", KinematicVelocityBased: 3, 3: "KinematicVelocityBased" });
@@ -11733,8 +11733,8 @@ var H = class _H {
     __name(this, "H");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_H.prototype);
-    return I2.__wbg_ptr = A2, KA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_H.prototype);
+    return I3.__wbg_ptr = A2, KA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -11748,8 +11748,8 @@ var H = class _H {
     const A2 = mA.rawrotation_identity();
     return _H.__wrap(A2);
   }
-  constructor(A2, I2, g2, C2) {
-    const B2 = mA.rawrotation_new(A2, I2, g2, C2);
+  constructor(A2, I3, g3, C3) {
+    const B2 = mA.rawrotation_new(A2, I3, g3, C3);
     return this.__wbg_ptr = B2, KA.register(this, this.__wbg_ptr, this), this;
   }
   get w() {
@@ -11779,16 +11779,16 @@ var p = class {
     mA.__wbg_rawserializationpipeline_free(A2, 0);
   }
   deserializeAll(A2) {
-    const I2 = mA.rawserializationpipeline_deserializeAll(this.__wbg_ptr, FA(A2));
-    return 0 === I2 ? void 0 : o.__wrap(I2);
+    const I3 = mA.rawserializationpipeline_deserializeAll(this.__wbg_ptr, FA(A2));
+    return 0 === I3 ? void 0 : o.__wrap(I3);
   }
   constructor() {
     const A2 = mA.rawserializationpipeline_new();
     return this.__wbg_ptr = A2, UA.register(this, this.__wbg_ptr, this), this;
   }
-  serializeAll(I2, g2, B2, Q2, E2, i2, D2, S2, o2) {
-    MA(I2, d), MA(g2, h), MA(B2, y), MA(Q2, A), MA(E2, N), MA(i2, q), MA(D2, C), MA(S2, k), MA(o2, M);
-    return fA(mA.rawserializationpipeline_serializeAll(this.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2.__wbg_ptr, D2.__wbg_ptr, S2.__wbg_ptr, o2.__wbg_ptr));
+  serializeAll(I3, g3, B2, Q2, E3, i4, D3, S3, o3) {
+    MA(I3, d), MA(g3, h), MA(B2, y), MA(Q2, A), MA(E3, N), MA(i4, q), MA(D3, C), MA(S3, k), MA(o3, M);
+    return fA(mA.rawserializationpipeline_serializeAll(this.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4.__wbg_ptr, D3.__wbg_ptr, S3.__wbg_ptr, o3.__wbg_ptr));
   }
 };
 Symbol.dispose && (p.prototype[Symbol.dispose] = p.prototype.free);
@@ -11797,8 +11797,8 @@ var t = class _t {
     __name(this, "t");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_t.prototype);
-    return I2.__wbg_ptr = A2, kA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_t.prototype);
+    return I3.__wbg_ptr = A2, kA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   static __unwrap(A2) {
     return A2 instanceof _t ? A2.__destroy_into_raw() : 0;
@@ -11812,93 +11812,93 @@ var t = class _t {
     mA.__wbg_rawshape_free(A2, 0);
   }
   static ball(A2) {
-    const I2 = mA.rawshape_ball(A2);
-    return _t.__wrap(I2);
+    const I3 = mA.rawshape_ball(A2);
+    return _t.__wrap(I3);
   }
-  static capsule(A2, I2) {
-    const g2 = mA.rawshape_capsule(A2, I2);
-    return _t.__wrap(g2);
+  static capsule(A2, I3) {
+    const g3 = mA.rawshape_capsule(A2, I3);
+    return _t.__wrap(g3);
   }
-  castRay(A2, I2, g2, C2, B2, Q2) {
-    MA(A2, d), MA(I2, H), MA(g2, d), MA(C2, d);
-    return mA.rawshape_castRay(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2, Q2);
+  castRay(A2, I3, g3, C3, B2, Q2) {
+    MA(A2, d), MA(I3, H), MA(g3, d), MA(C3, d);
+    return mA.rawshape_castRay(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2, Q2);
   }
-  castRayAndGetNormal(A2, I2, g2, C2, B2, Q2) {
-    MA(A2, d), MA(I2, H), MA(g2, d), MA(C2, d);
-    const E2 = mA.rawshape_castRayAndGetNormal(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2, Q2);
-    return 0 === E2 ? void 0 : L.__wrap(E2);
+  castRayAndGetNormal(A2, I3, g3, C3, B2, Q2) {
+    MA(A2, d), MA(I3, H), MA(g3, d), MA(C3, d);
+    const E3 = mA.rawshape_castRayAndGetNormal(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2, Q2);
+    return 0 === E3 ? void 0 : L.__wrap(E3);
   }
-  castShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2) {
-    MA(A2, d), MA(I2, H), MA(g2, d), MA(C2, _t), MA(B2, d), MA(Q2, H), MA(E2, d);
-    const o2 = mA.rawshape_castShape(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E2.__wbg_ptr, i2, D2, S2);
-    return 0 === o2 ? void 0 : r.__wrap(o2);
+  castShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3) {
+    MA(A2, d), MA(I3, H), MA(g3, d), MA(C3, _t), MA(B2, d), MA(Q2, H), MA(E3, d);
+    const o3 = mA.rawshape_castShape(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2.__wbg_ptr, Q2.__wbg_ptr, E3.__wbg_ptr, i4, D3, S3);
+    return 0 === o3 ? void 0 : r.__wrap(o3);
   }
-  static compound(A2, I2, g2) {
-    const C2 = (function(A3, I3) {
-      const g3 = I3(4 * A3.length, 4) >>> 0, C3 = lA();
-      for (let I4 = 0; I4 < A3.length; I4++) C3.setUint32(g3 + 4 * I4, FA(A3[I4]), true);
-      return VA = A3.length, g3;
-    })(A2, mA.__wbindgen_export3), B2 = VA, Q2 = WA(I2, mA.__wbindgen_export3), E2 = VA, i2 = WA(g2, mA.__wbindgen_export3), D2 = VA, S2 = mA.rawshape_compound(C2, B2, Q2, E2, i2, D2);
-    return _t.__wrap(S2);
+  static compound(A2, I3, g3) {
+    const C3 = (function(A3, I4) {
+      const g4 = I4(4 * A3.length, 4) >>> 0, C4 = lA();
+      for (let I5 = 0; I5 < A3.length; I5++) C4.setUint32(g4 + 4 * I5, FA(A3[I5]), true);
+      return VA = A3.length, g4;
+    })(A2, mA.__wbindgen_export3), B2 = VA, Q2 = WA(I3, mA.__wbindgen_export3), E3 = VA, i4 = WA(g3, mA.__wbindgen_export3), D3 = VA, S3 = mA.rawshape_compound(C3, B2, Q2, E3, i4, D3);
+    return _t.__wrap(S3);
   }
   compoundLen() {
     const A2 = mA.rawshape_compoundLen(this.__wbg_ptr);
     return A2 === Number.MAX_SAFE_INTEGER ? void 0 : A2;
   }
   compoundRotation(A2) {
-    const I2 = mA.rawshape_compoundRotation(this.__wbg_ptr, A2);
-    return 0 === I2 ? void 0 : H.__wrap(I2);
+    const I3 = mA.rawshape_compoundRotation(this.__wbg_ptr, A2);
+    return 0 === I3 ? void 0 : H.__wrap(I3);
   }
   compoundShape(A2) {
-    const I2 = mA.rawshape_compoundShape(this.__wbg_ptr, A2);
-    return 0 === I2 ? void 0 : _t.__wrap(I2);
+    const I3 = mA.rawshape_compoundShape(this.__wbg_ptr, A2);
+    return 0 === I3 ? void 0 : _t.__wrap(I3);
   }
   compoundTranslation(A2) {
-    const I2 = mA.rawshape_compoundTranslation(this.__wbg_ptr, A2);
-    return 0 === I2 ? void 0 : d.__wrap(I2);
+    const I3 = mA.rawshape_compoundTranslation(this.__wbg_ptr, A2);
+    return 0 === I3 ? void 0 : d.__wrap(I3);
   }
-  static cone(A2, I2) {
-    const g2 = mA.rawshape_cone(A2, I2);
-    return _t.__wrap(g2);
+  static cone(A2, I3) {
+    const g3 = mA.rawshape_cone(A2, I3);
+    return _t.__wrap(g3);
   }
-  contactShape(A2, I2, g2, C2, B2, Q2) {
-    MA(A2, d), MA(I2, H), MA(g2, _t), MA(C2, d), MA(B2, H);
-    const E2 = mA.rawshape_contactShape(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2.__wbg_ptr, Q2);
-    return 0 === E2 ? void 0 : O.__wrap(E2);
+  contactShape(A2, I3, g3, C3, B2, Q2) {
+    MA(A2, d), MA(I3, H), MA(g3, _t), MA(C3, d), MA(B2, H);
+    const E3 = mA.rawshape_contactShape(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2.__wbg_ptr, Q2);
+    return 0 === E3 ? void 0 : O.__wrap(E3);
   }
-  containsPoint(A2, I2, g2) {
-    MA(A2, d), MA(I2, H), MA(g2, d);
-    return 0 !== mA.rawshape_containsPoint(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr);
+  containsPoint(A2, I3, g3) {
+    MA(A2, d), MA(I3, H), MA(g3, d);
+    return 0 !== mA.rawshape_containsPoint(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr);
   }
-  static convexDecomposition(A2, I2) {
-    const g2 = WA(A2, mA.__wbindgen_export3), C2 = VA, B2 = jA(I2, mA.__wbindgen_export3), Q2 = VA, E2 = mA.rawshape_convexDecomposition(g2, C2, B2, Q2);
-    return 0 === E2 ? void 0 : _t.__wrap(E2);
+  static convexDecomposition(A2, I3) {
+    const g3 = WA(A2, mA.__wbindgen_export3), C3 = VA, B2 = jA(I3, mA.__wbindgen_export3), Q2 = VA, E3 = mA.rawshape_convexDecomposition(g3, C3, B2, Q2);
+    return 0 === E3 ? void 0 : _t.__wrap(E3);
   }
-  static convexDecompositionWithParams(A2, I2, g2) {
-    const C2 = WA(A2, mA.__wbindgen_export3), B2 = VA, Q2 = jA(I2, mA.__wbindgen_export3), E2 = VA;
-    MA(g2, T);
-    const i2 = mA.rawshape_convexDecompositionWithParams(C2, B2, Q2, E2, g2.__wbg_ptr);
-    return 0 === i2 ? void 0 : _t.__wrap(i2);
+  static convexDecompositionWithParams(A2, I3, g3) {
+    const C3 = WA(A2, mA.__wbindgen_export3), B2 = VA, Q2 = jA(I3, mA.__wbindgen_export3), E3 = VA;
+    MA(g3, T);
+    const i4 = mA.rawshape_convexDecompositionWithParams(C3, B2, Q2, E3, g3.__wbg_ptr);
+    return 0 === i4 ? void 0 : _t.__wrap(i4);
   }
   static convexHull(A2) {
-    const I2 = WA(A2, mA.__wbindgen_export3), g2 = VA, C2 = mA.rawshape_convexHull(I2, g2);
-    return 0 === C2 ? void 0 : _t.__wrap(C2);
+    const I3 = WA(A2, mA.__wbindgen_export3), g3 = VA, C3 = mA.rawshape_convexHull(I3, g3);
+    return 0 === C3 ? void 0 : _t.__wrap(C3);
   }
-  static convexMesh(A2, I2) {
-    const g2 = WA(A2, mA.__wbindgen_export3), C2 = VA, B2 = jA(I2, mA.__wbindgen_export3), Q2 = VA, E2 = mA.rawshape_convexMesh(g2, C2, B2, Q2);
-    return 0 === E2 ? void 0 : _t.__wrap(E2);
+  static convexMesh(A2, I3) {
+    const g3 = WA(A2, mA.__wbindgen_export3), C3 = VA, B2 = jA(I3, mA.__wbindgen_export3), Q2 = VA, E3 = mA.rawshape_convexMesh(g3, C3, B2, Q2);
+    return 0 === E3 ? void 0 : _t.__wrap(E3);
   }
   convexMeshData() {
     const A2 = mA.rawshape_convexMeshData(this.__wbg_ptr);
     return 0 === A2 ? void 0 : D.__wrap(A2);
   }
-  static cuboid(A2, I2, g2) {
-    const C2 = mA.rawshape_cuboid(A2, I2, g2);
-    return _t.__wrap(C2);
+  static cuboid(A2, I3, g3) {
+    const C3 = mA.rawshape_cuboid(A2, I3, g3);
+    return _t.__wrap(C3);
   }
-  static cylinder(A2, I2) {
-    const g2 = mA.rawshape_cylinder(A2, I2);
-    return _t.__wrap(g2);
+  static cylinder(A2, I3) {
+    const g3 = mA.rawshape_cylinder(A2, I3);
+    return _t.__wrap(g3);
   }
   halfExtents() {
     const A2 = mA.rawshape_halfExtents(this.__wbg_ptr);
@@ -11910,8 +11910,8 @@ var t = class _t {
   }
   static halfspace(A2) {
     MA(A2, d);
-    const I2 = mA.rawshape_halfspace(A2.__wbg_ptr);
-    return _t.__wrap(I2);
+    const I3 = mA.rawshape_halfspace(A2.__wbg_ptr);
+    return _t.__wrap(I3);
   }
   halfspaceNormal() {
     const A2 = mA.rawshape_halfspaceNormal(this.__wbg_ptr);
@@ -11921,19 +11921,19 @@ var t = class _t {
     const A2 = mA.rawshape_heightFieldFlags(this.__wbg_ptr);
     return A2 === Number.MAX_SAFE_INTEGER ? void 0 : A2;
   }
-  static heightfield(A2, I2, g2, C2, B2) {
-    const Q2 = WA(g2, mA.__wbindgen_export3), E2 = VA;
-    MA(C2, d);
-    const i2 = mA.rawshape_heightfield(A2, I2, Q2, E2, C2.__wbg_ptr, B2);
-    return _t.__wrap(i2);
+  static heightfield(A2, I3, g3, C3, B2) {
+    const Q2 = WA(g3, mA.__wbindgen_export3), E3 = VA;
+    MA(C3, d);
+    const i4 = mA.rawshape_heightfield(A2, I3, Q2, E3, C3.__wbg_ptr, B2);
+    return _t.__wrap(i4);
   }
   heightfieldHeights() {
     try {
-      const g2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawshape_heightfieldHeights(g2, this.__wbg_ptr);
-      var A2 = lA().getInt32(g2 + 0, true), I2 = lA().getInt32(g2 + 4, true);
-      let C2;
-      return 0 !== A2 && (C2 = sA(A2, I2).slice(), mA.__wbindgen_export2(A2, 4 * I2, 4)), C2;
+      const g3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawshape_heightfieldHeights(g3, this.__wbg_ptr);
+      var A2 = lA().getInt32(g3 + 0, true), I3 = lA().getInt32(g3 + 4, true);
+      let C3;
+      return 0 !== A2 && (C3 = sA(A2, I3).slice(), mA.__wbindgen_export2(A2, 4 * I3, 4)), C3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
@@ -11952,69 +11952,69 @@ var t = class _t {
   }
   indices() {
     try {
-      const g2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawshape_indices(g2, this.__wbg_ptr);
-      var A2 = lA().getInt32(g2 + 0, true), I2 = lA().getInt32(g2 + 4, true);
-      let C2;
-      return 0 !== A2 && (C2 = YA(A2, I2).slice(), mA.__wbindgen_export2(A2, 4 * I2, 4)), C2;
+      const g3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawshape_indices(g3, this.__wbg_ptr);
+      var A2 = lA().getInt32(g3 + 0, true), I3 = lA().getInt32(g3 + 4, true);
+      let C3;
+      return 0 !== A2 && (C3 = YA(A2, I3).slice(), mA.__wbindgen_export2(A2, 4 * I3, 4)), C3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
-  intersectsRay(A2, I2, g2, C2, B2) {
-    MA(A2, d), MA(I2, H), MA(g2, d), MA(C2, d);
-    return 0 !== mA.rawshape_intersectsRay(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2);
+  intersectsRay(A2, I3, g3, C3, B2) {
+    MA(A2, d), MA(I3, H), MA(g3, d), MA(C3, d);
+    return 0 !== mA.rawshape_intersectsRay(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2);
   }
-  intersectsShape(A2, I2, g2, C2, B2) {
-    MA(A2, d), MA(I2, H), MA(g2, _t), MA(C2, d), MA(B2, H);
-    return 0 !== mA.rawshape_intersectsShape(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2.__wbg_ptr, B2.__wbg_ptr);
+  intersectsShape(A2, I3, g3, C3, B2) {
+    MA(A2, d), MA(I3, H), MA(g3, _t), MA(C3, d), MA(B2, H);
+    return 0 !== mA.rawshape_intersectsShape(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3.__wbg_ptr, B2.__wbg_ptr);
   }
-  static polyline(A2, I2) {
-    const g2 = WA(A2, mA.__wbindgen_export3), C2 = VA, B2 = jA(I2, mA.__wbindgen_export3), Q2 = VA, E2 = mA.rawshape_polyline(g2, C2, B2, Q2);
-    return _t.__wrap(E2);
+  static polyline(A2, I3) {
+    const g3 = WA(A2, mA.__wbindgen_export3), C3 = VA, B2 = jA(I3, mA.__wbindgen_export3), Q2 = VA, E3 = mA.rawshape_polyline(g3, C3, B2, Q2);
+    return _t.__wrap(E3);
   }
-  projectPoint(A2, I2, g2, C2) {
-    MA(A2, d), MA(I2, H), MA(g2, d);
-    const B2 = mA.rawshape_projectPoint(this.__wbg_ptr, A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  projectPoint(A2, I3, g3, C3) {
+    MA(A2, d), MA(I3, H), MA(g3, d);
+    const B2 = mA.rawshape_projectPoint(this.__wbg_ptr, A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3);
     return c.__wrap(B2);
   }
   radius() {
     const A2 = mA.rawshape_radius(this.__wbg_ptr);
     return A2 === Number.MAX_SAFE_INTEGER ? void 0 : A2;
   }
-  static roundCone(A2, I2, g2) {
-    const C2 = mA.rawshape_roundCone(A2, I2, g2);
-    return _t.__wrap(C2);
+  static roundCone(A2, I3, g3) {
+    const C3 = mA.rawshape_roundCone(A2, I3, g3);
+    return _t.__wrap(C3);
   }
-  static roundConvexHull(A2, I2) {
-    const g2 = WA(A2, mA.__wbindgen_export3), C2 = VA, B2 = mA.rawshape_roundConvexHull(g2, C2, I2);
+  static roundConvexHull(A2, I3) {
+    const g3 = WA(A2, mA.__wbindgen_export3), C3 = VA, B2 = mA.rawshape_roundConvexHull(g3, C3, I3);
     return 0 === B2 ? void 0 : _t.__wrap(B2);
   }
-  static roundConvexMesh(A2, I2, g2) {
-    const C2 = WA(A2, mA.__wbindgen_export3), B2 = VA, Q2 = jA(I2, mA.__wbindgen_export3), E2 = VA, i2 = mA.rawshape_roundConvexMesh(C2, B2, Q2, E2, g2);
-    return 0 === i2 ? void 0 : _t.__wrap(i2);
+  static roundConvexMesh(A2, I3, g3) {
+    const C3 = WA(A2, mA.__wbindgen_export3), B2 = VA, Q2 = jA(I3, mA.__wbindgen_export3), E3 = VA, i4 = mA.rawshape_roundConvexMesh(C3, B2, Q2, E3, g3);
+    return 0 === i4 ? void 0 : _t.__wrap(i4);
   }
-  static roundCuboid(A2, I2, g2, C2) {
-    const B2 = mA.rawshape_roundCuboid(A2, I2, g2, C2);
+  static roundCuboid(A2, I3, g3, C3) {
+    const B2 = mA.rawshape_roundCuboid(A2, I3, g3, C3);
     return _t.__wrap(B2);
   }
-  static roundCylinder(A2, I2, g2) {
-    const C2 = mA.rawshape_roundCylinder(A2, I2, g2);
-    return _t.__wrap(C2);
+  static roundCylinder(A2, I3, g3) {
+    const C3 = mA.rawshape_roundCylinder(A2, I3, g3);
+    return _t.__wrap(C3);
   }
   roundRadius() {
     const A2 = mA.rawshape_roundRadius(this.__wbg_ptr);
     return A2 === Number.MAX_SAFE_INTEGER ? void 0 : A2;
   }
-  static roundTriangle(A2, I2, g2, C2) {
-    MA(A2, d), MA(I2, d), MA(g2, d);
-    const B2 = mA.rawshape_roundTriangle(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr, C2);
+  static roundTriangle(A2, I3, g3, C3) {
+    MA(A2, d), MA(I3, d), MA(g3, d);
+    const B2 = mA.rawshape_roundTriangle(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr, C3);
     return _t.__wrap(B2);
   }
-  static segment(A2, I2) {
-    MA(A2, d), MA(I2, d);
-    const g2 = mA.rawshape_segment(A2.__wbg_ptr, I2.__wbg_ptr);
-    return _t.__wrap(g2);
+  static segment(A2, I3) {
+    MA(A2, d), MA(I3, d);
+    const g3 = mA.rawshape_segment(A2.__wbg_ptr, I3.__wbg_ptr);
+    return _t.__wrap(g3);
   }
   shapeType() {
     return mA.rawshape_shapeType(this.__wbg_ptr);
@@ -12023,33 +12023,33 @@ var t = class _t {
     const A2 = mA.rawshape_triMeshFlags(this.__wbg_ptr);
     return A2 === Number.MAX_SAFE_INTEGER ? void 0 : A2;
   }
-  static triangle(A2, I2, g2) {
-    MA(A2, d), MA(I2, d), MA(g2, d);
-    const C2 = mA.rawshape_triangle(A2.__wbg_ptr, I2.__wbg_ptr, g2.__wbg_ptr);
-    return _t.__wrap(C2);
+  static triangle(A2, I3, g3) {
+    MA(A2, d), MA(I3, d), MA(g3, d);
+    const C3 = mA.rawshape_triangle(A2.__wbg_ptr, I3.__wbg_ptr, g3.__wbg_ptr);
+    return _t.__wrap(C3);
   }
-  static trimesh(A2, I2, g2) {
-    const C2 = WA(A2, mA.__wbindgen_export3), B2 = VA, Q2 = jA(I2, mA.__wbindgen_export3), E2 = VA, i2 = mA.rawshape_trimesh(C2, B2, Q2, E2, g2);
-    return 0 === i2 ? void 0 : _t.__wrap(i2);
+  static trimesh(A2, I3, g3) {
+    const C3 = WA(A2, mA.__wbindgen_export3), B2 = VA, Q2 = jA(I3, mA.__wbindgen_export3), E3 = VA, i4 = mA.rawshape_trimesh(C3, B2, Q2, E3, g3);
+    return 0 === i4 ? void 0 : _t.__wrap(i4);
   }
   vertices() {
     try {
-      const g2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawshape_vertices(g2, this.__wbg_ptr);
-      var A2 = lA().getInt32(g2 + 0, true), I2 = lA().getInt32(g2 + 4, true);
-      let C2;
-      return 0 !== A2 && (C2 = sA(A2, I2).slice(), mA.__wbindgen_export2(A2, 4 * I2, 4)), C2;
+      const g3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawshape_vertices(g3, this.__wbg_ptr);
+      var A2 = lA().getInt32(g3 + 0, true), I3 = lA().getInt32(g3 + 4, true);
+      let C3;
+      return 0 !== A2 && (C3 = sA(A2, I3).slice(), mA.__wbindgen_export2(A2, 4 * I3, 4)), C3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
   }
   voxelData() {
     try {
-      const g2 = mA.__wbindgen_add_to_stack_pointer(-16);
-      mA.rawshape_voxelData(g2, this.__wbg_ptr);
-      var A2 = lA().getInt32(g2 + 0, true), I2 = lA().getInt32(g2 + 4, true);
-      let C2;
-      return 0 !== A2 && (C2 = RA(A2, I2).slice(), mA.__wbindgen_export2(A2, 4 * I2, 4)), C2;
+      const g3 = mA.__wbindgen_add_to_stack_pointer(-16);
+      mA.rawshape_voxelData(g3, this.__wbg_ptr);
+      var A2 = lA().getInt32(g3 + 0, true), I3 = lA().getInt32(g3 + 4, true);
+      let C3;
+      return 0 !== A2 && (C3 = RA(A2, I3).slice(), mA.__wbindgen_export2(A2, 4 * I3, 4)), C3;
     } finally {
       mA.__wbindgen_add_to_stack_pointer(16);
     }
@@ -12058,14 +12058,14 @@ var t = class _t {
     const A2 = mA.rawshape_voxelSize(this.__wbg_ptr);
     return 0 === A2 ? void 0 : d.__wrap(A2);
   }
-  static voxels(A2, I2) {
+  static voxels(A2, I3) {
     MA(A2, d);
-    const g2 = jA(I2, mA.__wbindgen_export3), C2 = VA, B2 = mA.rawshape_voxels(A2.__wbg_ptr, g2, C2);
+    const g3 = jA(I3, mA.__wbindgen_export3), C3 = VA, B2 = mA.rawshape_voxels(A2.__wbg_ptr, g3, C3);
     return _t.__wrap(B2);
   }
-  static voxelsFromPoints(A2, I2) {
+  static voxelsFromPoints(A2, I3) {
     MA(A2, d);
-    const g2 = WA(I2, mA.__wbindgen_export3), C2 = VA, B2 = mA.rawshape_voxelsFromPoints(A2.__wbg_ptr, g2, C2);
+    const g3 = WA(I3, mA.__wbindgen_export3), C3 = VA, B2 = mA.rawshape_voxelsFromPoints(A2.__wbg_ptr, g3, C3);
     return _t.__wrap(B2);
   }
 };
@@ -12075,8 +12075,8 @@ var r = class _r {
     __name(this, "r");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_r.prototype);
-    return I2.__wbg_ptr = A2, hA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_r.prototype);
+    return I3.__wbg_ptr = A2, hA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -12100,8 +12100,8 @@ var O = class _O {
     __name(this, "O");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_O.prototype);
-    return I2.__wbg_ptr = A2, yA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_O.prototype);
+    return I3.__wbg_ptr = A2, yA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -12192,8 +12192,8 @@ var d = class _d {
     __name(this, "d");
   }
   static __wrap(A2) {
-    const I2 = Object.create(_d.prototype);
-    return I2.__wbg_ptr = A2, GA.register(I2, I2.__wbg_ptr, I2), I2;
+    const I3 = Object.create(_d.prototype);
+    return I3.__wbg_ptr = A2, GA.register(I3, I3.__wbg_ptr, I3), I3;
   }
   __destroy_into_raw() {
     const A2 = this.__wbg_ptr;
@@ -12203,9 +12203,9 @@ var d = class _d {
     const A2 = this.__destroy_into_raw();
     mA.__wbg_rawvector_free(A2, 0);
   }
-  constructor(A2, I2, g2) {
-    const C2 = mA.rawvector_new(A2, I2, g2);
-    return this.__wbg_ptr = C2, GA.register(this, this.__wbg_ptr, this), this;
+  constructor(A2, I3, g3) {
+    const C3 = mA.rawvector_new(A2, I3, g3);
+    return this.__wbg_ptr = C3, GA.register(this, this.__wbg_ptr, this), this;
   }
   set x(A2) {
     mA.rawvector_set_x(this.__wbg_ptr, A2);
@@ -12363,12 +12363,12 @@ var GA = "undefined" == typeof FinalizationRegistry ? { register: /* @__PURE__ *
 }, "unregister") } : new FinalizationRegistry(((A2) => mA.__wbg_rawvector_free(A2, 1)));
 function FA(A2) {
   ZA === nA.length && nA.push(nA.length + 1);
-  const I2 = ZA;
-  return ZA = nA[I2], nA[I2] = A2, I2;
+  const I3 = ZA;
+  return ZA = nA[I3], nA[I3] = A2, I3;
 }
 __name(FA, "FA");
-function MA(A2, I2) {
-  if (!(A2 instanceof I2)) throw new Error(`expected instance of ${I2.name}`);
+function MA(A2, I3) {
+  if (!(A2 instanceof I3)) throw new Error(`expected instance of ${I3.name}`);
 }
 __name(MA, "MA");
 function NA(A2) {
@@ -12376,23 +12376,23 @@ function NA(A2) {
   return nA[--xA] = A2, xA;
 }
 __name(NA, "NA");
-function sA(A2, I2) {
-  return A2 >>>= 0, qA().subarray(A2 / 4, A2 / 4 + I2);
+function sA(A2, I3) {
+  return A2 >>>= 0, qA().subarray(A2 / 4, A2 / 4 + I3);
 }
 __name(sA, "sA");
-function RA(A2, I2) {
+function RA(A2, I3) {
   return A2 >>>= 0, (function() {
     null !== HA && 0 !== HA.byteLength || (HA = new Int32Array(mA.memory.buffer));
     return HA;
-  })().subarray(A2 / 4, A2 / 4 + I2);
+  })().subarray(A2 / 4, A2 / 4 + I3);
 }
 __name(RA, "RA");
-function YA(A2, I2) {
-  return A2 >>>= 0, rA().subarray(A2 / 4, A2 / 4 + I2);
+function YA(A2, I3) {
+  return A2 >>>= 0, rA().subarray(A2 / 4, A2 / 4 + I3);
 }
 __name(YA, "YA");
-function cA(A2, I2) {
-  return A2 >>>= 0, eA().subarray(A2 / 1, A2 / 1 + I2);
+function cA(A2, I3) {
+  return A2 >>>= 0, eA().subarray(A2 / 1, A2 / 1 + I3);
 }
 __name(cA, "cA");
 var aA = null;
@@ -12406,11 +12406,11 @@ function qA() {
 }
 __name(qA, "qA");
 var HA = null;
-function pA(A2, I2) {
-  return (function(A3, I3) {
-    PA += I3, PA >= 2146435072 && (XA = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }), XA.decode(), PA = I3);
-    return XA.decode(eA().subarray(A3, A3 + I3));
-  })(A2 >>> 0, I2);
+function pA(A2, I3) {
+  return (function(A3, I4) {
+    PA += I4, PA >= 2146435072 && (XA = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }), XA.decode(), PA = I4);
+    return XA.decode(eA().subarray(A3, A3 + I4));
+  })(A2 >>> 0, I3);
 }
 __name(pA, "pA");
 var tA = null;
@@ -12427,9 +12427,9 @@ function TA(A2) {
   return nA[A2];
 }
 __name(TA, "TA");
-function dA(A2, I2) {
+function dA(A2, I3) {
   try {
-    return A2.apply(this, I2);
+    return A2.apply(this, I3);
   } catch (A3) {
     mA.__wbindgen_export(FA(A3));
   }
@@ -12442,22 +12442,22 @@ function bA(A2) {
   return null == A2;
 }
 __name(bA, "bA");
-function jA(A2, I2) {
-  const g2 = I2(4 * A2.length, 4) >>> 0;
-  return rA().set(A2, g2 / 4), VA = A2.length, g2;
+function jA(A2, I3) {
+  const g3 = I3(4 * A2.length, 4) >>> 0;
+  return rA().set(A2, g3 / 4), VA = A2.length, g3;
 }
 __name(jA, "jA");
-function WA(A2, I2) {
-  const g2 = I2(4 * A2.length, 4) >>> 0;
-  return qA().set(A2, g2 / 4), VA = A2.length, g2;
+function WA(A2, I3) {
+  const g3 = I3(4 * A2.length, 4) >>> 0;
+  return qA().set(A2, g3 / 4), VA = A2.length, g3;
 }
 __name(WA, "WA");
 var xA = 1024;
 function fA(A2) {
-  const I2 = TA(A2);
+  const I3 = TA(A2);
   return (function(A3) {
     A3 < 1028 || (nA[A3] = ZA, ZA = A3);
-  })(A2), I2;
+  })(A2), I3;
 }
 __name(fA, "fA");
 var XA = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true });
@@ -12468,57 +12468,57 @@ var VA = 0;
 async function uA(A2) {
   if (void 0 !== mA) return mA;
   void 0 !== A2 && (Object.getPrototypeOf(A2) === Object.prototype ? { module_or_path: A2 } = A2 : console.warn("using deprecated parameters for the initialization function; pass a single object instead")), void 0 === A2 && (A2 = new URL("rapier_wasm3d_bg.wasm", "<deleted>"));
-  const I2 = /* @__PURE__ */ (function() {
+  const I3 = /* @__PURE__ */ (function() {
     const A3 = { __proto__: null, __wbg___wbindgen_boolean_get_c9c83ebd41b34df3: /* @__PURE__ */ __name(function(A4) {
-      const I3 = TA(A4), g3 = "boolean" == typeof I3 ? I3 : void 0;
-      return bA(g3) ? 16777215 : g3 ? 1 : 0;
+      const I4 = TA(A4), g4 = "boolean" == typeof I4 ? I4 : void 0;
+      return bA(g4) ? 16777215 : g4 ? 1 : 0;
     }, "__wbg___wbindgen_boolean_get_c9c83ebd41b34df3"), __wbg___wbindgen_is_function_5e4570eb24ffa122: /* @__PURE__ */ __name(function(A4) {
       return "function" == typeof TA(A4);
     }, "__wbg___wbindgen_is_function_5e4570eb24ffa122"), __wbg___wbindgen_is_undefined_6cff064c44e0d823: /* @__PURE__ */ __name(function(A4) {
       return void 0 === TA(A4);
-    }, "__wbg___wbindgen_is_undefined_6cff064c44e0d823"), __wbg___wbindgen_number_get_136b9679cab35cfb: /* @__PURE__ */ __name(function(A4, I3) {
-      const g3 = TA(I3), C3 = "number" == typeof g3 ? g3 : void 0;
-      lA().setFloat64(A4 + 8, bA(C3) ? 0 : C3, true), lA().setInt32(A4 + 0, !bA(C3), true);
-    }, "__wbg___wbindgen_number_get_136b9679cab35cfb"), __wbg___wbindgen_throw_bb96b2010945f0bc: /* @__PURE__ */ __name(function(A4, I3) {
-      throw new Error(pA(A4, I3));
-    }, "__wbg___wbindgen_throw_bb96b2010945f0bc"), __wbg_bind_f0a9af73583d6566: /* @__PURE__ */ __name(function(A4, I3, g3, C3) {
-      return FA(TA(A4).bind(TA(I3), TA(g3), TA(C3)));
+    }, "__wbg___wbindgen_is_undefined_6cff064c44e0d823"), __wbg___wbindgen_number_get_136b9679cab35cfb: /* @__PURE__ */ __name(function(A4, I4) {
+      const g4 = TA(I4), C4 = "number" == typeof g4 ? g4 : void 0;
+      lA().setFloat64(A4 + 8, bA(C4) ? 0 : C4, true), lA().setInt32(A4 + 0, !bA(C4), true);
+    }, "__wbg___wbindgen_number_get_136b9679cab35cfb"), __wbg___wbindgen_throw_bb96b2010945f0bc: /* @__PURE__ */ __name(function(A4, I4) {
+      throw new Error(pA(A4, I4));
+    }, "__wbg___wbindgen_throw_bb96b2010945f0bc"), __wbg_bind_f0a9af73583d6566: /* @__PURE__ */ __name(function(A4, I4, g4, C4) {
+      return FA(TA(A4).bind(TA(I4), TA(g4), TA(C4)));
     }, "__wbg_bind_f0a9af73583d6566"), __wbg_call_0f2a9af232c18fd2: /* @__PURE__ */ __name(function() {
-      return dA((function(A4, I3, g3, C3) {
-        return FA(TA(A4).call(TA(I3), TA(g3), TA(C3)));
+      return dA((function(A4, I4, g4, C4) {
+        return FA(TA(A4).call(TA(I4), TA(g4), TA(C4)));
       }), arguments);
     }, "__wbg_call_0f2a9af232c18fd2"), __wbg_call_35dba3c747ad7521: /* @__PURE__ */ __name(function() {
-      return dA((function(A4, I3, g3) {
-        return FA(TA(A4).call(TA(I3), TA(g3)));
+      return dA((function(A4, I4, g4) {
+        return FA(TA(A4).call(TA(I4), TA(g4)));
       }), arguments);
     }, "__wbg_call_35dba3c747ad7521"), __wbg_call_39f824e18d9d2414: /* @__PURE__ */ __name(function() {
-      return dA((function(A4, I3, g3, C3, B2) {
-        return FA(TA(A4).call(TA(I3), TA(g3), TA(C3), TA(B2)));
+      return dA((function(A4, I4, g4, C4, B2) {
+        return FA(TA(A4).call(TA(I4), TA(g4), TA(C4), TA(B2)));
       }), arguments);
     }, "__wbg_call_39f824e18d9d2414"), __wbg_length_1009454859bb3e03: /* @__PURE__ */ __name(function(A4) {
       return TA(A4).length;
     }, "__wbg_length_1009454859bb3e03"), __wbg_length_36bd29c6848c2144: /* @__PURE__ */ __name(function(A4) {
       return TA(A4).length;
-    }, "__wbg_length_36bd29c6848c2144"), __wbg_new_from_slice_3eea173078478cfe: /* @__PURE__ */ __name(function(A4, I3) {
-      return FA(new Uint8Array(cA(A4, I3)));
+    }, "__wbg_length_36bd29c6848c2144"), __wbg_new_from_slice_3eea173078478cfe: /* @__PURE__ */ __name(function(A4, I4) {
+      return FA(new Uint8Array(cA(A4, I4)));
     }, "__wbg_new_from_slice_3eea173078478cfe"), __wbg_new_with_length_ef112d2291d8ab95: /* @__PURE__ */ __name(function(A4) {
       return FA(new Float32Array(A4 >>> 0));
     }, "__wbg_new_with_length_ef112d2291d8ab95"), __wbg_now_e7c6795a7f81e10f: /* @__PURE__ */ __name(function(A4) {
       return TA(A4).now();
     }, "__wbg_now_e7c6795a7f81e10f"), __wbg_performance_3fcf6e32a7e1ed0a: /* @__PURE__ */ __name(function(A4) {
       return FA(TA(A4).performance);
-    }, "__wbg_performance_3fcf6e32a7e1ed0a"), __wbg_prototypesetcall_de8e0d9553586985: /* @__PURE__ */ __name(function(A4, I3, g3) {
-      Uint8Array.prototype.set.call(cA(A4, I3), TA(g3));
+    }, "__wbg_performance_3fcf6e32a7e1ed0a"), __wbg_prototypesetcall_de8e0d9553586985: /* @__PURE__ */ __name(function(A4, I4, g4) {
+      Uint8Array.prototype.set.call(cA(A4, I4), TA(g4));
     }, "__wbg_prototypesetcall_de8e0d9553586985"), __wbg_rawcontactforceevent_new: /* @__PURE__ */ __name(function(A4) {
       return FA(Q.__wrap(A4));
     }, "__wbg_rawcontactforceevent_new"), __wbg_rawraycolliderintersection_new: /* @__PURE__ */ __name(function(A4) {
       return FA(l.__wrap(A4));
     }, "__wbg_rawraycolliderintersection_new"), __wbg_rawshape_unwrap: /* @__PURE__ */ __name(function(A4) {
       return t.__unwrap(TA(A4));
-    }, "__wbg_rawshape_unwrap"), __wbg_set_577f5f7485b6744e: /* @__PURE__ */ __name(function(A4, I3, g3) {
-      TA(A4).set(sA(I3, g3));
-    }, "__wbg_set_577f5f7485b6744e"), __wbg_set_index_aac0f95bd3ef91b6: /* @__PURE__ */ __name(function(A4, I3, g3) {
-      TA(A4)[I3 >>> 0] = g3;
+    }, "__wbg_rawshape_unwrap"), __wbg_set_577f5f7485b6744e: /* @__PURE__ */ __name(function(A4, I4, g4) {
+      TA(A4).set(sA(I4, g4));
+    }, "__wbg_set_577f5f7485b6744e"), __wbg_set_index_aac0f95bd3ef91b6: /* @__PURE__ */ __name(function(A4, I4, g4) {
+      TA(A4)[I4 >>> 0] = g4;
     }, "__wbg_set_index_aac0f95bd3ef91b6"), __wbg_static_accessor_GLOBAL_THIS_466428f93b4eaa76: /* @__PURE__ */ __name(function() {
       const A4 = "undefined" == typeof globalThis ? null : globalThis;
       return bA(A4) ? 0 : FA(A4);
@@ -12541,12 +12541,12 @@ async function uA(A2) {
     return { __proto__: null, "./rapier_wasm3d_bg.js": A3 };
   })();
   ("string" == typeof A2 || "function" == typeof Request && A2 instanceof Request || "function" == typeof URL && A2 instanceof URL) && (A2 = fetch(A2));
-  const { instance: g2, module: C2 } = await (async function(A3, I3) {
+  const { instance: g3, module: C3 } = await (async function(A3, I4) {
     if ("function" == typeof Response && A3 instanceof Response) {
       if (!A3.ok) throw new Error(`failed to fetch Wasm: ${A3.status} ${A3.statusText} fetching '${A3.url}'`);
       if ("function" == typeof WebAssembly.instantiateStreaming) try {
-        return await WebAssembly.instantiateStreaming(A3, I3);
-      } catch (I4) {
+        return await WebAssembly.instantiateStreaming(A3, I4);
+      } catch (I5) {
         if (!(function(A4) {
           switch (A4) {
             case "basic":
@@ -12555,20 +12555,20 @@ async function uA(A2) {
               return true;
           }
           return false;
-        })(A3.type) || "application/wasm" === A3.headers.get("Content-Type")) throw I4;
-        console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve Wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", I4);
+        })(A3.type) || "application/wasm" === A3.headers.get("Content-Type")) throw I5;
+        console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve Wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", I5);
       }
-      const g3 = await A3.arrayBuffer();
-      return await WebAssembly.instantiate(g3, I3);
+      const g4 = await A3.arrayBuffer();
+      return await WebAssembly.instantiate(g4, I4);
     }
     {
-      const g3 = await WebAssembly.instantiate(A3, I3);
-      return g3 instanceof WebAssembly.Instance ? { instance: g3, module: A3 } : g3;
+      const g4 = await WebAssembly.instantiate(A3, I4);
+      return g4 instanceof WebAssembly.Instance ? { instance: g4, module: A3 } : g4;
     }
-  })(await A2, I2);
-  return (function(A3, I3) {
+  })(await A2, I3);
+  return (function(A3, I4) {
     return mA = A3.exports, aA = null, LA = null, HA = null, tA = null, OA = null, mA;
-  })(g2);
+  })(g3);
 }
 __name(uA, "uA");
 var zA = new Float32Array(16);
@@ -12576,16 +12576,16 @@ var vA = class {
   static {
     __name(this, "vA");
   }
-  constructor(A2, I2, g2) {
-    this.x = A2, this.y = I2, this.z = g2;
+  constructor(A2, I3, g3) {
+    this.x = A2, this.y = I3, this.z = g3;
   }
 };
 var _A = class __A {
   static {
     __name(this, "_A");
   }
-  static new(A2, I2, g2) {
-    return new vA(A2, I2, g2);
+  static new(A2, I3, g3) {
+    return new vA(A2, I3, g3);
   }
   static intoRaw(A2) {
     return new d(A2.x, A2.y, A2.z);
@@ -12593,24 +12593,24 @@ var _A = class __A {
   static zeros() {
     return __A.new(0, 0, 0);
   }
-  static fromBuffer(A2, I2) {
-    return A2 ? (null != I2 || (I2 = __A.zeros()), I2.x = A2[0], I2.y = A2[1], I2.z = A2[2], I2) : null;
+  static fromBuffer(A2, I3) {
+    return A2 ? (null != I3 || (I3 = __A.zeros()), I3.x = A2[0], I3.y = A2[1], I3.z = A2[2], I3) : null;
   }
   static fromRaw(A2) {
     if (!A2) return null;
-    let I2 = __A.new(A2.x, A2.y, A2.z);
-    return A2.free(), I2;
+    let I3 = __A.new(A2.x, A2.y, A2.z);
+    return A2.free(), I3;
   }
-  static copy(A2, I2) {
-    A2.x = I2.x, A2.y = I2.y, A2.z = I2.z;
+  static copy(A2, I3) {
+    A2.x = I3.x, A2.y = I3.y, A2.z = I3.z;
   }
 };
 var $A = class {
   static {
     __name(this, "$A");
   }
-  constructor(A2, I2, g2, C2) {
-    this.x = A2, this.y = I2, this.z = g2, this.w = C2;
+  constructor(A2, I3, g3, C3) {
+    this.x = A2, this.y = I3, this.z = g3, this.w = C3;
   }
 };
 var AI = class _AI {
@@ -12620,19 +12620,19 @@ var AI = class _AI {
   static identity() {
     return new $A(0, 0, 0, 1);
   }
-  static fromBuffer(A2, I2) {
-    return A2 ? (null != I2 || (I2 = _AI.identity()), I2.x = A2[0], I2.y = A2[1], I2.z = A2[2], I2.w = A2[3], I2) : null;
+  static fromBuffer(A2, I3) {
+    return A2 ? (null != I3 || (I3 = _AI.identity()), I3.x = A2[0], I3.y = A2[1], I3.z = A2[2], I3.w = A2[3], I3) : null;
   }
   static fromRaw(A2) {
     if (!A2) return null;
-    let I2 = new $A(A2.x, A2.y, A2.z, A2.w);
-    return A2.free(), I2;
+    let I3 = new $A(A2.x, A2.y, A2.z, A2.w);
+    return A2.free(), I3;
   }
   static intoRaw(A2) {
     return new H(A2.x, A2.y, A2.z, A2.w);
   }
-  static copy(A2, I2) {
-    A2.x = I2.x, A2.y = I2.y, A2.z = I2.z, A2.w = I2.w;
+  static copy(A2, I3) {
+    A2.x = I3.x, A2.y = I3.y, A2.z = I3.z, A2.w = I3.w;
   }
 };
 var II = class {
@@ -12674,12 +12674,12 @@ var gI = class {
   static {
     __name(this, "gI");
   }
-  static fromBuffer(A2, I2) {
-    return A2 ? (null != I2 || (I2 = new II(A2)), I2.elements[0] = A2[0], I2.elements[1] = A2[1], I2.elements[2] = A2[2], I2.elements[3] = A2[3], I2.elements[4] = A2[4], I2.elements[5] = A2[5], I2) : null;
+  static fromBuffer(A2, I3) {
+    return A2 ? (null != I3 || (I3 = new II(A2)), I3.elements[0] = A2[0], I3.elements[1] = A2[1], I3.elements[2] = A2[2], I3.elements[3] = A2[3], I3.elements[4] = A2[4], I3.elements[5] = A2[5], I3) : null;
   }
   static fromRaw(A2) {
-    const I2 = new II(A2.elements());
-    return A2.free(), I2;
+    const I3 = new II(A2.elements());
+    return A2.free(), I3;
   }
 };
 var CI;
@@ -12706,8 +12706,8 @@ var MI = class {
   static {
     __name(this, "MI");
   }
-  constructor(A2, I2, g2) {
-    this.rawSet = A2, this.colliderSet = I2, this.handle = g2;
+  constructor(A2, I3, g3) {
+    this.rawSet = A2, this.colliderSet = I3, this.handle = g3;
   }
   finalizeDeserialization(A2) {
     this.colliderSet = A2;
@@ -12715,23 +12715,23 @@ var MI = class {
   isValid() {
     return this.rawSet.contains(this.handle);
   }
-  lockTranslations(A2, I2) {
-    return this.rawSet.rbLockTranslations(this.handle, A2, I2);
+  lockTranslations(A2, I3) {
+    return this.rawSet.rbLockTranslations(this.handle, A2, I3);
   }
-  lockRotations(A2, I2) {
-    return this.rawSet.rbLockRotations(this.handle, A2, I2);
+  lockRotations(A2, I3) {
+    return this.rawSet.rbLockRotations(this.handle, A2, I3);
   }
-  setEnabledTranslations(A2, I2, g2, C2) {
-    return this.rawSet.rbSetEnabledTranslations(this.handle, A2, I2, g2, C2);
+  setEnabledTranslations(A2, I3, g3, C3) {
+    return this.rawSet.rbSetEnabledTranslations(this.handle, A2, I3, g3, C3);
   }
-  restrictTranslations(A2, I2, g2, C2) {
-    this.setEnabledTranslations(A2, I2, g2, C2);
+  restrictTranslations(A2, I3, g3, C3) {
+    this.setEnabledTranslations(A2, I3, g3, C3);
   }
-  setEnabledRotations(A2, I2, g2, C2) {
-    return this.rawSet.rbSetEnabledRotations(this.handle, A2, I2, g2, C2);
+  setEnabledRotations(A2, I3, g3, C3) {
+    return this.rawSet.rbSetEnabledRotations(this.handle, A2, I3, g3, C3);
   }
-  restrictRotations(A2, I2, g2, C2) {
-    this.setEnabledRotations(A2, I2, g2, C2);
+  restrictRotations(A2, I3, g3, C3) {
+    this.setEnabledRotations(A2, I3, g3, C3);
   }
   dominanceGroup() {
     return this.rawSet.rbDominanceGroup(this.handle);
@@ -12766,25 +12766,25 @@ var MI = class {
   nextRotation(A2) {
     return this.rawSet.rbNextRotation(this.handle, zA), AI.fromBuffer(zA, A2);
   }
-  setTranslation(A2, I2) {
-    this.rawSet.rbSetTranslation(this.handle, A2.x, A2.y, A2.z, I2);
+  setTranslation(A2, I3) {
+    this.rawSet.rbSetTranslation(this.handle, A2.x, A2.y, A2.z, I3);
   }
-  setLinvel(A2, I2) {
-    let g2 = _A.intoRaw(A2);
-    this.rawSet.rbSetLinvel(this.handle, g2, I2), g2.free();
+  setLinvel(A2, I3) {
+    let g3 = _A.intoRaw(A2);
+    this.rawSet.rbSetLinvel(this.handle, g3, I3), g3.free();
   }
   gravityScale() {
     return this.rawSet.rbGravityScale(this.handle);
   }
-  setGravityScale(A2, I2) {
-    this.rawSet.rbSetGravityScale(this.handle, A2, I2);
+  setGravityScale(A2, I3) {
+    this.rawSet.rbSetGravityScale(this.handle, A2, I3);
   }
-  setRotation(A2, I2) {
-    this.rawSet.rbSetRotation(this.handle, A2.x, A2.y, A2.z, A2.w, I2);
+  setRotation(A2, I3) {
+    this.rawSet.rbSetRotation(this.handle, A2.x, A2.y, A2.z, A2.w, I3);
   }
-  setAngvel(A2, I2) {
-    let g2 = _A.intoRaw(A2);
-    this.rawSet.rbSetAngvel(this.handle, g2, I2), g2.free();
+  setAngvel(A2, I3) {
+    let g3 = _A.intoRaw(A2);
+    this.rawSet.rbSetAngvel(this.handle, g3, I3), g3.free();
   }
   setNextKinematicTranslation(A2) {
     this.rawSet.rbSetNextKinematicTranslation(this.handle, A2.x, A2.y, A2.z);
@@ -12795,9 +12795,9 @@ var MI = class {
   linvel(A2) {
     return this.rawSet.rbLinvel(this.handle, zA), _A.fromBuffer(zA, A2);
   }
-  velocityAtPoint(A2, I2) {
-    const g2 = _A.intoRaw(A2);
-    return this.rawSet.rbVelocityAtPoint(this.handle, g2, zA), g2.free(), _A.fromBuffer(zA, I2);
+  velocityAtPoint(A2, I3) {
+    const g3 = _A.intoRaw(A2);
+    return this.rawSet.rbVelocityAtPoint(this.handle, g3, zA), g3.free(), _A.fromBuffer(zA, I3);
   }
   angvel(A2) {
     return this.rawSet.rbAngvel(this.handle, zA), _A.fromBuffer(zA, A2);
@@ -12856,8 +12856,8 @@ var MI = class {
   bodyType() {
     return this.rawSet.rbBodyType(this.handle);
   }
-  setBodyType(A2, I2) {
-    return this.rawSet.rbSetBodyType(this.handle, A2, I2);
+  setBodyType(A2, I3) {
+    return this.rawSet.rbSetBodyType(this.handle, A2, I3);
   }
   isSleeping() {
     return this.rawSet.rbIsSleeping(this.handle);
@@ -12886,12 +12886,12 @@ var MI = class {
   recomputeMassPropertiesFromColliders() {
     this.rawSet.rbRecomputeMassPropertiesFromColliders(this.handle, this.colliderSet.raw);
   }
-  setAdditionalMass(A2, I2) {
-    this.rawSet.rbSetAdditionalMass(this.handle, A2, I2);
+  setAdditionalMass(A2, I3) {
+    this.rawSet.rbSetAdditionalMass(this.handle, A2, I3);
   }
-  setAdditionalMassProperties(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(I2), E2 = _A.intoRaw(g2), i2 = AI.intoRaw(C2);
-    this.rawSet.rbSetAdditionalMassProperties(this.handle, A2, Q2, E2, i2, B2), Q2.free(), E2.free(), i2.free();
+  setAdditionalMassProperties(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(I3), E3 = _A.intoRaw(g3), i4 = AI.intoRaw(C3);
+    this.rawSet.rbSetAdditionalMassProperties(this.handle, A2, Q2, E3, i4, B2), Q2.free(), E3.free(), i4.free();
   }
   setAngularDamping(A2) {
     this.rawSet.rbSetAngularDamping(this.handle, A2);
@@ -12902,29 +12902,29 @@ var MI = class {
   resetTorques(A2) {
     this.rawSet.rbResetTorques(this.handle, A2);
   }
-  addForce(A2, I2) {
-    const g2 = _A.intoRaw(A2);
-    this.rawSet.rbAddForce(this.handle, g2, I2), g2.free();
+  addForce(A2, I3) {
+    const g3 = _A.intoRaw(A2);
+    this.rawSet.rbAddForce(this.handle, g3, I3), g3.free();
   }
-  applyImpulse(A2, I2) {
-    const g2 = _A.intoRaw(A2);
-    this.rawSet.rbApplyImpulse(this.handle, g2, I2), g2.free();
+  applyImpulse(A2, I3) {
+    const g3 = _A.intoRaw(A2);
+    this.rawSet.rbApplyImpulse(this.handle, g3, I3), g3.free();
   }
-  addTorque(A2, I2) {
-    const g2 = _A.intoRaw(A2);
-    this.rawSet.rbAddTorque(this.handle, g2, I2), g2.free();
+  addTorque(A2, I3) {
+    const g3 = _A.intoRaw(A2);
+    this.rawSet.rbAddTorque(this.handle, g3, I3), g3.free();
   }
-  applyTorqueImpulse(A2, I2) {
-    const g2 = _A.intoRaw(A2);
-    this.rawSet.rbApplyTorqueImpulse(this.handle, g2, I2), g2.free();
+  applyTorqueImpulse(A2, I3) {
+    const g3 = _A.intoRaw(A2);
+    this.rawSet.rbApplyTorqueImpulse(this.handle, g3, I3), g3.free();
   }
-  addForceAtPoint(A2, I2, g2) {
-    const C2 = _A.intoRaw(A2), B2 = _A.intoRaw(I2);
-    this.rawSet.rbAddForceAtPoint(this.handle, C2, B2, g2), C2.free(), B2.free();
+  addForceAtPoint(A2, I3, g3) {
+    const C3 = _A.intoRaw(A2), B2 = _A.intoRaw(I3);
+    this.rawSet.rbAddForceAtPoint(this.handle, C3, B2, g3), C3.free(), B2.free();
   }
-  applyImpulseAtPoint(A2, I2, g2) {
-    const C2 = _A.intoRaw(A2), B2 = _A.intoRaw(I2);
-    this.rawSet.rbApplyImpulseAtPoint(this.handle, C2, B2, g2), C2.free(), B2.free();
+  applyImpulseAtPoint(A2, I3, g3) {
+    const C3 = _A.intoRaw(A2), B2 = _A.intoRaw(I3);
+    this.rawSet.rbApplyImpulseAtPoint(this.handle, C3, B2, g3), C3.free(), B2.free();
   }
   userForce(A2) {
     return this.rawSet.rbUserForce(this.handle, zA), _A.fromBuffer(zA, A2);
@@ -12973,9 +12973,9 @@ var NI = class _NI {
   setEnabled(A2) {
     return this.enabled = A2, this;
   }
-  setTranslation(A2, I2, g2) {
-    if ("number" != typeof A2 || "number" != typeof I2 || "number" != typeof g2) throw TypeError("The translation components must be numbers.");
-    return this.translation = { x: A2, y: I2, z: g2 }, this;
+  setTranslation(A2, I3, g3) {
+    if ("number" != typeof A2 || "number" != typeof I3 || "number" != typeof g3) throw TypeError("The translation components must be numbers.");
+    return this.translation = { x: A2, y: I3, z: g3 }, this;
   }
   setRotation(A2) {
     return AI.copy(this.rotation, A2), this;
@@ -12986,30 +12986,30 @@ var NI = class _NI {
   setAdditionalMass(A2) {
     return this.mass = A2, this.massOnly = true, this;
   }
-  setLinvel(A2, I2, g2) {
-    if ("number" != typeof A2 || "number" != typeof I2 || "number" != typeof g2) throw TypeError("The linvel components must be numbers.");
-    return this.linvel = { x: A2, y: I2, z: g2 }, this;
+  setLinvel(A2, I3, g3) {
+    if ("number" != typeof A2 || "number" != typeof I3 || "number" != typeof g3) throw TypeError("The linvel components must be numbers.");
+    return this.linvel = { x: A2, y: I3, z: g3 }, this;
   }
   setAngvel(A2) {
     return _A.copy(this.angvel, A2), this;
   }
-  setAdditionalMassProperties(A2, I2, g2, C2) {
-    return this.mass = A2, _A.copy(this.centerOfMass, I2), _A.copy(this.principalAngularInertia, g2), AI.copy(this.angularInertiaLocalFrame, C2), this.massOnly = false, this;
+  setAdditionalMassProperties(A2, I3, g3, C3) {
+    return this.mass = A2, _A.copy(this.centerOfMass, I3), _A.copy(this.principalAngularInertia, g3), AI.copy(this.angularInertiaLocalFrame, C3), this.massOnly = false, this;
   }
-  enabledTranslations(A2, I2, g2) {
-    return this.translationsEnabledX = A2, this.translationsEnabledY = I2, this.translationsEnabledZ = g2, this;
+  enabledTranslations(A2, I3, g3) {
+    return this.translationsEnabledX = A2, this.translationsEnabledY = I3, this.translationsEnabledZ = g3, this;
   }
-  restrictTranslations(A2, I2, g2) {
-    return this.enabledTranslations(A2, I2, g2);
+  restrictTranslations(A2, I3, g3) {
+    return this.enabledTranslations(A2, I3, g3);
   }
   lockTranslations() {
     return this.enabledTranslations(false, false, false);
   }
-  enabledRotations(A2, I2, g2) {
-    return this.rotationsEnabledX = A2, this.rotationsEnabledY = I2, this.rotationsEnabledZ = g2, this;
+  enabledRotations(A2, I3, g3) {
+    return this.rotationsEnabledX = A2, this.rotationsEnabledY = I3, this.rotationsEnabledZ = g3, this;
   }
-  restrictRotations(A2, I2, g2) {
-    return this.enabledRotations(A2, I2, g2);
+  restrictRotations(A2, I3, g3) {
+    return this.enabledRotations(A2, I3, g3);
   }
   lockRotations() {
     return this.restrictRotations(false, false, false);
@@ -13043,27 +13043,27 @@ var sI = class {
   constructor() {
     this.fconv = new Float64Array(1), this.uconv = new Uint32Array(this.fconv.buffer), this.data = new Array(), this.size = 0;
   }
-  set(A2, I2) {
-    let g2 = this.index(A2);
-    for (; this.data.length <= g2; ) this.data.push(null);
-    null == this.data[g2] && (this.size += 1), this.data[g2] = I2;
+  set(A2, I3) {
+    let g3 = this.index(A2);
+    for (; this.data.length <= g3; ) this.data.push(null);
+    null == this.data[g3] && (this.size += 1), this.data[g3] = I3;
   }
   len() {
     return this.size;
   }
   delete(A2) {
-    let I2 = this.index(A2);
-    I2 < this.data.length && (null != this.data[I2] && (this.size -= 1), this.data[I2] = null);
+    let I3 = this.index(A2);
+    I3 < this.data.length && (null != this.data[I3] && (this.size -= 1), this.data[I3] = null);
   }
   clear() {
     this.data = new Array();
   }
   get(A2) {
-    let I2 = this.index(A2);
-    return I2 < this.data.length ? this.data[I2] : null;
+    let I3 = this.index(A2);
+    return I3 < this.data.length ? this.data[I3] : null;
   }
   forEach(A2) {
-    for (const I2 of this.data) null != I2 && A2(I2);
+    for (const I3 of this.data) null != I3 && A2(I3);
   }
   getAll() {
     return this.data.filter(((A2) => null != A2));
@@ -13077,25 +13077,25 @@ var RI = class {
     __name(this, "RI");
   }
   constructor(A2) {
-    this.raw = A2 || new q(), this.map = new sI(), A2 && A2.forEachRigidBodyHandle(((I2) => {
-      this.map.set(I2, new MI(A2, null, I2));
+    this.raw = A2 || new q(), this.map = new sI(), A2 && A2.forEachRigidBodyHandle(((I3) => {
+      this.map.set(I3, new MI(A2, null, I3));
     }));
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0, this.map && this.map.clear(), this.map = void 0;
   }
   finalizeDeserialization(A2) {
-    this.map.forEach(((I2) => I2.finalizeDeserialization(A2)));
+    this.map.forEach(((I3) => I3.finalizeDeserialization(A2)));
   }
-  createRigidBody(A2, I2) {
-    let g2 = _A.intoRaw(I2.translation), C2 = AI.intoRaw(I2.rotation), B2 = _A.intoRaw(I2.linvel), Q2 = _A.intoRaw(I2.centerOfMass), E2 = _A.intoRaw(I2.angvel), i2 = _A.intoRaw(I2.principalAngularInertia), D2 = AI.intoRaw(I2.angularInertiaLocalFrame), S2 = this.raw.createRigidBody(I2.enabled, g2, C2, I2.gravityScale, I2.mass, I2.massOnly, Q2, B2, E2, i2, D2, I2.translationsEnabledX, I2.translationsEnabledY, I2.translationsEnabledZ, I2.rotationsEnabledX, I2.rotationsEnabledY, I2.rotationsEnabledZ, I2.linearDamping, I2.angularDamping, I2.status, I2.canSleep, I2.sleeping, I2.softCcdPrediction, I2.ccdEnabled, I2.dominanceGroup, I2.additionalSolverIterations);
-    g2.free(), C2.free(), B2.free(), Q2.free(), E2.free(), i2.free(), D2.free();
-    const o2 = new MI(this.raw, A2, S2);
-    return o2.userData = I2.userData, this.map.set(S2, o2), o2;
+  createRigidBody(A2, I3) {
+    let g3 = _A.intoRaw(I3.translation), C3 = AI.intoRaw(I3.rotation), B2 = _A.intoRaw(I3.linvel), Q2 = _A.intoRaw(I3.centerOfMass), E3 = _A.intoRaw(I3.angvel), i4 = _A.intoRaw(I3.principalAngularInertia), D3 = AI.intoRaw(I3.angularInertiaLocalFrame), S3 = this.raw.createRigidBody(I3.enabled, g3, C3, I3.gravityScale, I3.mass, I3.massOnly, Q2, B2, E3, i4, D3, I3.translationsEnabledX, I3.translationsEnabledY, I3.translationsEnabledZ, I3.rotationsEnabledX, I3.rotationsEnabledY, I3.rotationsEnabledZ, I3.linearDamping, I3.angularDamping, I3.status, I3.canSleep, I3.sleeping, I3.softCcdPrediction, I3.ccdEnabled, I3.dominanceGroup, I3.additionalSolverIterations);
+    g3.free(), C3.free(), B2.free(), Q2.free(), E3.free(), i4.free(), D3.free();
+    const o3 = new MI(this.raw, A2, S3);
+    return o3.userData = I3.userData, this.map.set(S3, o3), o3;
   }
-  remove(A2, I2, g2, C2, B2) {
-    for (let I3 = 0; I3 < this.raw.rbNumColliders(A2); I3 += 1) g2.unmap(this.raw.rbCollider(A2, I3));
-    C2.forEachJointHandleAttachedToRigidBody(A2, ((A3) => C2.unmap(A3))), B2.forEachJointHandleAttachedToRigidBody(A2, ((A3) => B2.unmap(A3))), this.raw.remove(A2, I2.raw, g2.raw, C2.raw, B2.raw), this.map.delete(A2);
+  remove(A2, I3, g3, C3, B2) {
+    for (let I4 = 0; I4 < this.raw.rbNumColliders(A2); I4 += 1) g3.unmap(this.raw.rbCollider(A2, I4));
+    C3.forEachJointHandleAttachedToRigidBody(A2, ((A3) => C3.unmap(A3))), B2.forEachJointHandleAttachedToRigidBody(A2, ((A3) => B2.unmap(A3))), this.raw.remove(A2, I3.raw, g3.raw, C3.raw, B2.raw), this.map.delete(A2);
   }
   len() {
     return this.map.len();
@@ -13109,9 +13109,9 @@ var RI = class {
   forEach(A2) {
     this.map.forEach(A2);
   }
-  forEachActiveRigidBody(A2, I2) {
+  forEachActiveRigidBody(A2, I3) {
     A2.forEachActiveRigidBodyHandle(((A3) => {
-      I2(this.get(A3));
+      I3(this.get(A3));
     }));
   }
   getAll() {
@@ -13190,27 +13190,27 @@ var cI = class _cI {
   static {
     __name(this, "cI");
   }
-  constructor(A2, I2, g2) {
-    this.rawSet = A2, this.bodySet = I2, this.handle = g2;
+  constructor(A2, I3, g3) {
+    this.rawSet = A2, this.bodySet = I3, this.handle = g3;
   }
-  static newTyped(A2, I2, g2) {
-    switch (A2.jointType(g2)) {
+  static newTyped(A2, I3, g3) {
+    switch (A2.jointType(g3)) {
       case G.Revolute:
-        return new pI(A2, I2, g2);
+        return new pI(A2, I3, g3);
       case G.Prismatic:
-        return new HI(A2, I2, g2);
+        return new HI(A2, I3, g3);
       case G.Fixed:
-        return new lI(A2, I2, g2);
+        return new lI(A2, I3, g3);
       case G.Spring:
-        return new qI(A2, I2, g2);
+        return new qI(A2, I3, g3);
       case G.Rope:
-        return new LI(A2, I2, g2);
+        return new LI(A2, I3, g3);
       case G.Spherical:
-        return new rI(A2, I2, g2);
+        return new rI(A2, I3, g3);
       case G.Generic:
-        return new tI(A2, I2, g2);
+        return new tI(A2, I3, g3);
       default:
-        return new _cI(A2, I2, g2);
+        return new _cI(A2, I3, g3);
     }
   }
   finalizeDeserialization(A2) {
@@ -13241,28 +13241,28 @@ var cI = class _cI {
     return this.rawSet.jointAnchor2(this.handle, zA), _A.fromBuffer(zA, A2);
   }
   setAnchor1(A2) {
-    const I2 = _A.intoRaw(A2);
-    this.rawSet.jointSetAnchor1(this.handle, I2), I2.free();
+    const I3 = _A.intoRaw(A2);
+    this.rawSet.jointSetAnchor1(this.handle, I3), I3.free();
   }
   setAnchor2(A2) {
-    const I2 = _A.intoRaw(A2);
-    this.rawSet.jointSetAnchor2(this.handle, I2), I2.free();
+    const I3 = _A.intoRaw(A2);
+    this.rawSet.jointSetAnchor2(this.handle, I3), I3.free();
   }
   setFrameX1(A2) {
-    const I2 = AI.intoRaw(A2);
-    this.rawSet.jointSetFrameX1(this.handle, I2), I2.free();
+    const I3 = AI.intoRaw(A2);
+    this.rawSet.jointSetFrameX1(this.handle, I3), I3.free();
   }
   setFrameX2(A2) {
-    const I2 = AI.intoRaw(A2);
-    this.rawSet.jointSetFrameX2(this.handle, I2), I2.free();
+    const I3 = AI.intoRaw(A2);
+    this.rawSet.jointSetFrameX2(this.handle, I3), I3.free();
   }
-  setLocalFrame1(A2, I2) {
-    const g2 = _A.intoRaw(A2), C2 = AI.intoRaw(I2);
-    this.rawSet.jointSetLocalFrame1(this.handle, g2, C2), g2.free(), C2.free();
+  setLocalFrame1(A2, I3) {
+    const g3 = _A.intoRaw(A2), C3 = AI.intoRaw(I3);
+    this.rawSet.jointSetLocalFrame1(this.handle, g3, C3), g3.free(), C3.free();
   }
-  setLocalFrame2(A2, I2) {
-    const g2 = _A.intoRaw(A2), C2 = AI.intoRaw(I2);
-    this.rawSet.jointSetLocalFrame2(this.handle, g2, C2), g2.free(), C2.free();
+  setLocalFrame2(A2, I3) {
+    const g3 = _A.intoRaw(A2), C3 = AI.intoRaw(I3);
+    this.rawSet.jointSetLocalFrame2(this.handle, g3, C3), g3.free(), C3.free();
   }
   setContactsEnabled(A2) {
     this.rawSet.jointSetContactsEnabled(this.handle, A2);
@@ -13284,8 +13284,8 @@ var aI = class extends cI {
   limitsMax() {
     return this.rawSet.jointLimitsMax(this.handle, this.rawAxis());
   }
-  setLimits(A2, I2) {
-    this.rawSet.jointSetLimits(this.handle, this.rawAxis(), A2, I2);
+  setLimits(A2, I3) {
+    this.rawSet.jointSetLimits(this.handle, this.rawAxis(), A2, I3);
   }
   configureMotorModel(A2) {
     this.rawSet.jointConfigureMotorModel(this.handle, this.rawAxis(), A2);
@@ -13293,14 +13293,14 @@ var aI = class extends cI {
   setMotorMaxForce(A2) {
     this.rawSet.jointSetMotorMaxForce(this.handle, this.rawAxis(), A2);
   }
-  configureMotorVelocity(A2, I2) {
-    this.rawSet.jointConfigureMotorVelocity(this.handle, this.rawAxis(), A2, I2);
+  configureMotorVelocity(A2, I3) {
+    this.rawSet.jointConfigureMotorVelocity(this.handle, this.rawAxis(), A2, I3);
   }
-  configureMotorPosition(A2, I2, g2) {
-    this.rawSet.jointConfigureMotorPosition(this.handle, this.rawAxis(), A2, I2, g2);
+  configureMotorPosition(A2, I3, g3) {
+    this.rawSet.jointConfigureMotorPosition(this.handle, this.rawAxis(), A2, I3, g3);
   }
-  configureMotor(A2, I2, g2, C2) {
-    this.rawSet.jointConfigureMotor(this.handle, this.rawAxis(), A2, I2, g2, C2);
+  configureMotor(A2, I3, g3, C3) {
+    this.rawSet.jointConfigureMotor(this.handle, this.rawAxis(), A2, I3, g3, C3);
   }
 };
 var lI = class extends cI {
@@ -13343,20 +13343,20 @@ var rI = class extends cI {
   static {
     __name(this, "rI");
   }
-  configureMotorModel(A2, I2) {
-    this.rawSet.jointConfigureMotorModel(this.handle, A2, I2);
+  configureMotorModel(A2, I3) {
+    this.rawSet.jointConfigureMotorModel(this.handle, A2, I3);
   }
-  setMotorMaxForce(A2, I2) {
-    this.rawSet.jointSetMotorMaxForce(this.handle, A2, I2);
+  setMotorMaxForce(A2, I3) {
+    this.rawSet.jointSetMotorMaxForce(this.handle, A2, I3);
   }
-  configureMotorVelocity(A2, I2, g2) {
-    this.rawSet.jointConfigureMotorVelocity(this.handle, A2, I2, g2);
+  configureMotorVelocity(A2, I3, g3) {
+    this.rawSet.jointConfigureMotorVelocity(this.handle, A2, I3, g3);
   }
-  configureMotorPosition(A2, I2, g2, C2) {
-    this.rawSet.jointConfigureMotorPosition(this.handle, A2, I2, g2, C2);
+  configureMotorPosition(A2, I3, g3, C3) {
+    this.rawSet.jointConfigureMotorPosition(this.handle, A2, I3, g3, C3);
   }
-  configureMotor(A2, I2, g2, C2, B2) {
-    this.rawSet.jointConfigureMotor(this.handle, A2, I2, g2, C2, B2);
+  configureMotor(A2, I3, g3, C3, B2) {
+    this.rawSet.jointConfigureMotor(this.handle, A2, I3, g3, C3, B2);
   }
 };
 var OI = class _OI {
@@ -13365,69 +13365,69 @@ var OI = class _OI {
   }
   constructor() {
   }
-  static fixed(A2, I2, g2, C2) {
+  static fixed(A2, I3, g3, C3) {
     let B2 = new _OI();
-    return B2.anchor1 = A2, B2.anchor2 = g2, B2.frame1 = I2, B2.frame2 = C2, B2.jointType = BI.Fixed, B2;
+    return B2.anchor1 = A2, B2.anchor2 = g3, B2.frame1 = I3, B2.frame2 = C3, B2.jointType = BI.Fixed, B2;
   }
-  static spring(A2, I2, g2, C2, B2) {
+  static spring(A2, I3, g3, C3, B2) {
     let Q2 = new _OI();
-    return Q2.anchor1 = C2, Q2.anchor2 = B2, Q2.length = A2, Q2.stiffness = I2, Q2.damping = g2, Q2.jointType = BI.Spring, Q2;
+    return Q2.anchor1 = C3, Q2.anchor2 = B2, Q2.length = A2, Q2.stiffness = I3, Q2.damping = g3, Q2.jointType = BI.Spring, Q2;
   }
-  static rope(A2, I2, g2) {
-    let C2 = new _OI();
-    return C2.anchor1 = I2, C2.anchor2 = g2, C2.length = A2, C2.jointType = BI.Rope, C2;
+  static rope(A2, I3, g3) {
+    let C3 = new _OI();
+    return C3.anchor1 = I3, C3.anchor2 = g3, C3.length = A2, C3.jointType = BI.Rope, C3;
   }
-  static generic(A2, I2, g2, C2) {
+  static generic(A2, I3, g3, C3) {
     let B2 = new _OI();
-    return B2.anchor1 = A2, B2.anchor2 = I2, B2.axis = g2, B2.axesMask = C2, B2.jointType = BI.Generic, B2;
+    return B2.anchor1 = A2, B2.anchor2 = I3, B2.axis = g3, B2.axesMask = C3, B2.jointType = BI.Generic, B2;
   }
-  static spherical(A2, I2) {
-    let g2 = new _OI();
-    return g2.anchor1 = A2, g2.anchor2 = I2, g2.jointType = BI.Spherical, g2;
+  static spherical(A2, I3) {
+    let g3 = new _OI();
+    return g3.anchor1 = A2, g3.anchor2 = I3, g3.jointType = BI.Spherical, g3;
   }
-  static prismatic(A2, I2, g2) {
-    let C2 = new _OI();
-    return C2.anchor1 = A2, C2.anchor2 = I2, C2.axis = g2, C2.jointType = BI.Prismatic, C2;
+  static prismatic(A2, I3, g3) {
+    let C3 = new _OI();
+    return C3.anchor1 = A2, C3.anchor2 = I3, C3.axis = g3, C3.jointType = BI.Prismatic, C3;
   }
-  static revolute(A2, I2, g2) {
-    let C2 = new _OI();
-    return C2.anchor1 = A2, C2.anchor2 = I2, C2.axis = g2, C2.jointType = BI.Revolute, C2;
+  static revolute(A2, I3, g3) {
+    let C3 = new _OI();
+    return C3.anchor1 = A2, C3.anchor2 = I3, C3.axis = g3, C3.jointType = BI.Revolute, C3;
   }
-  static revoluteWithAxes(A2, I2, g2, C2) {
+  static revoluteWithAxes(A2, I3, g3, C3) {
     let B2 = new _OI();
-    return B2.anchor1 = A2, B2.anchor2 = I2, B2.axis = g2, B2.axis1 = g2, B2.axis2 = C2, B2.jointType = BI.Revolute, B2;
+    return B2.anchor1 = A2, B2.anchor2 = I3, B2.axis = g3, B2.axis1 = g3, B2.axis2 = C3, B2.jointType = BI.Revolute, B2;
   }
   intoRaw() {
-    let A2, I2, g2 = _A.intoRaw(this.anchor1), C2 = _A.intoRaw(this.anchor2), B2 = false, Q2 = 0, E2 = 0;
+    let A2, I3, g3 = _A.intoRaw(this.anchor1), C3 = _A.intoRaw(this.anchor2), B2 = false, Q2 = 0, E3 = 0;
     switch (this.jointType) {
       case BI.Fixed:
-        let i2 = AI.intoRaw(this.frame1), D2 = AI.intoRaw(this.frame2);
-        I2 = U.fixed(g2, i2, C2, D2), i2.free(), D2.free();
+        let i4 = AI.intoRaw(this.frame1), D3 = AI.intoRaw(this.frame2);
+        I3 = U.fixed(g3, i4, C3, D3), i4.free(), D3.free();
         break;
       case BI.Spring:
-        I2 = U.spring(this.length, this.stiffness, this.damping, g2, C2);
+        I3 = U.spring(this.length, this.stiffness, this.damping, g3, C3);
         break;
       case BI.Rope:
-        I2 = U.rope(this.length, g2, C2);
+        I3 = U.rope(this.length, g3, C3);
         break;
       case BI.Prismatic:
-        A2 = _A.intoRaw(this.axis), this.limitsEnabled && (B2 = true, Q2 = this.limits[0], E2 = this.limits[1]), I2 = U.prismatic(g2, C2, A2, B2, Q2, E2), A2.free();
+        A2 = _A.intoRaw(this.axis), this.limitsEnabled && (B2 = true, Q2 = this.limits[0], E3 = this.limits[1]), I3 = U.prismatic(g3, C3, A2, B2, Q2, E3), A2.free();
         break;
       case BI.Generic:
         A2 = _A.intoRaw(this.axis);
-        let S2 = this.axesMask;
-        I2 = U.generic(g2, C2, A2, S2);
+        let S3 = this.axesMask;
+        I3 = U.generic(g3, C3, A2, S3);
         break;
       case BI.Spherical:
-        I2 = U.spherical(g2, C2);
+        I3 = U.spherical(g3, C3);
         break;
       case BI.Revolute:
         if (this.axis1 && this.axis2) {
           let A3 = _A.intoRaw(this.axis1), B3 = _A.intoRaw(this.axis2);
-          I2 = U.revoluteWithAxes(g2, C2, A3, B3), A3.free(), B3.free();
-        } else A2 = _A.intoRaw(this.axis), I2 = U.revolute(g2, C2, A2), A2.free();
+          I3 = U.revoluteWithAxes(g3, C3, A3, B3), A3.free(), B3.free();
+        } else A2 = _A.intoRaw(this.axis), I3 = U.revolute(g3, C3, A2), A2.free();
     }
-    return g2.free(), C2.free(), I2;
+    return g3.free(), C3.free(), I3;
   }
 };
 var eI = class {
@@ -13435,27 +13435,27 @@ var eI = class {
     __name(this, "eI");
   }
   constructor(A2) {
-    this.raw = A2 || new k(), this.map = new sI(), A2 && A2.forEachJointHandle(((I2) => {
-      this.map.set(I2, cI.newTyped(A2, null, I2));
+    this.raw = A2 || new k(), this.map = new sI(), A2 && A2.forEachJointHandle(((I3) => {
+      this.map.set(I3, cI.newTyped(A2, null, I3));
     }));
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0, this.map && this.map.clear(), this.map = void 0;
   }
   finalizeDeserialization(A2) {
-    this.map.forEach(((I2) => I2.finalizeDeserialization(A2)));
+    this.map.forEach(((I3) => I3.finalizeDeserialization(A2)));
   }
-  createJoint(A2, I2, g2, C2, B2) {
-    const Q2 = I2.intoRaw(), E2 = this.raw.createJoint(Q2, g2, C2, B2);
+  createJoint(A2, I3, g3, C3, B2) {
+    const Q2 = I3.intoRaw(), E3 = this.raw.createJoint(Q2, g3, C3, B2);
     Q2.free();
-    let i2 = cI.newTyped(this.raw, A2, E2);
-    return this.map.set(E2, i2), i2;
+    let i4 = cI.newTyped(this.raw, A2, E3);
+    return this.map.set(E3, i4), i4;
   }
-  remove(A2, I2) {
-    this.raw.remove(A2, I2), this.unmap(A2);
+  remove(A2, I3) {
+    this.raw.remove(A2, I3), this.unmap(A2);
   }
-  forEachJointHandleAttachedToRigidBody(A2, I2) {
-    this.raw.forEachJointAttachedToRigidBody(A2, I2);
+  forEachJointHandleAttachedToRigidBody(A2, I3) {
+    this.raw.forEachJointAttachedToRigidBody(A2, I3);
   }
   unmap(A2) {
     this.map.delete(A2);
@@ -13480,21 +13480,21 @@ var TI = class _TI {
   static {
     __name(this, "TI");
   }
-  constructor(A2, I2) {
-    this.rawSet = A2, this.handle = I2;
+  constructor(A2, I3) {
+    this.rawSet = A2, this.handle = I3;
   }
-  static newTyped(A2, I2) {
-    switch (A2.jointType(I2)) {
+  static newTyped(A2, I3) {
+    switch (A2.jointType(I3)) {
       case G.Revolute:
-        return new bI(A2, I2);
+        return new bI(A2, I3);
       case G.Prismatic:
-        return new ZI(A2, I2);
+        return new ZI(A2, I3);
       case G.Fixed:
-        return new nI(A2, I2);
+        return new nI(A2, I3);
       case G.Spherical:
-        return new jI(A2, I2);
+        return new jI(A2, I3);
       default:
-        return new _TI(A2, I2);
+        return new _TI(A2, I3);
     }
   }
   isValid() {
@@ -13550,14 +13550,14 @@ var WI = class {
   free() {
     this.raw && this.raw.free(), this.raw = void 0, this.map && this.map.clear(), this.map = void 0;
   }
-  createJoint(A2, I2, g2, C2) {
-    const B2 = A2.intoRaw(), Q2 = this.raw.createJoint(B2, I2, g2, C2);
+  createJoint(A2, I3, g3, C3) {
+    const B2 = A2.intoRaw(), Q2 = this.raw.createJoint(B2, I3, g3, C3);
     B2.free();
-    let E2 = TI.newTyped(this.raw, Q2);
-    return this.map.set(Q2, E2), E2;
+    let E3 = TI.newTyped(this.raw, Q2);
+    return this.map.set(Q2, E3), E3;
   }
-  remove(A2, I2) {
-    this.raw.remove(A2, I2), this.map.delete(A2);
+  remove(A2, I3) {
+    this.raw.remove(A2, I3), this.map.delete(A2);
   }
   unmap(A2) {
     this.map.delete(A2);
@@ -13574,8 +13574,8 @@ var WI = class {
   forEach(A2) {
     this.map.forEach(A2);
   }
-  forEachJointHandleAttachedToRigidBody(A2, I2) {
-    this.raw.forEachJointAttachedToRigidBody(A2, I2);
+  forEachJointHandleAttachedToRigidBody(A2, I3) {
+    this.raw.forEachJointAttachedToRigidBody(A2, I3);
   }
   getAll() {
     return this.map.getAll();
@@ -13616,8 +13616,8 @@ var XI = class {
   static {
     __name(this, "XI");
   }
-  constructor(A2, I2) {
-    this.origin = A2, this.dir = I2;
+  constructor(A2, I3) {
+    this.origin = A2, this.dir = I3;
   }
   pointAt(A2) {
     return { x: this.origin.x + this.dir.x * A2, y: this.origin.y + this.dir.y * A2, z: this.origin.z + this.dir.z * A2 };
@@ -13627,136 +13627,136 @@ var PI = class _PI {
   static {
     __name(this, "PI");
   }
-  constructor(A2, I2, g2, C2) {
-    this.featureType = SI.Unknown, this.featureId = void 0, this.timeOfImpact = A2, this.normal = I2, void 0 !== C2 && (this.featureId = C2), void 0 !== g2 && (this.featureType = g2);
+  constructor(A2, I3, g3, C3) {
+    this.featureType = SI.Unknown, this.featureId = void 0, this.timeOfImpact = A2, this.normal = I3, void 0 !== C3 && (this.featureId = C3), void 0 !== g3 && (this.featureType = g3);
   }
-  static fromBuffer(A2, I2) {
-    return A2 ? (A2.normal(zA), null != I2 || (I2 = new _PI(0, _A.zeros())), I2.timeOfImpact = A2.time_of_impact(), I2.normal = _A.fromBuffer(zA, I2.normal), I2.featureType = A2.featureType(), I2.featureId = A2.featureId(), A2.free(), I2) : null;
+  static fromBuffer(A2, I3) {
+    return A2 ? (A2.normal(zA), null != I3 || (I3 = new _PI(0, _A.zeros())), I3.timeOfImpact = A2.time_of_impact(), I3.normal = _A.fromBuffer(zA, I3.normal), I3.featureType = A2.featureType(), I3.featureId = A2.featureId(), A2.free(), I3) : null;
   }
 };
 var mI = class _mI {
   static {
     __name(this, "mI");
   }
-  constructor(A2, I2, g2, C2, B2) {
-    this.featureType = SI.Unknown, this.featureId = void 0, this.collider = A2, this.timeOfImpact = I2, this.normal = g2, void 0 !== B2 && (this.featureId = B2), void 0 !== C2 && (this.featureType = C2);
+  constructor(A2, I3, g3, C3, B2) {
+    this.featureType = SI.Unknown, this.featureId = void 0, this.collider = A2, this.timeOfImpact = I3, this.normal = g3, void 0 !== B2 && (this.featureId = B2), void 0 !== C3 && (this.featureType = C3);
   }
-  static fromBuffer(A2, I2, g2) {
-    return I2 ? (I2.normal(zA), null != g2 || (g2 = new _mI(null, 0, _A.zeros())), g2.collider = A2.get(I2.colliderHandle()), g2.timeOfImpact = I2.time_of_impact(), g2.normal = _A.fromBuffer(zA, g2.normal), g2.featureType = I2.featureType(), g2.featureId = I2.featureId(), I2.free(), g2) : null;
+  static fromBuffer(A2, I3, g3) {
+    return I3 ? (I3.normal(zA), null != g3 || (g3 = new _mI(null, 0, _A.zeros())), g3.collider = A2.get(I3.colliderHandle()), g3.timeOfImpact = I3.time_of_impact(), g3.normal = _A.fromBuffer(zA, g3.normal), g3.featureType = I3.featureType(), g3.featureId = I3.featureId(), I3.free(), g3) : null;
   }
 };
 var VI = class _VI {
   static {
     __name(this, "VI");
   }
-  constructor(A2, I2) {
-    this.collider = A2, this.timeOfImpact = I2;
+  constructor(A2, I3) {
+    this.collider = A2, this.timeOfImpact = I3;
   }
-  static fromRaw(A2, I2) {
-    if (!I2) return null;
-    const g2 = new _VI(A2.get(I2.colliderHandle()), I2.timeOfImpact());
-    return I2.free(), g2;
+  static fromRaw(A2, I3) {
+    if (!I3) return null;
+    const g3 = new _VI(A2.get(I3.colliderHandle()), I3.timeOfImpact());
+    return I3.free(), g3;
   }
 };
 var uI = class _uI {
   static {
     __name(this, "uI");
   }
-  constructor(A2, I2) {
-    this.point = A2, this.isInside = I2;
+  constructor(A2, I3) {
+    this.point = A2, this.isInside = I3;
   }
-  static fromBuffer(A2, I2) {
-    return A2 ? (A2.point(zA), null != I2 || (I2 = new _uI(_A.zeros(), false)), I2.point = _A.fromBuffer(zA, I2.point), I2.isInside = A2.isInside(), A2.free(), I2) : null;
+  static fromBuffer(A2, I3) {
+    return A2 ? (A2.point(zA), null != I3 || (I3 = new _uI(_A.zeros(), false)), I3.point = _A.fromBuffer(zA, I3.point), I3.isInside = A2.isInside(), A2.free(), I3) : null;
   }
 };
 var zI = class _zI {
   static {
     __name(this, "zI");
   }
-  constructor(A2, I2, g2, C2, B2) {
-    this.featureType = SI.Unknown, this.featureId = void 0, this.collider = A2, this.point = I2, this.isInside = g2, void 0 !== B2 && (this.featureId = B2), void 0 !== C2 && (this.featureType = C2);
+  constructor(A2, I3, g3, C3, B2) {
+    this.featureType = SI.Unknown, this.featureId = void 0, this.collider = A2, this.point = I3, this.isInside = g3, void 0 !== B2 && (this.featureId = B2), void 0 !== C3 && (this.featureType = C3);
   }
-  static fromBuffer(A2, I2, g2) {
-    return I2 ? (I2.point(zA), null != g2 || (g2 = new _zI(null, _A.zeros(), false)), g2.collider = A2.get(I2.colliderHandle()), g2.point = _A.fromBuffer(zA, g2.point), g2.isInside = I2.isInside(), g2.featureType = I2.featureType(), g2.featureId = I2.featureId(), I2.free(), g2) : null;
+  static fromBuffer(A2, I3, g3) {
+    return I3 ? (I3.point(zA), null != g3 || (g3 = new _zI(null, _A.zeros(), false)), g3.collider = A2.get(I3.colliderHandle()), g3.point = _A.fromBuffer(zA, g3.point), g3.isInside = I3.isInside(), g3.featureType = I3.featureType(), g3.featureId = I3.featureId(), I3.free(), g3) : null;
   }
 };
 var vI = class _vI {
   static {
     __name(this, "vI");
   }
-  constructor(A2, I2, g2, C2, B2) {
-    this.time_of_impact = A2, this.witness1 = I2, this.witness2 = g2, this.normal1 = C2, this.normal2 = B2;
+  constructor(A2, I3, g3, C3, B2) {
+    this.time_of_impact = A2, this.witness1 = I3, this.witness2 = g3, this.normal1 = C3, this.normal2 = B2;
   }
-  static fromBuffer(A2, I2, g2) {
-    return I2 ? (null != g2 || (g2 = new _vI(0, _A.zeros(), _A.zeros(), _A.zeros(), _A.zeros())), g2.time_of_impact = I2[0], g2.witness1.x = I2[1], g2.witness1.y = I2[2], g2.witness1.z = I2[3], g2.witness2.x = I2[4], g2.witness2.y = I2[5], g2.witness2.z = I2[6], g2.normal1.x = I2[7], g2.normal1.y = I2[8], g2.normal1.z = I2[9], g2.normal2.x = I2[10], g2.normal2.y = I2[11], g2.normal2.z = I2[12], g2) : null;
+  static fromBuffer(A2, I3, g3) {
+    return I3 ? (null != g3 || (g3 = new _vI(0, _A.zeros(), _A.zeros(), _A.zeros(), _A.zeros())), g3.time_of_impact = I3[0], g3.witness1.x = I3[1], g3.witness1.y = I3[2], g3.witness1.z = I3[3], g3.witness2.x = I3[4], g3.witness2.y = I3[5], g3.witness2.z = I3[6], g3.normal1.x = I3[7], g3.normal1.y = I3[8], g3.normal1.z = I3[9], g3.normal2.x = I3[10], g3.normal2.y = I3[11], g3.normal2.z = I3[12], g3) : null;
   }
 };
 var _I = class __I extends vI {
   static {
     __name(this, "_I");
   }
-  constructor(A2, I2, g2, C2, B2, Q2) {
-    super(I2, g2, C2, B2, Q2), this.collider = A2;
+  constructor(A2, I3, g3, C3, B2, Q2) {
+    super(I3, g3, C3, B2, Q2), this.collider = A2;
   }
-  static fromBuffer(A2, I2, g2) {
-    return I2 ? (null != g2 || (g2 = new __I(null, 0, _A.zeros(), _A.zeros(), _A.zeros(), _A.zeros())), g2.collider = A2, g2.time_of_impact = I2[0], g2.witness1.x = I2[1], g2.witness1.y = I2[2], g2.witness1.z = I2[3], g2.witness2.x = I2[4], g2.witness2.y = I2[5], g2.witness2.z = I2[6], g2.normal1.x = I2[7], g2.normal1.y = I2[8], g2.normal1.z = I2[9], g2.normal2.x = I2[10], g2.normal2.y = I2[11], g2.normal2.z = I2[12], g2) : null;
+  static fromBuffer(A2, I3, g3) {
+    return I3 ? (null != g3 || (g3 = new __I(null, 0, _A.zeros(), _A.zeros(), _A.zeros(), _A.zeros())), g3.collider = A2, g3.time_of_impact = I3[0], g3.witness1.x = I3[1], g3.witness1.y = I3[2], g3.witness1.z = I3[3], g3.witness2.x = I3[4], g3.witness2.y = I3[5], g3.witness2.z = I3[6], g3.normal1.x = I3[7], g3.normal1.y = I3[8], g3.normal1.z = I3[9], g3.normal2.x = I3[10], g3.normal2.y = I3[11], g3.normal2.z = I3[12], g3) : null;
   }
 };
 var $I = class {
   static {
     __name(this, "$I");
   }
-  constructor(I2) {
-    this.raw = I2 || new A();
+  constructor(I3) {
+    this.raw = I3 || new A();
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
   }
-  castRay(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2) {
-    let w2 = _A.intoRaw(C2.origin), K2 = _A.intoRaw(C2.dir), U2 = VI.fromRaw(g2, this.raw.castRay(A2.raw, I2.raw, g2.raw, w2, K2, B2, Q2, E2, i2, D2, S2, o2));
-    return w2.free(), K2.free(), U2;
+  castRay(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3) {
+    let w3 = _A.intoRaw(C3.origin), K2 = _A.intoRaw(C3.dir), U2 = VI.fromRaw(g3, this.raw.castRay(A2.raw, I3.raw, g3.raw, w3, K2, B2, Q2, E3, i4, D3, S3, o3));
+    return w3.free(), K2.free(), U2;
   }
-  castRayAndGetNormal(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2) {
-    let K2 = _A.intoRaw(C2.origin), U2 = _A.intoRaw(C2.dir), k2 = mI.fromBuffer(g2, this.raw.castRayAndGetNormal(A2.raw, I2.raw, g2.raw, K2, U2, B2, Q2, E2, i2, D2, S2, o2), w2);
-    return K2.free(), U2.free(), k2;
+  castRayAndGetNormal(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3) {
+    let K2 = _A.intoRaw(C3.origin), U2 = _A.intoRaw(C3.dir), k3 = mI.fromBuffer(g3, this.raw.castRayAndGetNormal(A2.raw, I3.raw, g3.raw, K2, U2, B2, Q2, E3, i4, D3, S3, o3), w3);
+    return K2.free(), U2.free(), k3;
   }
-  intersectionsWithRay(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2) {
-    let K2 = _A.intoRaw(C2.origin), U2 = _A.intoRaw(C2.dir);
-    this.raw.intersectionsWithRay(A2.raw, I2.raw, g2.raw, K2, U2, B2, Q2, ((A3) => E2(mI.fromBuffer(g2, A3))), i2, D2, S2, o2, w2), K2.free(), U2.free();
+  intersectionsWithRay(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3) {
+    let K2 = _A.intoRaw(C3.origin), U2 = _A.intoRaw(C3.dir);
+    this.raw.intersectionsWithRay(A2.raw, I3.raw, g3.raw, K2, U2, B2, Q2, ((A3) => E3(mI.fromBuffer(g3, A3))), i4, D3, S3, o3, w3), K2.free(), U2.free();
   }
-  intersectionWithShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2) {
-    let w2 = _A.intoRaw(C2), K2 = AI.intoRaw(B2), U2 = Q2.intoRaw(), k2 = this.raw.intersectionWithShape(A2.raw, I2.raw, g2.raw, w2, K2, U2, E2, i2, D2, S2, o2);
-    return w2.free(), K2.free(), U2.free(), k2;
+  intersectionWithShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3) {
+    let w3 = _A.intoRaw(C3), K2 = AI.intoRaw(B2), U2 = Q2.intoRaw(), k3 = this.raw.intersectionWithShape(A2.raw, I3.raw, g3.raw, w3, K2, U2, E3, i4, D3, S3, o3);
+    return w3.free(), K2.free(), U2.free(), k3;
   }
-  projectPoint(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2) {
-    let w2 = _A.intoRaw(C2), K2 = zI.fromBuffer(g2, this.raw.projectPoint(A2.raw, I2.raw, g2.raw, w2, B2, Q2, E2, i2, D2, S2), o2);
-    return w2.free(), K2;
+  projectPoint(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3) {
+    let w3 = _A.intoRaw(C3), K2 = zI.fromBuffer(g3, this.raw.projectPoint(A2.raw, I3.raw, g3.raw, w3, B2, Q2, E3, i4, D3, S3), o3);
+    return w3.free(), K2;
   }
-  projectPointAndGetFeature(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2) {
-    let o2 = _A.intoRaw(C2), w2 = zI.fromBuffer(g2, this.raw.projectPointAndGetFeature(A2.raw, I2.raw, g2.raw, o2, B2, Q2, E2, i2, D2), S2);
-    return o2.free(), w2;
+  projectPointAndGetFeature(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3) {
+    let o3 = _A.intoRaw(C3), w3 = zI.fromBuffer(g3, this.raw.projectPointAndGetFeature(A2.raw, I3.raw, g3.raw, o3, B2, Q2, E3, i4, D3), S3);
+    return o3.free(), w3;
   }
-  intersectionsWithPoint(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2) {
-    let o2 = _A.intoRaw(C2);
-    this.raw.intersectionsWithPoint(A2.raw, I2.raw, g2.raw, o2, B2, Q2, E2, i2, D2, S2), o2.free();
+  intersectionsWithPoint(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3) {
+    let o3 = _A.intoRaw(C3);
+    this.raw.intersectionsWithPoint(A2.raw, I3.raw, g3.raw, o3, B2, Q2, E3, i4, D3, S3), o3.free();
   }
-  castShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2, K2, U2, k2, h2) {
-    let y2 = _A.intoRaw(C2), J2 = AI.intoRaw(B2), G2 = _A.intoRaw(Q2), F2 = E2.intoRaw();
-    const M2 = this.raw.castShape(A2.raw, I2.raw, g2.raw, y2, J2, G2, F2, i2, D2, S2, o2, w2, K2, U2, k2);
+  castShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3, K2, U2, k3, h3) {
+    let y3 = _A.intoRaw(C3), J3 = AI.intoRaw(B2), G2 = _A.intoRaw(Q2), F2 = E3.intoRaw();
+    const M2 = this.raw.castShape(A2.raw, I3.raw, g3.raw, y3, J3, G2, F2, i4, D3, S3, o3, w3, K2, U2, k3);
     let N2 = null;
     if (M2) {
       const A3 = M2.colliderHandle();
-      M2.getComponents(zA), N2 = _I.fromBuffer(g2.get(A3), zA, h2), M2.free();
+      M2.getComponents(zA), N2 = _I.fromBuffer(g3.get(A3), zA, h3), M2.free();
     }
-    return y2.free(), J2.free(), G2.free(), F2.free(), N2;
+    return y3.free(), J3.free(), G2.free(), F2.free(), N2;
   }
-  intersectionsWithShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2) {
-    let K2 = _A.intoRaw(C2), U2 = AI.intoRaw(B2), k2 = Q2.intoRaw();
-    this.raw.intersectionsWithShape(A2.raw, I2.raw, g2.raw, K2, U2, k2, E2, i2, D2, S2, o2, w2), K2.free(), U2.free(), k2.free();
+  intersectionsWithShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3) {
+    let K2 = _A.intoRaw(C3), U2 = AI.intoRaw(B2), k3 = Q2.intoRaw();
+    this.raw.intersectionsWithShape(A2.raw, I3.raw, g3.raw, K2, U2, k3, E3, i4, D3, S3, o3, w3), K2.free(), U2.free(), k3.free();
   }
-  collidersWithAabbIntersectingAabb(A2, I2, g2, C2, B2, Q2) {
-    let E2 = _A.intoRaw(C2), i2 = _A.intoRaw(B2);
-    this.raw.collidersWithAabbIntersectingAabb(A2.raw, I2.raw, g2.raw, E2, i2, Q2), E2.free(), i2.free();
+  collidersWithAabbIntersectingAabb(A2, I3, g3, C3, B2, Q2) {
+    let E3 = _A.intoRaw(C3), i4 = _A.intoRaw(B2);
+    this.raw.collidersWithAabbIntersectingAabb(A2.raw, I3.raw, g3.raw, E3, i4, Q2), E3.free(), i4.free();
   }
 };
 var Ag = class {
@@ -13769,31 +13769,31 @@ var Ag = class {
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
   }
-  contactPairsWith(A2, I2) {
-    this.raw.contact_pairs_with(A2, I2);
+  contactPairsWith(A2, I3) {
+    this.raw.contact_pairs_with(A2, I3);
   }
-  intersectionPairsWith(A2, I2) {
-    this.raw.intersection_pairs_with(A2, I2);
+  intersectionPairsWith(A2, I3) {
+    this.raw.intersection_pairs_with(A2, I3);
   }
-  contactPair(A2, I2, g2, C2) {
-    const B2 = this.raw.contact_pair(A2, I2);
+  contactPair(A2, I3, g3, C3) {
+    const B2 = this.raw.contact_pair(A2, I3);
     if (B2) {
-      const I3 = B2.collider1() != A2;
+      const I4 = B2.collider1() != A2;
       let Q2;
-      for (Q2 = 0; Q2 < B2.numContactManifolds(); ++Q2) this.tempManifold.bodies = g2, this.tempManifold.raw = B2.contactManifold(Q2), this.tempManifold.raw && C2(this.tempManifold, I3), this.tempManifold.free();
+      for (Q2 = 0; Q2 < B2.numContactManifolds(); ++Q2) this.tempManifold.bodies = g3, this.tempManifold.raw = B2.contactManifold(Q2), this.tempManifold.raw && C3(this.tempManifold, I4), this.tempManifold.free();
       B2.free();
     }
   }
-  intersectionPair(A2, I2) {
-    return this.raw.intersection_pair(A2, I2);
+  intersectionPair(A2, I3) {
+    return this.raw.intersection_pair(A2, I3);
   }
 };
 var Ig = class {
   static {
     __name(this, "Ig");
   }
-  constructor(A2, I2) {
-    this.raw = A2, this.bodies = I2;
+  constructor(A2, I3) {
+    this.raw = A2, this.bodies = I3;
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
@@ -13816,11 +13816,11 @@ var Ig = class {
   numContacts() {
     return this.raw.num_contacts();
   }
-  localContactPoint1(A2, I2) {
-    return this.raw.contact_local_p1(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  localContactPoint1(A2, I3) {
+    return this.raw.contact_local_p1(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
-  localContactPoint2(A2, I2) {
-    return this.raw.contact_local_p2(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  localContactPoint2(A2, I3) {
+    return this.raw.contact_local_p2(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
   contactDist(A2) {
     return this.raw.contact_dist(A2);
@@ -13843,8 +13843,8 @@ var Ig = class {
   numSolverContacts() {
     return this.raw.num_solver_contacts();
   }
-  solverContactPoint(A2, I2) {
-    return this.raw.solver_contact_point(this.bodies.raw, A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  solverContactPoint(A2, I3) {
+    return this.raw.solver_contact_point(this.bodies.raw, A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
   solverContactDist(A2) {
     return this.raw.solver_contact_dist(A2);
@@ -13855,170 +13855,170 @@ var Ig = class {
   restitution() {
     return this.raw.restitution();
   }
-  solverContactTangentVelocity(A2, I2) {
-    return this.raw.solver_contact_tangent_velocity(A2, zA), _A.fromBuffer(zA, I2);
+  solverContactTangentVelocity(A2, I3) {
+    return this.raw.solver_contact_tangent_velocity(A2, zA), _A.fromBuffer(zA, I3);
   }
 };
 var gg = class _gg {
   static {
     __name(this, "gg");
   }
-  constructor(A2, I2, g2, C2, B2) {
-    this.distance = A2, this.point1 = I2, this.point2 = g2, this.normal1 = C2, this.normal2 = B2;
+  constructor(A2, I3, g3, C3, B2) {
+    this.distance = A2, this.point1 = I3, this.point2 = g3, this.normal1 = C3, this.normal2 = B2;
   }
-  static fromBuffer(A2, I2) {
-    return A2 ? (A2.getComponents(zA), A2.free(), null != I2 || (I2 = new _gg(0, _A.zeros(), _A.zeros(), _A.zeros(), _A.zeros())), I2.distance = zA[0], I2.point1.x = zA[1], I2.point1.y = zA[2], I2.point1.z = zA[3], I2.point2.x = zA[4], I2.point2.y = zA[5], I2.point2.z = zA[6], I2.normal1.x = zA[7], I2.normal1.y = zA[8], I2.normal1.z = zA[9], I2.normal2.x = zA[10], I2.normal2.y = zA[11], I2.normal2.z = zA[12], I2) : null;
+  static fromBuffer(A2, I3) {
+    return A2 ? (A2.getComponents(zA), A2.free(), null != I3 || (I3 = new _gg(0, _A.zeros(), _A.zeros(), _A.zeros(), _A.zeros())), I3.distance = zA[0], I3.point1.x = zA[1], I3.point1.y = zA[2], I3.point1.z = zA[3], I3.point2.x = zA[4], I3.point2.y = zA[5], I3.point2.z = zA[6], I3.normal1.x = zA[7], I3.normal1.y = zA[8], I3.normal1.z = zA[9], I3.normal2.x = zA[10], I3.normal2.y = zA[11], I3.normal2.z = zA[12], I3) : null;
   }
 };
 var Cg = class {
   static {
     __name(this, "Cg");
   }
-  static fromRaw(A2, I2) {
-    const g2 = A2.coShapeType(I2);
-    if (g2 === e.Compound) return kg.fromRawShape(A2.coShape(I2));
-    let C2, B2, Q2, E2, i2, D2;
-    switch (g2) {
+  static fromRaw(A2, I3) {
+    const g3 = A2.coShapeType(I3);
+    if (g3 === e.Compound) return kg.fromRawShape(A2.coShape(I3));
+    let C3, B2, Q2, E3, i4, D3;
+    switch (g3) {
       case e.Ball:
-        return new Bg(A2.coRadius(I2));
+        return new Bg(A2.coRadius(I3));
       case e.Cuboid:
-        return A2.coHalfExtents(I2, zA), new Eg(zA[0], zA[1], zA[2]);
+        return A2.coHalfExtents(I3, zA), new Eg(zA[0], zA[1], zA[2]);
       case e.RoundCuboid:
-        return C2 = A2.coRoundRadius(I2), A2.coHalfExtents(I2, zA), new ig(zA[0], zA[1], zA[2], C2);
+        return C3 = A2.coRoundRadius(I3), A2.coHalfExtents(I3, zA), new ig(zA[0], zA[1], zA[2], C3);
       case e.Capsule:
-        return E2 = A2.coHalfHeight(I2), i2 = A2.coRadius(I2), new Dg(E2, i2);
+        return E3 = A2.coHalfHeight(I3), i4 = A2.coRadius(I3), new Dg(E3, i4);
       case e.Segment:
-        return B2 = A2.coVertices(I2), new Sg(_A.new(B2[0], B2[1], B2[2]), _A.new(B2[3], B2[4], B2[5]));
+        return B2 = A2.coVertices(I3), new Sg(_A.new(B2[0], B2[1], B2[2]), _A.new(B2[3], B2[4], B2[5]));
       case e.Polyline:
-        return B2 = A2.coVertices(I2), Q2 = A2.coIndices(I2), new Kg(B2, Q2);
+        return B2 = A2.coVertices(I3), Q2 = A2.coIndices(I3), new Kg(B2, Q2);
       case e.Triangle:
-        return B2 = A2.coVertices(I2), new og(_A.new(B2[0], B2[1], B2[2]), _A.new(B2[3], B2[4], B2[5]), _A.new(B2[6], B2[7], B2[8]));
+        return B2 = A2.coVertices(I3), new og(_A.new(B2[0], B2[1], B2[2]), _A.new(B2[3], B2[4], B2[5]), _A.new(B2[6], B2[7], B2[8]));
       case e.RoundTriangle:
-        return B2 = A2.coVertices(I2), C2 = A2.coRoundRadius(I2), new wg(_A.new(B2[0], B2[1], B2[2]), _A.new(B2[3], B2[4], B2[5]), _A.new(B2[6], B2[7], B2[8]), C2);
+        return B2 = A2.coVertices(I3), C3 = A2.coRoundRadius(I3), new wg(_A.new(B2[0], B2[1], B2[2]), _A.new(B2[3], B2[4], B2[5]), _A.new(B2[6], B2[7], B2[8]), C3);
       case e.HalfSpace:
-        return A2.coHalfspaceNormal(I2, zA), D2 = _A.fromBuffer(zA), new Qg(D2);
+        return A2.coHalfspaceNormal(I3, zA), D3 = _A.fromBuffer(zA), new Qg(D3);
       case e.Voxels:
-        const S2 = A2.coVoxelData(I2), o2 = A2.coVoxelSize(I2);
-        return new Ug(S2, o2);
+        const S3 = A2.coVoxelData(I3), o3 = A2.coVoxelSize(I3);
+        return new Ug(S3, o3);
       case e.TriMesh:
-        B2 = A2.coVertices(I2), Q2 = A2.coIndices(I2);
-        const w2 = A2.coTriMeshFlags(I2);
-        return new hg(B2, Q2, w2);
+        B2 = A2.coVertices(I3), Q2 = A2.coIndices(I3);
+        const w3 = A2.coTriMeshFlags(I3);
+        return new hg(B2, Q2, w3);
       case e.HeightField:
-        const K2 = A2.coHeightfieldHeights(I2);
-        A2.coHeightfieldScale(I2, zA);
-        const U2 = { x: zA[0], y: zA[1], z: zA[2] }, k2 = A2.coHeightfieldNRows(I2), h2 = A2.coHeightfieldNCols(I2), y2 = A2.coHeightFieldFlags(I2);
-        return new Gg(k2, h2, K2, U2, y2);
+        const K2 = A2.coHeightfieldHeights(I3);
+        A2.coHeightfieldScale(I3, zA);
+        const U2 = { x: zA[0], y: zA[1], z: zA[2] }, k3 = A2.coHeightfieldNRows(I3), h3 = A2.coHeightfieldNCols(I3), y3 = A2.coHeightFieldFlags(I3);
+        return new Gg(k3, h3, K2, U2, y3);
       case e.ConvexPolyhedron:
-        return B2 = A2.coVertices(I2), Q2 = A2.coIndices(I2), new yg(B2, Q2);
+        return B2 = A2.coVertices(I3), Q2 = A2.coIndices(I3), new yg(B2, Q2);
       case e.RoundConvexPolyhedron:
-        return B2 = A2.coVertices(I2), Q2 = A2.coIndices(I2), C2 = A2.coRoundRadius(I2), new Jg(B2, Q2, C2);
+        return B2 = A2.coVertices(I3), Q2 = A2.coIndices(I3), C3 = A2.coRoundRadius(I3), new Jg(B2, Q2, C3);
       case e.Cylinder:
-        return E2 = A2.coHalfHeight(I2), i2 = A2.coRadius(I2), new Fg(E2, i2);
+        return E3 = A2.coHalfHeight(I3), i4 = A2.coRadius(I3), new Fg(E3, i4);
       case e.RoundCylinder:
-        return E2 = A2.coHalfHeight(I2), i2 = A2.coRadius(I2), C2 = A2.coRoundRadius(I2), new Mg(E2, i2, C2);
+        return E3 = A2.coHalfHeight(I3), i4 = A2.coRadius(I3), C3 = A2.coRoundRadius(I3), new Mg(E3, i4, C3);
       case e.Cone:
-        return E2 = A2.coHalfHeight(I2), i2 = A2.coRadius(I2), new Ng(E2, i2);
+        return E3 = A2.coHalfHeight(I3), i4 = A2.coRadius(I3), new Ng(E3, i4);
       case e.RoundCone:
-        return E2 = A2.coHalfHeight(I2), i2 = A2.coRadius(I2), C2 = A2.coRoundRadius(I2), new sg(E2, i2, C2);
+        return E3 = A2.coHalfHeight(I3), i4 = A2.coRadius(I3), C3 = A2.coRoundRadius(I3), new sg(E3, i4, C3);
       default:
-        throw new Error("unknown shape type: " + g2);
+        throw new Error("unknown shape type: " + g3);
     }
   }
   static fromRawShape(A2) {
     if (!A2) return null;
-    let I2, g2, C2, B2, Q2, E2, i2;
-    const D2 = A2.shapeType();
+    let I3, g3, C3, B2, Q2, E3, i4;
+    const D3 = A2.shapeType();
     try {
-      switch (D2) {
+      switch (D3) {
         case e.Ball:
           return new Bg(A2.radius());
         case e.Cuboid:
-          return I2 = _A.fromRaw(A2.halfExtents()), new Eg(I2.x, I2.y, I2.z);
+          return I3 = _A.fromRaw(A2.halfExtents()), new Eg(I3.x, I3.y, I3.z);
         case e.RoundCuboid:
-          return I2 = _A.fromRaw(A2.halfExtents()), g2 = A2.roundRadius(), new ig(I2.x, I2.y, I2.z, g2);
+          return I3 = _A.fromRaw(A2.halfExtents()), g3 = A2.roundRadius(), new ig(I3.x, I3.y, I3.z, g3);
         case e.Capsule:
-          return Q2 = A2.halfHeight(), E2 = A2.radius(), new Dg(Q2, E2);
+          return Q2 = A2.halfHeight(), E3 = A2.radius(), new Dg(Q2, E3);
         case e.Segment:
-          return C2 = A2.vertices(), new Sg(_A.new(C2[0], C2[1], C2[2]), _A.new(C2[3], C2[4], C2[5]));
+          return C3 = A2.vertices(), new Sg(_A.new(C3[0], C3[1], C3[2]), _A.new(C3[3], C3[4], C3[5]));
         case e.Polyline:
-          return C2 = A2.vertices(), B2 = A2.indices(), new Kg(C2, B2);
+          return C3 = A2.vertices(), B2 = A2.indices(), new Kg(C3, B2);
         case e.Triangle:
-          return C2 = A2.vertices(), new og(_A.new(C2[0], C2[1], C2[2]), _A.new(C2[3], C2[4], C2[5]), _A.new(C2[6], C2[7], C2[8]));
+          return C3 = A2.vertices(), new og(_A.new(C3[0], C3[1], C3[2]), _A.new(C3[3], C3[4], C3[5]), _A.new(C3[6], C3[7], C3[8]));
         case e.RoundTriangle:
-          return C2 = A2.vertices(), g2 = A2.roundRadius(), new wg(_A.new(C2[0], C2[1], C2[2]), _A.new(C2[3], C2[4], C2[5]), _A.new(C2[6], C2[7], C2[8]), g2);
+          return C3 = A2.vertices(), g3 = A2.roundRadius(), new wg(_A.new(C3[0], C3[1], C3[2]), _A.new(C3[3], C3[4], C3[5]), _A.new(C3[6], C3[7], C3[8]), g3);
         case e.HalfSpace:
-          return i2 = _A.fromRaw(A2.halfspaceNormal()), new Qg(i2);
+          return i4 = _A.fromRaw(A2.halfspaceNormal()), new Qg(i4);
         case e.Voxels:
-          const S2 = A2.voxelData(), o2 = _A.fromRaw(A2.voxelSize());
-          return new Ug(S2, o2);
+          const S3 = A2.voxelData(), o3 = _A.fromRaw(A2.voxelSize());
+          return new Ug(S3, o3);
         case e.TriMesh:
-          C2 = A2.vertices(), B2 = A2.indices();
-          const w2 = A2.triMeshFlags();
-          return new hg(C2, B2, w2);
+          C3 = A2.vertices(), B2 = A2.indices();
+          const w3 = A2.triMeshFlags();
+          return new hg(C3, B2, w3);
         case e.HeightField:
-          const K2 = _A.fromRaw(A2.heightfieldScale()), U2 = A2.heightfieldHeights(), k2 = A2.heightfieldNRows(), h2 = A2.heightfieldNCols(), y2 = A2.heightFieldFlags();
-          return new Gg(k2, h2, U2, K2, y2);
+          const K2 = _A.fromRaw(A2.heightfieldScale()), U2 = A2.heightfieldHeights(), k3 = A2.heightfieldNRows(), h3 = A2.heightfieldNCols(), y3 = A2.heightFieldFlags();
+          return new Gg(k3, h3, U2, K2, y3);
         case e.ConvexPolyhedron: {
-          const I3 = A2.convexMeshData();
-          if (!I3) throw new Error("Failed to compute the convex hull of a convex polyhedron shape.");
-          return C2 = I3.vertices, B2 = I3.indices, I3.free(), new yg(C2, B2);
+          const I4 = A2.convexMeshData();
+          if (!I4) throw new Error("Failed to compute the convex hull of a convex polyhedron shape.");
+          return C3 = I4.vertices, B2 = I4.indices, I4.free(), new yg(C3, B2);
         }
         case e.RoundConvexPolyhedron: {
-          const I3 = A2.convexMeshData();
-          if (!I3) throw new Error("Failed to compute the convex hull of a convex polyhedron shape.");
-          return C2 = I3.vertices, B2 = I3.indices, I3.free(), g2 = A2.roundRadius(), new Jg(C2, B2, g2);
+          const I4 = A2.convexMeshData();
+          if (!I4) throw new Error("Failed to compute the convex hull of a convex polyhedron shape.");
+          return C3 = I4.vertices, B2 = I4.indices, I4.free(), g3 = A2.roundRadius(), new Jg(C3, B2, g3);
         }
         case e.Cylinder:
-          return Q2 = A2.halfHeight(), E2 = A2.radius(), new Fg(Q2, E2);
+          return Q2 = A2.halfHeight(), E3 = A2.radius(), new Fg(Q2, E3);
         case e.RoundCylinder:
-          return Q2 = A2.halfHeight(), E2 = A2.radius(), g2 = A2.roundRadius(), new Mg(Q2, E2, g2);
+          return Q2 = A2.halfHeight(), E3 = A2.radius(), g3 = A2.roundRadius(), new Mg(Q2, E3, g3);
         case e.Cone:
-          return Q2 = A2.halfHeight(), E2 = A2.radius(), new Ng(Q2, E2);
+          return Q2 = A2.halfHeight(), E3 = A2.radius(), new Ng(Q2, E3);
         case e.RoundCone:
-          return Q2 = A2.halfHeight(), E2 = A2.radius(), g2 = A2.roundRadius(), new sg(Q2, E2, g2);
+          return Q2 = A2.halfHeight(), E3 = A2.radius(), g3 = A2.roundRadius(), new sg(Q2, E3, g3);
         case e.Compound:
           return kg.fromRawShape(A2);
         default:
-          throw new Error("unknown shape type: " + D2);
+          throw new Error("unknown shape type: " + D3);
       }
     } finally {
-      D2 !== e.Compound && A2.free();
+      D3 !== e.Compound && A2.free();
     }
   }
-  castShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2) {
-    let w2 = _A.intoRaw(A2), K2 = AI.intoRaw(I2), U2 = _A.intoRaw(g2), k2 = _A.intoRaw(B2), h2 = AI.intoRaw(Q2), y2 = _A.intoRaw(E2), J2 = this.intoRaw(), G2 = C2.intoRaw();
-    const F2 = J2.castShape(w2, K2, U2, G2, k2, h2, y2, i2, D2, S2);
+  castShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3) {
+    let w3 = _A.intoRaw(A2), K2 = AI.intoRaw(I3), U2 = _A.intoRaw(g3), k3 = _A.intoRaw(B2), h3 = AI.intoRaw(Q2), y3 = _A.intoRaw(E3), J3 = this.intoRaw(), G2 = C3.intoRaw();
+    const F2 = J3.castShape(w3, K2, U2, G2, k3, h3, y3, i4, D3, S3);
     let M2 = null;
-    return F2 && (F2.getComponents(zA), M2 = vI.fromBuffer(null, zA, o2), F2.free()), w2.free(), K2.free(), U2.free(), k2.free(), h2.free(), y2.free(), J2.free(), G2.free(), M2;
+    return F2 && (F2.getComponents(zA), M2 = vI.fromBuffer(null, zA, o3), F2.free()), w3.free(), K2.free(), U2.free(), k3.free(), h3.free(), y3.free(), J3.free(), G2.free(), M2;
   }
-  intersectsShape(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(A2), E2 = AI.intoRaw(I2), i2 = _A.intoRaw(C2), D2 = AI.intoRaw(B2), S2 = this.intoRaw(), o2 = g2.intoRaw(), w2 = S2.intersectsShape(Q2, E2, o2, i2, D2);
-    return Q2.free(), E2.free(), i2.free(), D2.free(), S2.free(), o2.free(), w2;
+  intersectsShape(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(A2), E3 = AI.intoRaw(I3), i4 = _A.intoRaw(C3), D3 = AI.intoRaw(B2), S3 = this.intoRaw(), o3 = g3.intoRaw(), w3 = S3.intersectsShape(Q2, E3, o3, i4, D3);
+    return Q2.free(), E3.free(), i4.free(), D3.free(), S3.free(), o3.free(), w3;
   }
-  contactShape(A2, I2, g2, C2, B2, Q2, E2) {
-    let i2 = _A.intoRaw(A2), D2 = AI.intoRaw(I2), S2 = _A.intoRaw(C2), o2 = AI.intoRaw(B2), w2 = this.intoRaw(), K2 = g2.intoRaw(), U2 = gg.fromBuffer(w2.contactShape(i2, D2, K2, S2, o2, Q2), E2);
-    return i2.free(), D2.free(), S2.free(), o2.free(), w2.free(), K2.free(), U2;
+  contactShape(A2, I3, g3, C3, B2, Q2, E3) {
+    let i4 = _A.intoRaw(A2), D3 = AI.intoRaw(I3), S3 = _A.intoRaw(C3), o3 = AI.intoRaw(B2), w3 = this.intoRaw(), K2 = g3.intoRaw(), U2 = gg.fromBuffer(w3.contactShape(i4, D3, K2, S3, o3, Q2), E3);
+    return i4.free(), D3.free(), S3.free(), o3.free(), w3.free(), K2.free(), U2;
   }
-  containsPoint(A2, I2, g2) {
-    let C2 = _A.intoRaw(A2), B2 = AI.intoRaw(I2), Q2 = _A.intoRaw(g2), E2 = this.intoRaw(), i2 = E2.containsPoint(C2, B2, Q2);
-    return C2.free(), B2.free(), Q2.free(), E2.free(), i2;
+  containsPoint(A2, I3, g3) {
+    let C3 = _A.intoRaw(A2), B2 = AI.intoRaw(I3), Q2 = _A.intoRaw(g3), E3 = this.intoRaw(), i4 = E3.containsPoint(C3, B2, Q2);
+    return C3.free(), B2.free(), Q2.free(), E3.free(), i4;
   }
-  projectPoint(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(A2), E2 = AI.intoRaw(I2), i2 = _A.intoRaw(g2), D2 = this.intoRaw(), S2 = uI.fromBuffer(D2.projectPoint(Q2, E2, i2, C2), B2);
-    return Q2.free(), E2.free(), i2.free(), D2.free(), S2;
+  projectPoint(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(A2), E3 = AI.intoRaw(I3), i4 = _A.intoRaw(g3), D3 = this.intoRaw(), S3 = uI.fromBuffer(D3.projectPoint(Q2, E3, i4, C3), B2);
+    return Q2.free(), E3.free(), i4.free(), D3.free(), S3;
   }
-  intersectsRay(A2, I2, g2, C2) {
-    let B2 = _A.intoRaw(I2), Q2 = AI.intoRaw(g2), E2 = _A.intoRaw(A2.origin), i2 = _A.intoRaw(A2.dir), D2 = this.intoRaw(), S2 = D2.intersectsRay(B2, Q2, E2, i2, C2);
-    return B2.free(), Q2.free(), E2.free(), i2.free(), D2.free(), S2;
+  intersectsRay(A2, I3, g3, C3) {
+    let B2 = _A.intoRaw(I3), Q2 = AI.intoRaw(g3), E3 = _A.intoRaw(A2.origin), i4 = _A.intoRaw(A2.dir), D3 = this.intoRaw(), S3 = D3.intersectsRay(B2, Q2, E3, i4, C3);
+    return B2.free(), Q2.free(), E3.free(), i4.free(), D3.free(), S3;
   }
-  castRay(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(I2), E2 = AI.intoRaw(g2), i2 = _A.intoRaw(A2.origin), D2 = _A.intoRaw(A2.dir), S2 = this.intoRaw(), o2 = S2.castRay(Q2, E2, i2, D2, C2, B2);
-    return Q2.free(), E2.free(), i2.free(), D2.free(), S2.free(), o2;
+  castRay(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(I3), E3 = AI.intoRaw(g3), i4 = _A.intoRaw(A2.origin), D3 = _A.intoRaw(A2.dir), S3 = this.intoRaw(), o3 = S3.castRay(Q2, E3, i4, D3, C3, B2);
+    return Q2.free(), E3.free(), i4.free(), D3.free(), S3.free(), o3;
   }
-  castRayAndGetNormal(A2, I2, g2, C2, B2, Q2) {
-    let E2 = _A.intoRaw(I2), i2 = AI.intoRaw(g2), D2 = _A.intoRaw(A2.origin), S2 = _A.intoRaw(A2.dir), o2 = this.intoRaw(), w2 = PI.fromBuffer(o2.castRayAndGetNormal(E2, i2, D2, S2, C2, B2), Q2);
-    return E2.free(), i2.free(), D2.free(), S2.free(), o2.free(), w2;
+  castRayAndGetNormal(A2, I3, g3, C3, B2, Q2) {
+    let E3 = _A.intoRaw(I3), i4 = AI.intoRaw(g3), D3 = _A.intoRaw(A2.origin), S3 = _A.intoRaw(A2.dir), o3 = this.intoRaw(), w3 = PI.fromBuffer(o3.castRayAndGetNormal(E3, i4, D3, S3, C3, B2), Q2);
+    return E3.free(), i4.free(), D3.free(), S3.free(), o3.free(), w3;
   }
 };
 !(function(A2) {
@@ -14047,16 +14047,16 @@ var Qg = class extends Cg {
     super(), this.type = oI.HalfSpace, this.normal = A2;
   }
   intoRaw() {
-    let A2 = _A.intoRaw(this.normal), I2 = t.halfspace(A2);
-    return A2.free(), I2;
+    let A2 = _A.intoRaw(this.normal), I3 = t.halfspace(A2);
+    return A2.free(), I3;
   }
 };
 var Eg = class extends Cg {
   static {
     __name(this, "Eg");
   }
-  constructor(A2, I2, g2) {
-    super(), this.type = oI.Cuboid, this.halfExtents = _A.new(A2, I2, g2);
+  constructor(A2, I3, g3) {
+    super(), this.type = oI.Cuboid, this.halfExtents = _A.new(A2, I3, g3);
   }
   intoRaw() {
     return t.cuboid(this.halfExtents.x, this.halfExtents.y, this.halfExtents.z);
@@ -14066,8 +14066,8 @@ var ig = class extends Cg {
   static {
     __name(this, "ig");
   }
-  constructor(A2, I2, g2, C2) {
-    super(), this.type = oI.RoundCuboid, this.halfExtents = _A.new(A2, I2, g2), this.borderRadius = C2;
+  constructor(A2, I3, g3, C3) {
+    super(), this.type = oI.RoundCuboid, this.halfExtents = _A.new(A2, I3, g3), this.borderRadius = C3;
   }
   intoRaw() {
     return t.roundCuboid(this.halfExtents.x, this.halfExtents.y, this.halfExtents.z, this.borderRadius);
@@ -14077,8 +14077,8 @@ var Dg = class extends Cg {
   static {
     __name(this, "Dg");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.Capsule, this.halfHeight = A2, this.radius = I2;
+  constructor(A2, I3) {
+    super(), this.type = oI.Capsule, this.halfHeight = A2, this.radius = I3;
   }
   intoRaw() {
     return t.capsule(this.halfHeight, this.radius);
@@ -14088,44 +14088,44 @@ var Sg = class extends Cg {
   static {
     __name(this, "Sg");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.Segment, this.a = A2, this.b = I2;
+  constructor(A2, I3) {
+    super(), this.type = oI.Segment, this.a = A2, this.b = I3;
   }
   intoRaw() {
-    let A2 = _A.intoRaw(this.a), I2 = _A.intoRaw(this.b), g2 = t.segment(A2, I2);
-    return A2.free(), I2.free(), g2;
+    let A2 = _A.intoRaw(this.a), I3 = _A.intoRaw(this.b), g3 = t.segment(A2, I3);
+    return A2.free(), I3.free(), g3;
   }
 };
 var og = class extends Cg {
   static {
     __name(this, "og");
   }
-  constructor(A2, I2, g2) {
-    super(), this.type = oI.Triangle, this.a = A2, this.b = I2, this.c = g2;
+  constructor(A2, I3, g3) {
+    super(), this.type = oI.Triangle, this.a = A2, this.b = I3, this.c = g3;
   }
   intoRaw() {
-    let A2 = _A.intoRaw(this.a), I2 = _A.intoRaw(this.b), g2 = _A.intoRaw(this.c), C2 = t.triangle(A2, I2, g2);
-    return A2.free(), I2.free(), g2.free(), C2;
+    let A2 = _A.intoRaw(this.a), I3 = _A.intoRaw(this.b), g3 = _A.intoRaw(this.c), C3 = t.triangle(A2, I3, g3);
+    return A2.free(), I3.free(), g3.free(), C3;
   }
 };
 var wg = class extends Cg {
   static {
     __name(this, "wg");
   }
-  constructor(A2, I2, g2, C2) {
-    super(), this.type = oI.RoundTriangle, this.a = A2, this.b = I2, this.c = g2, this.borderRadius = C2;
+  constructor(A2, I3, g3, C3) {
+    super(), this.type = oI.RoundTriangle, this.a = A2, this.b = I3, this.c = g3, this.borderRadius = C3;
   }
   intoRaw() {
-    let A2 = _A.intoRaw(this.a), I2 = _A.intoRaw(this.b), g2 = _A.intoRaw(this.c), C2 = t.roundTriangle(A2, I2, g2, this.borderRadius);
-    return A2.free(), I2.free(), g2.free(), C2;
+    let A2 = _A.intoRaw(this.a), I3 = _A.intoRaw(this.b), g3 = _A.intoRaw(this.c), C3 = t.roundTriangle(A2, I3, g3, this.borderRadius);
+    return A2.free(), I3.free(), g3.free(), C3;
   }
 };
 var Kg = class extends Cg {
   static {
     __name(this, "Kg");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.Polyline, this.vertices = A2, this.indices = null != I2 ? I2 : new Uint32Array(0);
+  constructor(A2, I3) {
+    super(), this.type = oI.Polyline, this.vertices = A2, this.indices = null != I3 ? I3 : new Uint32Array(0);
   }
   intoRaw() {
     return t.polyline(this.vertices, this.indices);
@@ -14135,52 +14135,52 @@ var Ug = class extends Cg {
   static {
     __name(this, "Ug");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.Voxels, this.data = A2, this.voxelSize = I2;
+  constructor(A2, I3) {
+    super(), this.type = oI.Voxels, this.data = A2, this.voxelSize = I3;
   }
   intoRaw() {
-    let A2, I2 = _A.intoRaw(this.voxelSize);
-    return A2 = this.data instanceof Int32Array ? t.voxels(I2, this.data) : t.voxelsFromPoints(I2, this.data), I2.free(), A2;
+    let A2, I3 = _A.intoRaw(this.voxelSize);
+    return A2 = this.data instanceof Int32Array ? t.voxels(I3, this.data) : t.voxelsFromPoints(I3, this.data), I3.free(), A2;
   }
 };
 var kg = class _kg extends Cg {
   static {
     __name(this, "kg");
   }
-  constructor(A2, I2, g2) {
-    if (super(), this.type = oI.Compound, A2.length !== I2.length || A2.length !== g2.length) throw new Error("shapes, positions, and rotations arrays must have the same length");
+  constructor(A2, I3, g3) {
+    if (super(), this.type = oI.Compound, A2.length !== I3.length || A2.length !== g3.length) throw new Error("shapes, positions, and rotations arrays must have the same length");
     if (0 === A2.length) throw new Error("a compound shape must contain at least one shape");
     if (A2.some(((A3) => A3.type === oI.Compound))) throw new Error("nested compound shapes are not allowed");
-    this.shapes = A2, this.positions = I2, this.rotations = g2;
+    this.shapes = A2, this.positions = I3, this.rotations = g3;
   }
   static fromRawShape(A2) {
     try {
-      const I2 = A2.compoundLen();
-      if (null == I2) throw new Error("Expected a raw compound shape.");
-      const g2 = new Array(I2), C2 = new Array(I2), B2 = new Array(I2);
-      for (let Q2 = 0; Q2 < I2; Q2++) g2[Q2] = Cg.fromRawShape(A2.compoundShape(Q2)), C2[Q2] = _A.fromRaw(A2.compoundTranslation(Q2)), B2[Q2] = AI.fromRaw(A2.compoundRotation(Q2));
-      return new _kg(g2, C2, B2);
+      const I3 = A2.compoundLen();
+      if (null == I3) throw new Error("Expected a raw compound shape.");
+      const g3 = new Array(I3), C3 = new Array(I3), B2 = new Array(I3);
+      for (let Q2 = 0; Q2 < I3; Q2++) g3[Q2] = Cg.fromRawShape(A2.compoundShape(Q2)), C3[Q2] = _A.fromRaw(A2.compoundTranslation(Q2)), B2[Q2] = AI.fromRaw(A2.compoundRotation(Q2));
+      return new _kg(g3, C3, B2);
     } finally {
       A2.free();
     }
   }
   intoRaw() {
-    const A2 = this.shapes.map(((A3) => A3.intoRaw())), I2 = new Float32Array(3 * this.positions.length);
-    this.positions.forEach(((A3, g3) => {
-      I2[3 * g3] = A3.x, I2[3 * g3 + 1] = A3.y, I2[3 * g3 + 2] = A3.z;
+    const A2 = this.shapes.map(((A3) => A3.intoRaw())), I3 = new Float32Array(3 * this.positions.length);
+    this.positions.forEach(((A3, g4) => {
+      I3[3 * g4] = A3.x, I3[3 * g4 + 1] = A3.y, I3[3 * g4 + 2] = A3.z;
     }));
-    const g2 = new Float32Array(4 * this.rotations.length);
-    return this.rotations.forEach(((A3, I3) => {
-      g2[4 * I3] = A3.x, g2[4 * I3 + 1] = A3.y, g2[4 * I3 + 2] = A3.z, g2[4 * I3 + 3] = A3.w;
-    })), t.compound(A2, I2, g2);
+    const g3 = new Float32Array(4 * this.rotations.length);
+    return this.rotations.forEach(((A3, I4) => {
+      g3[4 * I4] = A3.x, g3[4 * I4 + 1] = A3.y, g3[4 * I4 + 2] = A3.z, g3[4 * I4 + 3] = A3.w;
+    })), t.compound(A2, I3, g3);
   }
 };
 var hg = class extends Cg {
   static {
     __name(this, "hg");
   }
-  constructor(A2, I2, g2) {
-    super(), this.type = oI.TriMesh, this.vertices = A2, this.indices = I2, this.flags = g2;
+  constructor(A2, I3, g3) {
+    super(), this.type = oI.TriMesh, this.vertices = A2, this.indices = I3, this.flags = g3;
   }
   intoRaw() {
     return t.trimesh(this.vertices, this.indices, this.flags);
@@ -14190,8 +14190,8 @@ var yg = class extends Cg {
   static {
     __name(this, "yg");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.ConvexPolyhedron, this.vertices = A2, this.indices = I2;
+  constructor(A2, I3) {
+    super(), this.type = oI.ConvexPolyhedron, this.vertices = A2, this.indices = I3;
   }
   intoRaw() {
     return this.indices ? t.convexMesh(this.vertices, this.indices) : t.convexHull(this.vertices);
@@ -14201,8 +14201,8 @@ var Jg = class extends Cg {
   static {
     __name(this, "Jg");
   }
-  constructor(A2, I2, g2) {
-    super(), this.type = oI.RoundConvexPolyhedron, this.vertices = A2, this.indices = I2, this.borderRadius = g2;
+  constructor(A2, I3, g3) {
+    super(), this.type = oI.RoundConvexPolyhedron, this.vertices = A2, this.indices = I3, this.borderRadius = g3;
   }
   intoRaw() {
     return this.indices ? t.roundConvexMesh(this.vertices, this.indices, this.borderRadius) : t.roundConvexHull(this.vertices, this.borderRadius);
@@ -14212,20 +14212,20 @@ var Gg = class extends Cg {
   static {
     __name(this, "Gg");
   }
-  constructor(A2, I2, g2, C2, B2) {
-    super(), this.type = oI.HeightField, this.nrows = A2, this.ncols = I2, this.heights = g2, this.scale = C2, this.flags = B2;
+  constructor(A2, I3, g3, C3, B2) {
+    super(), this.type = oI.HeightField, this.nrows = A2, this.ncols = I3, this.heights = g3, this.scale = C3, this.flags = B2;
   }
   intoRaw() {
-    let A2 = _A.intoRaw(this.scale), I2 = t.heightfield(this.nrows, this.ncols, this.heights, A2, this.flags);
-    return A2.free(), I2;
+    let A2 = _A.intoRaw(this.scale), I3 = t.heightfield(this.nrows, this.ncols, this.heights, A2, this.flags);
+    return A2.free(), I3;
   }
 };
 var Fg = class extends Cg {
   static {
     __name(this, "Fg");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.Cylinder, this.halfHeight = A2, this.radius = I2;
+  constructor(A2, I3) {
+    super(), this.type = oI.Cylinder, this.halfHeight = A2, this.radius = I3;
   }
   intoRaw() {
     return t.cylinder(this.halfHeight, this.radius);
@@ -14235,8 +14235,8 @@ var Mg = class extends Cg {
   static {
     __name(this, "Mg");
   }
-  constructor(A2, I2, g2) {
-    super(), this.type = oI.RoundCylinder, this.borderRadius = g2, this.halfHeight = A2, this.radius = I2;
+  constructor(A2, I3, g3) {
+    super(), this.type = oI.RoundCylinder, this.borderRadius = g3, this.halfHeight = A2, this.radius = I3;
   }
   intoRaw() {
     return t.roundCylinder(this.halfHeight, this.radius, this.borderRadius);
@@ -14246,8 +14246,8 @@ var Ng = class extends Cg {
   static {
     __name(this, "Ng");
   }
-  constructor(A2, I2) {
-    super(), this.type = oI.Cone, this.halfHeight = A2, this.radius = I2;
+  constructor(A2, I3) {
+    super(), this.type = oI.Cone, this.halfHeight = A2, this.radius = I3;
   }
   intoRaw() {
     return t.cone(this.halfHeight, this.radius);
@@ -14257,8 +14257,8 @@ var sg = class extends Cg {
   static {
     __name(this, "sg");
   }
-  constructor(A2, I2, g2) {
-    super(), this.type = oI.RoundCone, this.halfHeight = A2, this.radius = I2, this.borderRadius = g2;
+  constructor(A2, I3, g3) {
+    super(), this.type = oI.RoundCone, this.halfHeight = A2, this.radius = I3, this.borderRadius = g3;
   }
   intoRaw() {
     return t.roundCone(this.halfHeight, this.radius, this.borderRadius);
@@ -14274,9 +14274,9 @@ var Rg = class {
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
   }
-  step(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2) {
+  step(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3) {
     let K2 = _A.intoRaw(A2);
-    o2 ? this.raw.stepWithEvents(K2, I2.raw, g2.raw, C2.raw, B2.raw, Q2.raw, E2.raw, i2.raw, D2.raw, S2.raw, o2.raw, w2, w2 ? w2.filterContactPair : null, w2 ? w2.filterIntersectionPair : null) : this.raw.step(K2, I2.raw, g2.raw, C2.raw, B2.raw, Q2.raw, E2.raw, i2.raw, D2.raw, S2.raw), K2.free();
+    o3 ? this.raw.stepWithEvents(K2, I3.raw, g3.raw, C3.raw, B2.raw, Q2.raw, E3.raw, i4.raw, D3.raw, S3.raw, o3.raw, w3, w3 ? w3.filterContactPair : null, w3 ? w3.filterIntersectionPair : null) : this.raw.step(K2, I3.raw, g3.raw, C3.raw, B2.raw, Q2.raw, E3.raw, i4.raw, D3.raw, S3.raw), K2.free();
   }
 };
 var Yg = class {
@@ -14289,10 +14289,10 @@ var Yg = class {
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
   }
-  serializeAll(A2, I2, g2, C2, B2, Q2, E2, i2, D2) {
-    let S2 = _A.intoRaw(A2);
-    const o2 = this.raw.serializeAll(S2, I2.raw, g2.raw, C2.raw, B2.raw, Q2.raw, E2.raw, i2.raw, D2.raw);
-    return S2.free(), o2;
+  serializeAll(A2, I3, g3, C3, B2, Q2, E3, i4, D3) {
+    let S3 = _A.intoRaw(A2);
+    const o3 = this.raw.serializeAll(S3, I3.raw, g3.raw, C3.raw, B2.raw, Q2.raw, E3.raw, i4.raw, D3.raw);
+    return S3.free(), o3;
   }
   deserializeAll(A2) {
     return pg.fromRaw(this.raw.deserializeAll(A2));
@@ -14302,8 +14302,8 @@ var cg = class {
   static {
     __name(this, "cg");
   }
-  constructor(A2, I2) {
-    this.vertices = A2, this.colors = I2;
+  constructor(A2, I3) {
+    this.vertices = A2, this.colors = I3;
   }
 };
 var ag = class {
@@ -14316,8 +14316,8 @@ var ag = class {
   free() {
     this.raw && this.raw.free(), this.raw = void 0, this.vertices = void 0, this.colors = void 0;
   }
-  render(A2, I2, g2, C2, B2, Q2, E2) {
-    this.raw.render(A2.raw, I2.raw, g2.raw, C2.raw, B2.raw, Q2, I2.castClosure(E2)), this.vertices = this.raw.vertices(), this.colors = this.raw.colors();
+  render(A2, I3, g3, C3, B2, Q2, E3) {
+    this.raw.render(A2.raw, I3.raw, g3.raw, C3.raw, B2.raw, Q2, I3.castClosure(E3)), this.vertices = this.raw.vertices(), this.colors = this.raw.colors();
   }
 };
 var lg = class {
@@ -14329,8 +14329,8 @@ var Lg = class {
   static {
     __name(this, "Lg");
   }
-  constructor(A2, I2, C2, B2, Q2, E2) {
-    this.params = I2, this.bodies = Q2, this.colliders = E2, this.broadPhase = C2, this.narrowPhase = B2, this.raw = new F(A2), this.rawCharacterCollision = new g(), this._applyImpulsesToDynamicBodies = false, this._characterMass = null;
+  constructor(A2, I3, C3, B2, Q2, E3) {
+    this.params = I3, this.bodies = Q2, this.colliders = E3, this.broadPhase = C3, this.narrowPhase = B2, this.raw = new F(A2), this.rawCharacterCollision = new g(), this._applyImpulsesToDynamicBodies = false, this._characterMass = null;
   }
   free() {
     this.raw && (this.raw.free(), this.rawCharacterCollision.free()), this.raw = void 0, this.rawCharacterCollision = void 0;
@@ -14339,8 +14339,8 @@ var Lg = class {
     return this.raw.up();
   }
   setUp(A2) {
-    let I2 = _A.intoRaw(A2);
-    return this.raw.setUp(I2);
+    let I3 = _A.intoRaw(A2);
+    return this.raw.setUp(I3);
   }
   applyImpulsesToDynamicBodies() {
     return this._applyImpulsesToDynamicBodies;
@@ -14384,8 +14384,8 @@ var Lg = class {
   autostepEnabled() {
     return this.raw.autostepEnabled();
   }
-  enableAutostep(A2, I2, g2) {
-    this.raw.enableAutostep(A2, I2, g2);
+  enableAutostep(A2, I3, g3) {
+    this.raw.enableAutostep(A2, I3, g3);
   }
   disableAutostep() {
     return this.raw.disableAutostep();
@@ -14414,9 +14414,9 @@ var Lg = class {
   snapToGroundEnabled() {
     return this.raw.snapToGroundEnabled();
   }
-  computeColliderMovement(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(I2);
-    this.raw.computeColliderMovement(this.params.dt, this.broadPhase.raw, this.narrowPhase.raw, this.bodies.raw, this.colliders.raw, A2.handle, Q2, this._applyImpulsesToDynamicBodies, this._characterMass, g2, C2, this.colliders.castClosure(B2)), Q2.free();
+  computeColliderMovement(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(I3);
+    this.raw.computeColliderMovement(this.params.dt, this.broadPhase.raw, this.narrowPhase.raw, this.bodies.raw, this.colliders.raw, A2.handle, Q2, this._applyImpulsesToDynamicBodies, this._characterMass, g3, C3, this.colliders.castClosure(B2)), Q2.free();
   }
   computedMovement(A2) {
     return this.raw.computedMovement(zA), _A.fromBuffer(zA, A2);
@@ -14427,10 +14427,10 @@ var Lg = class {
   numComputedCollisions() {
     return this.raw.numComputedCollisions();
   }
-  computedCollision(A2, I2) {
+  computedCollision(A2, I3) {
     if (this.raw.computedCollision(A2, this.rawCharacterCollision)) {
       let A3 = this.rawCharacterCollision;
-      return I2 = null != I2 ? I2 : new lg(), A3.translationDeltaApplied(zA), I2.translationDeltaApplied = _A.fromBuffer(zA, I2.translationDeltaApplied), A3.translationDeltaRemaining(zA), I2.translationDeltaRemaining = _A.fromBuffer(zA, I2.translationDeltaRemaining), I2.toi = A3.toi(), A3.worldWitness1(zA), I2.witness1 = _A.fromBuffer(zA, I2.witness1), A3.worldWitness2(zA), I2.witness2 = _A.fromBuffer(zA, I2.witness2), A3.worldNormal1(zA), I2.normal1 = _A.fromBuffer(zA, I2.normal1), A3.worldNormal2(zA), I2.normal2 = _A.fromBuffer(zA, I2.normal2), I2.collider = this.colliders.get(A3.handle()), I2;
+      return I3 = null != I3 ? I3 : new lg(), A3.translationDeltaApplied(zA), I3.translationDeltaApplied = _A.fromBuffer(zA, I3.translationDeltaApplied), A3.translationDeltaRemaining(zA), I3.translationDeltaRemaining = _A.fromBuffer(zA, I3.translationDeltaRemaining), I3.toi = A3.toi(), A3.worldWitness1(zA), I3.witness1 = _A.fromBuffer(zA, I3.witness1), A3.worldWitness2(zA), I3.witness2 = _A.fromBuffer(zA, I3.witness2), A3.worldNormal1(zA), I3.normal1 = _A.fromBuffer(zA, I3.normal1), A3.worldNormal2(zA), I3.normal2 = _A.fromBuffer(zA, I3.normal2), I3.collider = this.colliders.get(A3.handle()), I3;
     }
     return null;
   }
@@ -14442,20 +14442,20 @@ var qg = class {
   static {
     __name(this, "qg");
   }
-  constructor(A2, I2, g2, C2, B2, Q2) {
-    this.params = A2, this.bodies = I2, this.raw = new R(g2, C2, B2, Q2);
+  constructor(A2, I3, g3, C3, B2, Q2) {
+    this.params = A2, this.bodies = I3, this.raw = new R(g3, C3, B2, Q2);
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
   }
-  setKp(A2, I2) {
-    this.raw.set_kp(A2, I2);
+  setKp(A2, I3) {
+    this.raw.set_kp(A2, I3);
   }
-  setKi(A2, I2) {
-    this.raw.set_kp(A2, I2);
+  setKi(A2, I3) {
+    this.raw.set_kp(A2, I3);
   }
-  setKd(A2, I2) {
-    this.raw.set_kp(A2, I2);
+  setKd(A2, I3) {
+    this.raw.set_kp(A2, I3);
   }
   setAxes(A2) {
     this.raw.set_axes_mask(A2);
@@ -14463,35 +14463,35 @@ var qg = class {
   resetIntegrals() {
     this.raw.reset_integrals();
   }
-  applyLinearCorrection(A2, I2, g2) {
-    let C2 = _A.intoRaw(I2), B2 = _A.intoRaw(g2);
-    this.raw.apply_linear_correction(this.params.dt, this.bodies.raw, A2.handle, C2, B2), C2.free(), B2.free();
+  applyLinearCorrection(A2, I3, g3) {
+    let C3 = _A.intoRaw(I3), B2 = _A.intoRaw(g3);
+    this.raw.apply_linear_correction(this.params.dt, this.bodies.raw, A2.handle, C3, B2), C3.free(), B2.free();
   }
-  applyAngularCorrection(A2, I2, g2) {
-    let C2 = AI.intoRaw(I2), B2 = _A.intoRaw(g2);
-    this.raw.apply_angular_correction(this.params.dt, this.bodies.raw, A2.handle, C2, B2), C2.free(), B2.free();
+  applyAngularCorrection(A2, I3, g3) {
+    let C3 = AI.intoRaw(I3), B2 = _A.intoRaw(g3);
+    this.raw.apply_angular_correction(this.params.dt, this.bodies.raw, A2.handle, C3, B2), C3.free(), B2.free();
   }
-  linearCorrection(A2, I2, g2, C2) {
-    let B2 = _A.intoRaw(I2), Q2 = _A.intoRaw(g2);
-    return this.raw.linear_correction(this.params.dt, this.bodies.raw, A2.handle, B2, Q2, zA), B2.free(), Q2.free(), _A.fromBuffer(zA, C2);
+  linearCorrection(A2, I3, g3, C3) {
+    let B2 = _A.intoRaw(I3), Q2 = _A.intoRaw(g3);
+    return this.raw.linear_correction(this.params.dt, this.bodies.raw, A2.handle, B2, Q2, zA), B2.free(), Q2.free(), _A.fromBuffer(zA, C3);
   }
-  angularCorrection(A2, I2, g2, C2) {
-    let B2 = AI.intoRaw(I2), Q2 = _A.intoRaw(g2);
-    return this.raw.angular_correction(this.params.dt, this.bodies.raw, A2.handle, B2, Q2, zA), B2.free(), Q2.free(), _A.fromBuffer(zA, C2);
+  angularCorrection(A2, I3, g3, C3) {
+    let B2 = AI.intoRaw(I3), Q2 = _A.intoRaw(g3);
+    return this.raw.angular_correction(this.params.dt, this.bodies.raw, A2.handle, B2, Q2, zA), B2.free(), Q2.free(), _A.fromBuffer(zA, C3);
   }
 };
 var Hg = class {
   static {
     __name(this, "Hg");
   }
-  constructor(A2, I2, g2, C2, B2) {
-    this.raw = new w(A2.handle), this.broadPhase = I2, this.narrowPhase = g2, this.bodies = C2, this.colliders = B2, this._chassis = A2;
+  constructor(A2, I3, g3, C3, B2) {
+    this.raw = new w(A2.handle), this.broadPhase = I3, this.narrowPhase = g3, this.bodies = C3, this.colliders = B2, this._chassis = A2;
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
   }
-  updateVehicle(A2, I2, g2, C2) {
-    this.raw.update_vehicle(A2, this.broadPhase.raw, this.narrowPhase.raw, this.bodies.raw, this.colliders.raw, I2, g2, this.colliders.castClosure(C2));
+  updateVehicle(A2, I3, g3, C3) {
+    this.raw.update_vehicle(A2, this.broadPhase.raw, this.narrowPhase.raw, this.bodies.raw, this.colliders.raw, I3, g3, this.colliders.castClosure(C3));
   }
   currentVehicleSpeed() {
     return this.raw.current_vehicle_speed();
@@ -14511,105 +14511,105 @@ var Hg = class {
   set setIndexForwardAxis(A2) {
     this.raw.set_index_forward_axis(A2);
   }
-  addWheel(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(A2), E2 = _A.intoRaw(I2), i2 = _A.intoRaw(g2);
-    this.raw.add_wheel(Q2, E2, i2, C2, B2), Q2.free(), E2.free(), i2.free();
+  addWheel(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(A2), E3 = _A.intoRaw(I3), i4 = _A.intoRaw(g3);
+    this.raw.add_wheel(Q2, E3, i4, C3, B2), Q2.free(), E3.free(), i4.free();
   }
   numWheels() {
     return this.raw.num_wheels();
   }
-  wheelChassisConnectionPointCs(A2, I2) {
-    return this.raw.wheel_chassis_connection_point_cs(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  wheelChassisConnectionPointCs(A2, I3) {
+    return this.raw.wheel_chassis_connection_point_cs(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
-  setWheelChassisConnectionPointCs(A2, I2) {
-    let g2 = _A.intoRaw(I2);
-    this.raw.set_wheel_chassis_connection_point_cs(A2, g2), g2.free();
+  setWheelChassisConnectionPointCs(A2, I3) {
+    let g3 = _A.intoRaw(I3);
+    this.raw.set_wheel_chassis_connection_point_cs(A2, g3), g3.free();
   }
   wheelSuspensionRestLength(A2) {
     return this.raw.wheel_suspension_rest_length(A2);
   }
-  setWheelSuspensionRestLength(A2, I2) {
-    this.raw.set_wheel_suspension_rest_length(A2, I2);
+  setWheelSuspensionRestLength(A2, I3) {
+    this.raw.set_wheel_suspension_rest_length(A2, I3);
   }
   wheelMaxSuspensionTravel(A2) {
     return this.raw.wheel_max_suspension_travel(A2);
   }
-  setWheelMaxSuspensionTravel(A2, I2) {
-    this.raw.set_wheel_max_suspension_travel(A2, I2);
+  setWheelMaxSuspensionTravel(A2, I3) {
+    this.raw.set_wheel_max_suspension_travel(A2, I3);
   }
   wheelRadius(A2) {
     return this.raw.wheel_radius(A2);
   }
-  setWheelRadius(A2, I2) {
-    this.raw.set_wheel_radius(A2, I2);
+  setWheelRadius(A2, I3) {
+    this.raw.set_wheel_radius(A2, I3);
   }
   wheelSuspensionStiffness(A2) {
     return this.raw.wheel_suspension_stiffness(A2);
   }
-  setWheelSuspensionStiffness(A2, I2) {
-    this.raw.set_wheel_suspension_stiffness(A2, I2);
+  setWheelSuspensionStiffness(A2, I3) {
+    this.raw.set_wheel_suspension_stiffness(A2, I3);
   }
   wheelSuspensionCompression(A2) {
     return this.raw.wheel_suspension_compression(A2);
   }
-  setWheelSuspensionCompression(A2, I2) {
-    this.raw.set_wheel_suspension_compression(A2, I2);
+  setWheelSuspensionCompression(A2, I3) {
+    this.raw.set_wheel_suspension_compression(A2, I3);
   }
   wheelSuspensionRelaxation(A2) {
     return this.raw.wheel_suspension_relaxation(A2);
   }
-  setWheelSuspensionRelaxation(A2, I2) {
-    this.raw.set_wheel_suspension_relaxation(A2, I2);
+  setWheelSuspensionRelaxation(A2, I3) {
+    this.raw.set_wheel_suspension_relaxation(A2, I3);
   }
   wheelMaxSuspensionForce(A2) {
     return this.raw.wheel_max_suspension_force(A2);
   }
-  setWheelMaxSuspensionForce(A2, I2) {
-    this.raw.set_wheel_max_suspension_force(A2, I2);
+  setWheelMaxSuspensionForce(A2, I3) {
+    this.raw.set_wheel_max_suspension_force(A2, I3);
   }
   wheelBrake(A2) {
     return this.raw.wheel_brake(A2);
   }
-  setWheelBrake(A2, I2) {
-    this.raw.set_wheel_brake(A2, I2);
+  setWheelBrake(A2, I3) {
+    this.raw.set_wheel_brake(A2, I3);
   }
   wheelSteering(A2) {
     return this.raw.wheel_steering(A2);
   }
-  setWheelSteering(A2, I2) {
-    this.raw.set_wheel_steering(A2, I2);
+  setWheelSteering(A2, I3) {
+    this.raw.set_wheel_steering(A2, I3);
   }
   wheelEngineForce(A2) {
     return this.raw.wheel_engine_force(A2);
   }
-  setWheelEngineForce(A2, I2) {
-    this.raw.set_wheel_engine_force(A2, I2);
+  setWheelEngineForce(A2, I3) {
+    this.raw.set_wheel_engine_force(A2, I3);
   }
-  wheelDirectionCs(A2, I2) {
-    return this.raw.wheel_direction_cs(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  wheelDirectionCs(A2, I3) {
+    return this.raw.wheel_direction_cs(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
-  setWheelDirectionCs(A2, I2) {
-    let g2 = _A.intoRaw(I2);
-    this.raw.set_wheel_direction_cs(A2, g2), g2.free();
+  setWheelDirectionCs(A2, I3) {
+    let g3 = _A.intoRaw(I3);
+    this.raw.set_wheel_direction_cs(A2, g3), g3.free();
   }
-  wheelAxleCs(A2, I2) {
-    return this.raw.wheel_axle_cs(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  wheelAxleCs(A2, I3) {
+    return this.raw.wheel_axle_cs(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
-  setWheelAxleCs(A2, I2) {
-    let g2 = _A.intoRaw(I2);
-    this.raw.set_wheel_axle_cs(A2, g2), g2.free();
+  setWheelAxleCs(A2, I3) {
+    let g3 = _A.intoRaw(I3);
+    this.raw.set_wheel_axle_cs(A2, g3), g3.free();
   }
   wheelFrictionSlip(A2) {
     return this.raw.wheel_friction_slip(A2);
   }
-  setWheelFrictionSlip(A2, I2) {
-    this.raw.set_wheel_friction_slip(A2, I2);
+  setWheelFrictionSlip(A2, I3) {
+    this.raw.set_wheel_friction_slip(A2, I3);
   }
   wheelSideFrictionStiffness(A2) {
     return this.raw.wheel_side_friction_stiffness(A2);
   }
-  setWheelSideFrictionStiffness(A2, I2) {
-    this.raw.set_wheel_side_friction_stiffness(A2, I2);
+  setWheelSideFrictionStiffness(A2, I3) {
+    this.raw.set_wheel_side_friction_stiffness(A2, I3);
   }
   wheelRotation(A2) {
     return this.raw.wheel_rotation(A2);
@@ -14623,17 +14623,17 @@ var Hg = class {
   wheelSuspensionForce(A2) {
     return this.raw.wheel_suspension_force(A2);
   }
-  wheelContactNormal(A2, I2) {
-    return this.raw.wheel_contact_normal_ws(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  wheelContactNormal(A2, I3) {
+    return this.raw.wheel_contact_normal_ws(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
-  wheelContactPoint(A2, I2) {
-    return this.raw.wheel_contact_point_ws(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  wheelContactPoint(A2, I3) {
+    return this.raw.wheel_contact_point_ws(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
   wheelSuspensionLength(A2) {
     return this.raw.wheel_suspension_length(A2);
   }
-  wheelHardPoint(A2, I2) {
-    return this.raw.wheel_hard_point_ws(A2, zA) ? _A.fromBuffer(zA, I2) : null;
+  wheelHardPoint(A2, I3) {
+    return this.raw.wheel_hard_point_ws(A2, zA) ? _A.fromBuffer(zA, I3) : null;
   }
   wheelIsInContact(A2) {
     return this.raw.wheel_is_in_contact(A2);
@@ -14646,8 +14646,8 @@ var pg = class _pg {
   static {
     __name(this, "pg");
   }
-  constructor(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2, K2) {
-    this.gravity = A2, this.integrationParameters = new YI(I2), this.islands = new fI(g2), this.broadPhase = new $I(C2), this.narrowPhase = new Ag(B2), this.bodies = new RI(Q2), this.colliders = new Tg(E2), this.impulseJoints = new eI(i2), this.multibodyJoints = new WI(D2), this.ccdSolver = new xI(S2), this.physicsPipeline = new Rg(o2), this.serializationPipeline = new Yg(w2), this.debugRenderPipeline = new ag(K2), this.characterControllers = /* @__PURE__ */ new Set(), this.pidControllers = /* @__PURE__ */ new Set(), this.vehicleControllers = /* @__PURE__ */ new Set(), this.impulseJoints.finalizeDeserialization(this.bodies), this.bodies.finalizeDeserialization(this.colliders), this.colliders.finalizeDeserialization(this.bodies);
+  constructor(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3, K2) {
+    this.gravity = A2, this.integrationParameters = new YI(I3), this.islands = new fI(g3), this.broadPhase = new $I(C3), this.narrowPhase = new Ag(B2), this.bodies = new RI(Q2), this.colliders = new Tg(E3), this.impulseJoints = new eI(i4), this.multibodyJoints = new WI(D3), this.ccdSolver = new xI(S3), this.physicsPipeline = new Rg(o3), this.serializationPipeline = new Yg(w3), this.debugRenderPipeline = new ag(K2), this.characterControllers = /* @__PURE__ */ new Set(), this.pidControllers = /* @__PURE__ */ new Set(), this.vehicleControllers = /* @__PURE__ */ new Set(), this.impulseJoints.finalizeDeserialization(this.bodies), this.bodies.finalizeDeserialization(this.colliders), this.colliders.finalizeDeserialization(this.bodies);
   }
   free() {
     this.integrationParameters.free(), this.islands.free(), this.broadPhase.free(), this.narrowPhase.free(), this.bodies.free(), this.colliders.free(), this.impulseJoints.free(), this.multibodyJoints.free(), this.ccdSolver.free(), this.physicsPipeline.free(), this.serializationPipeline.free(), this.debugRenderPipeline.free(), this.characterControllers.forEach(((A2) => A2.free())), this.pidControllers.forEach(((A2) => A2.free())), this.vehicleControllers.forEach(((A2) => A2.free())), this.integrationParameters = void 0, this.islands = void 0, this.broadPhase = void 0, this.narrowPhase = void 0, this.bodies = void 0, this.colliders = void 0, this.ccdSolver = void 0, this.impulseJoints = void 0, this.multibodyJoints = void 0, this.physicsPipeline = void 0, this.serializationPipeline = void 0, this.debugRenderPipeline = void 0, this.characterControllers = void 0, this.pidControllers = void 0, this.vehicleControllers = void 0;
@@ -14661,11 +14661,11 @@ var pg = class _pg {
   static restoreSnapshot(A2) {
     return new Yg().deserializeAll(A2);
   }
-  debugRender(A2, I2) {
-    return this.debugRenderPipeline.render(this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.narrowPhase, A2, I2), new cg(this.debugRenderPipeline.vertices, this.debugRenderPipeline.colors);
+  debugRender(A2, I3) {
+    return this.debugRenderPipeline.render(this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.narrowPhase, A2, I3), new cg(this.debugRenderPipeline.vertices, this.debugRenderPipeline.colors);
   }
-  step(A2, I2) {
-    this.physicsPipeline.step(this.gravity, this.integrationParameters, this.islands, this.broadPhase, this.narrowPhase, this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.ccdSolver, A2, I2);
+  step(A2, I3) {
+    this.physicsPipeline.step(this.gravity, this.integrationParameters, this.islands, this.broadPhase, this.narrowPhase, this.bodies, this.colliders, this.impulseJoints, this.multibodyJoints, this.ccdSolver, A2, I3);
   }
   propagateModifiedBodyPositionsToColliders() {
     this.bodies.raw.propagateModifiedBodyPositionsToColliders(this.colliders.raw);
@@ -14704,35 +14704,35 @@ var pg = class _pg {
     return this.bodies.createRigidBody(this.colliders, A2);
   }
   createCharacterController(A2) {
-    let I2 = new Lg(A2, this.integrationParameters, this.broadPhase, this.narrowPhase, this.bodies, this.colliders);
-    return this.characterControllers.add(I2), I2;
+    let I3 = new Lg(A2, this.integrationParameters, this.broadPhase, this.narrowPhase, this.bodies, this.colliders);
+    return this.characterControllers.add(I3), I3;
   }
   removeCharacterController(A2) {
     this.characterControllers.delete(A2), A2.free();
   }
-  createPidController(A2, I2, g2, C2) {
-    let B2 = new qg(this.integrationParameters, this.bodies, A2, I2, g2, C2);
+  createPidController(A2, I3, g3, C3) {
+    let B2 = new qg(this.integrationParameters, this.bodies, A2, I3, g3, C3);
     return this.pidControllers.add(B2), B2;
   }
   removePidController(A2) {
     this.pidControllers.delete(A2), A2.free();
   }
   createVehicleController(A2) {
-    let I2 = new Hg(A2, this.broadPhase, this.narrowPhase, this.bodies, this.colliders);
-    return this.vehicleControllers.add(I2), I2;
+    let I3 = new Hg(A2, this.broadPhase, this.narrowPhase, this.bodies, this.colliders);
+    return this.vehicleControllers.add(I3), I3;
   }
   removeVehicleController(A2) {
     this.vehicleControllers.delete(A2), A2.free();
   }
-  createCollider(A2, I2) {
-    let g2 = I2 ? I2.handle : void 0;
-    return this.colliders.createCollider(this.bodies, A2, g2);
+  createCollider(A2, I3) {
+    let g3 = I3 ? I3.handle : void 0;
+    return this.colliders.createCollider(this.bodies, A2, g3);
   }
-  createImpulseJoint(A2, I2, g2, C2) {
-    return this.impulseJoints.createJoint(this.bodies, A2, I2.handle, g2.handle, C2);
+  createImpulseJoint(A2, I3, g3, C3) {
+    return this.impulseJoints.createJoint(this.bodies, A2, I3.handle, g3.handle, C3);
   }
-  createMultibodyJoint(A2, I2, g2, C2) {
-    return this.multibodyJoints.createJoint(A2, I2.handle, g2.handle, C2);
+  createMultibodyJoint(A2, I3, g3, C3) {
+    return this.multibodyJoints.createJoint(A2, I3.handle, g3.handle, C3);
   }
   getRigidBody(A2) {
     return this.bodies.get(A2);
@@ -14749,14 +14749,14 @@ var pg = class _pg {
   removeRigidBody(A2) {
     this.bodies && this.bodies.remove(A2.handle, this.islands, this.colliders, this.impulseJoints, this.multibodyJoints);
   }
-  removeCollider(A2, I2) {
-    this.colliders && this.colliders.remove(A2.handle, this.islands, this.bodies, I2);
+  removeCollider(A2, I3) {
+    this.colliders && this.colliders.remove(A2.handle, this.islands, this.bodies, I3);
   }
-  removeImpulseJoint(A2, I2) {
-    this.impulseJoints && this.impulseJoints.remove(A2.handle, I2);
+  removeImpulseJoint(A2, I3) {
+    this.impulseJoints && this.impulseJoints.remove(A2.handle, I3);
   }
-  removeMultibodyJoint(A2, I2) {
-    this.impulseJoints && this.multibodyJoints.remove(A2.handle, I2);
+  removeMultibodyJoint(A2, I3) {
+    this.impulseJoints && this.multibodyJoints.remove(A2.handle, I3);
   }
   forEachCollider(A2) {
     this.colliders.forEach(A2);
@@ -14767,48 +14767,48 @@ var pg = class _pg {
   forEachActiveRigidBody(A2) {
     this.bodies.forEachActiveRigidBody(this.islands, A2);
   }
-  castRay(A2, I2, g2, C2, B2, Q2, E2, i2) {
-    return this.broadPhase.castRay(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2, B2, Q2 ? Q2.handle : null, E2 ? E2.handle : null, this.colliders.castClosure(i2));
+  castRay(A2, I3, g3, C3, B2, Q2, E3, i4) {
+    return this.broadPhase.castRay(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3, B2, Q2 ? Q2.handle : null, E3 ? E3.handle : null, this.colliders.castClosure(i4));
   }
-  castRayAndGetNormal(A2, I2, g2, C2, B2, Q2, E2, i2) {
-    return this.broadPhase.castRayAndGetNormal(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2, B2, Q2 ? Q2.handle : null, E2 ? E2.handle : null, this.colliders.castClosure(i2));
+  castRayAndGetNormal(A2, I3, g3, C3, B2, Q2, E3, i4) {
+    return this.broadPhase.castRayAndGetNormal(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3, B2, Q2 ? Q2.handle : null, E3 ? E3.handle : null, this.colliders.castClosure(i4));
   }
-  intersectionsWithRay(A2, I2, g2, C2, B2, Q2, E2, i2, D2) {
-    this.broadPhase.intersectionsWithRay(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2, B2, Q2, E2 ? E2.handle : null, i2 ? i2.handle : null, this.colliders.castClosure(D2));
+  intersectionsWithRay(A2, I3, g3, C3, B2, Q2, E3, i4, D3) {
+    this.broadPhase.intersectionsWithRay(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3, B2, Q2, E3 ? E3.handle : null, i4 ? i4.handle : null, this.colliders.castClosure(D3));
   }
-  intersectionWithShape(A2, I2, g2, C2, B2, Q2, E2, i2) {
-    let D2 = this.broadPhase.intersectionWithShape(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2, B2, Q2 ? Q2.handle : null, E2 ? E2.handle : null, this.colliders.castClosure(i2));
-    return null != D2 ? this.colliders.get(D2) : null;
+  intersectionWithShape(A2, I3, g3, C3, B2, Q2, E3, i4) {
+    let D3 = this.broadPhase.intersectionWithShape(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3, B2, Q2 ? Q2.handle : null, E3 ? E3.handle : null, this.colliders.castClosure(i4));
+    return null != D3 ? this.colliders.get(D3) : null;
   }
-  projectPoint(A2, I2, g2, C2, B2, Q2, E2) {
-    return this.broadPhase.projectPoint(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2, B2 ? B2.handle : null, Q2 ? Q2.handle : null, this.colliders.castClosure(E2));
+  projectPoint(A2, I3, g3, C3, B2, Q2, E3) {
+    return this.broadPhase.projectPoint(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3, B2 ? B2.handle : null, Q2 ? Q2.handle : null, this.colliders.castClosure(E3));
   }
-  projectPointAndGetFeature(A2, I2, g2, C2, B2, Q2) {
-    return this.broadPhase.projectPointAndGetFeature(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2 ? C2.handle : null, B2 ? B2.handle : null, this.colliders.castClosure(Q2));
+  projectPointAndGetFeature(A2, I3, g3, C3, B2, Q2) {
+    return this.broadPhase.projectPointAndGetFeature(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3 ? C3.handle : null, B2 ? B2.handle : null, this.colliders.castClosure(Q2));
   }
-  intersectionsWithPoint(A2, I2, g2, C2, B2, Q2, E2) {
-    this.broadPhase.intersectionsWithPoint(this.narrowPhase, this.bodies, this.colliders, A2, this.colliders.castClosure(I2), g2, C2, B2 ? B2.handle : null, Q2 ? Q2.handle : null, this.colliders.castClosure(E2));
+  intersectionsWithPoint(A2, I3, g3, C3, B2, Q2, E3) {
+    this.broadPhase.intersectionsWithPoint(this.narrowPhase, this.bodies, this.colliders, A2, this.colliders.castClosure(I3), g3, C3, B2 ? B2.handle : null, Q2 ? Q2.handle : null, this.colliders.castClosure(E3));
   }
-  castShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2, o2, w2) {
-    return this.broadPhase.castShape(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, C2, B2, Q2, E2, i2, D2, S2 ? S2.handle : null, o2 ? o2.handle : null, this.colliders.castClosure(w2));
+  castShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3, o3, w3) {
+    return this.broadPhase.castShape(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, C3, B2, Q2, E3, i4, D3, S3 ? S3.handle : null, o3 ? o3.handle : null, this.colliders.castClosure(w3));
   }
-  intersectionsWithShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2) {
-    this.broadPhase.intersectionsWithShape(this.narrowPhase, this.bodies, this.colliders, A2, I2, g2, this.colliders.castClosure(C2), B2, Q2, E2 ? E2.handle : null, i2 ? i2.handle : null, this.colliders.castClosure(D2));
+  intersectionsWithShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3) {
+    this.broadPhase.intersectionsWithShape(this.narrowPhase, this.bodies, this.colliders, A2, I3, g3, this.colliders.castClosure(C3), B2, Q2, E3 ? E3.handle : null, i4 ? i4.handle : null, this.colliders.castClosure(D3));
   }
-  collidersWithAabbIntersectingAabb(A2, I2, g2) {
-    this.broadPhase.collidersWithAabbIntersectingAabb(this.narrowPhase, this.bodies, this.colliders, A2, I2, this.colliders.castClosure(g2));
+  collidersWithAabbIntersectingAabb(A2, I3, g3) {
+    this.broadPhase.collidersWithAabbIntersectingAabb(this.narrowPhase, this.bodies, this.colliders, A2, I3, this.colliders.castClosure(g3));
   }
-  contactPairsWith(A2, I2) {
-    this.narrowPhase.contactPairsWith(A2.handle, this.colliders.castClosure(I2));
+  contactPairsWith(A2, I3) {
+    this.narrowPhase.contactPairsWith(A2.handle, this.colliders.castClosure(I3));
   }
-  intersectionPairsWith(A2, I2) {
-    this.narrowPhase.intersectionPairsWith(A2.handle, this.colliders.castClosure(I2));
+  intersectionPairsWith(A2, I3) {
+    this.narrowPhase.intersectionPairsWith(A2.handle, this.colliders.castClosure(I3));
   }
-  contactPair(A2, I2, g2) {
-    this.narrowPhase.contactPair(A2.handle, I2.handle, this.bodies, g2);
+  contactPair(A2, I3, g3) {
+    this.narrowPhase.contactPair(A2.handle, I3.handle, this.bodies, g3);
   }
-  intersectionPair(A2, I2) {
-    return this.narrowPhase.intersectionPair(A2.handle, I2.handle);
+  intersectionPair(A2, I3) {
+    return this.narrowPhase.intersectionPair(A2.handle, I3.handle);
   }
   set profilerEnabled(A2) {
     this.physicsPipeline.raw.set_profiler_enabled(A2);
@@ -14898,8 +14898,8 @@ var rg = class {
   static {
     __name(this, "rg");
   }
-  constructor(A2, I2) {
-    this.raw = I2 || new K(A2);
+  constructor(A2, I3) {
+    this.raw = I3 || new K(A2);
   }
   free() {
     this.raw && this.raw.free(), this.raw = void 0;
@@ -14908,9 +14908,9 @@ var rg = class {
     this.raw.drainCollisionEvents(A2);
   }
   drainContactForceEvents(A2) {
-    let I2 = new tg();
-    this.raw.drainContactForceEvents(((g2) => {
-      I2.raw = g2, A2(I2), I2.free();
+    let I3 = new tg();
+    this.raw.drainContactForceEvents(((g3) => {
+      I3.raw = g3, A2(I3), I3.free();
     }));
   }
   clear() {
@@ -14930,8 +14930,8 @@ var Og = class {
   static {
     __name(this, "Og");
   }
-  constructor(A2, I2, g2, C2) {
-    this.colliderSet = A2, this.handle = I2, this._parent = g2, this._shape = C2;
+  constructor(A2, I3, g3, C3) {
+    this.colliderSet = A2, this.handle = I3, this._parent = g3, this._shape = C3;
   }
   finalizeDeserialization(A2) {
     null != this.handle && (this._parent = A2.get(this.colliderSet.raw.coParent(this.handle)));
@@ -14967,8 +14967,8 @@ var Og = class {
     this.colliderSet.raw.coSetSensor(this.handle, A2);
   }
   setShape(A2) {
-    let I2 = A2.intoRaw();
-    this.colliderSet.raw.coSetShape(this.handle, I2), I2.free(), this._shape = A2;
+    let I3 = A2.intoRaw();
+    this.colliderSet.raw.coSetShape(this.handle, I3), I3.free(), this._shape = A2;
   }
   setEnabled(A2) {
     this.colliderSet.raw.coSetEnabled(this.handle, A2);
@@ -15036,9 +15036,9 @@ var Og = class {
   setMass(A2) {
     this.colliderSet.raw.coSetMass(this.handle, A2);
   }
-  setMassProperties(A2, I2, g2, C2) {
-    let B2 = _A.intoRaw(I2), Q2 = _A.intoRaw(g2), E2 = AI.intoRaw(C2);
-    this.colliderSet.raw.coSetMassProperties(this.handle, A2, B2, Q2, E2), B2.free(), Q2.free(), E2.free();
+  setMassProperties(A2, I3, g3, C3) {
+    let B2 = _A.intoRaw(I3), Q2 = _A.intoRaw(g3), E3 = AI.intoRaw(C3);
+    this.colliderSet.raw.coSetMassProperties(this.handle, A2, B2, Q2, E3), B2.free(), Q2.free(), E3.free();
   }
   setTranslation(A2) {
     this.colliderSet.raw.coSetTranslation(this.handle, A2.x, A2.y, A2.z);
@@ -15059,8 +15059,8 @@ var Og = class {
     return this.colliderSet.raw.coHalfExtents(this.handle, zA) ? _A.fromBuffer(zA, A2) : null;
   }
   setHalfExtents(A2) {
-    const I2 = _A.intoRaw(A2);
-    this.colliderSet.raw.coSetHalfExtents(this.handle, I2);
+    const I3 = _A.intoRaw(A2);
+    this.colliderSet.raw.coSetHalfExtents(this.handle, I3);
   }
   radius() {
     return this.colliderSet.raw.coRadius(this.handle);
@@ -15080,14 +15080,14 @@ var Og = class {
   setHalfHeight(A2) {
     this.colliderSet.raw.coSetHalfHeight(this.handle, A2);
   }
-  setVoxel(A2, I2, g2, C2) {
-    this.colliderSet.raw.coSetVoxel(this.handle, A2, I2, g2, C2), this._shape = null;
+  setVoxel(A2, I3, g3, C3) {
+    this.colliderSet.raw.coSetVoxel(this.handle, A2, I3, g3, C3), this._shape = null;
   }
-  propagateVoxelChange(A2, I2, g2, C2, B2, Q2, E2) {
-    this.colliderSet.raw.coPropagateVoxelChange(this.handle, A2.handle, I2, g2, C2, B2, Q2, E2), this._shape = null;
+  propagateVoxelChange(A2, I3, g3, C3, B2, Q2, E3) {
+    this.colliderSet.raw.coPropagateVoxelChange(this.handle, A2.handle, I3, g3, C3, B2, Q2, E3), this._shape = null;
   }
-  combineVoxelStates(A2, I2, g2, C2) {
-    this.colliderSet.raw.coCombineVoxelStates(this.handle, A2.handle, I2, g2, C2), this._shape = null;
+  combineVoxelStates(A2, I3, g3, C3) {
+    this.colliderSet.raw.coCombineVoxelStates(this.handle, A2.handle, I3, g3, C3), this._shape = null;
   }
   vertices() {
     return this.colliderSet.raw.coVertices(this.handle);
@@ -15132,51 +15132,51 @@ var Og = class {
     return this.colliderSet.raw.coSolverGroups(this.handle);
   }
   containsPoint(A2) {
-    let I2 = _A.intoRaw(A2), g2 = this.colliderSet.raw.coContainsPoint(this.handle, I2);
-    return I2.free(), g2;
+    let I3 = _A.intoRaw(A2), g3 = this.colliderSet.raw.coContainsPoint(this.handle, I3);
+    return I3.free(), g3;
   }
-  projectPoint(A2, I2, g2) {
-    let C2 = _A.intoRaw(A2), B2 = uI.fromBuffer(this.colliderSet.raw.coProjectPoint(this.handle, C2, I2), g2);
-    return C2.free(), B2;
+  projectPoint(A2, I3, g3) {
+    let C3 = _A.intoRaw(A2), B2 = uI.fromBuffer(this.colliderSet.raw.coProjectPoint(this.handle, C3, I3), g3);
+    return C3.free(), B2;
   }
-  intersectsRay(A2, I2) {
-    let g2 = _A.intoRaw(A2.origin), C2 = _A.intoRaw(A2.dir), B2 = this.colliderSet.raw.coIntersectsRay(this.handle, g2, C2, I2);
-    return g2.free(), C2.free(), B2;
+  intersectsRay(A2, I3) {
+    let g3 = _A.intoRaw(A2.origin), C3 = _A.intoRaw(A2.dir), B2 = this.colliderSet.raw.coIntersectsRay(this.handle, g3, C3, I3);
+    return g3.free(), C3.free(), B2;
   }
-  castShape(A2, I2, g2, C2, B2, Q2, E2, i2, D2) {
-    let S2 = _A.intoRaw(A2), o2 = _A.intoRaw(g2), w2 = AI.intoRaw(C2), K2 = _A.intoRaw(B2), U2 = I2.intoRaw();
-    const k2 = this.colliderSet.raw.coCastShape(this.handle, S2, U2, o2, w2, K2, Q2, E2, i2);
-    let h2 = null;
-    return k2 && (k2.getComponents(zA), h2 = vI.fromBuffer(null, zA, D2), k2.free()), S2.free(), o2.free(), w2.free(), K2.free(), U2.free(), h2;
+  castShape(A2, I3, g3, C3, B2, Q2, E3, i4, D3) {
+    let S3 = _A.intoRaw(A2), o3 = _A.intoRaw(g3), w3 = AI.intoRaw(C3), K2 = _A.intoRaw(B2), U2 = I3.intoRaw();
+    const k3 = this.colliderSet.raw.coCastShape(this.handle, S3, U2, o3, w3, K2, Q2, E3, i4);
+    let h3 = null;
+    return k3 && (k3.getComponents(zA), h3 = vI.fromBuffer(null, zA, D3), k3.free()), S3.free(), o3.free(), w3.free(), K2.free(), U2.free(), h3;
   }
-  castCollider(A2, I2, g2, C2, B2, Q2, E2) {
-    let i2 = _A.intoRaw(A2), D2 = _A.intoRaw(g2);
-    const S2 = this.colliderSet.raw.coCastCollider(this.handle, i2, I2.handle, D2, C2, B2, Q2);
-    let o2 = null;
-    if (S2) {
-      const A3 = S2.colliderHandle();
-      S2.getComponents(zA), o2 = _I.fromBuffer(this.colliderSet.get(A3), zA, E2), S2.free();
+  castCollider(A2, I3, g3, C3, B2, Q2, E3) {
+    let i4 = _A.intoRaw(A2), D3 = _A.intoRaw(g3);
+    const S3 = this.colliderSet.raw.coCastCollider(this.handle, i4, I3.handle, D3, C3, B2, Q2);
+    let o3 = null;
+    if (S3) {
+      const A3 = S3.colliderHandle();
+      S3.getComponents(zA), o3 = _I.fromBuffer(this.colliderSet.get(A3), zA, E3), S3.free();
     }
-    return i2.free(), D2.free(), o2;
+    return i4.free(), D3.free(), o3;
   }
-  intersectsShape(A2, I2, g2) {
-    let C2 = _A.intoRaw(I2), B2 = AI.intoRaw(g2), Q2 = A2.intoRaw(), E2 = this.colliderSet.raw.coIntersectsShape(this.handle, Q2, C2, B2);
-    return C2.free(), B2.free(), Q2.free(), E2;
+  intersectsShape(A2, I3, g3) {
+    let C3 = _A.intoRaw(I3), B2 = AI.intoRaw(g3), Q2 = A2.intoRaw(), E3 = this.colliderSet.raw.coIntersectsShape(this.handle, Q2, C3, B2);
+    return C3.free(), B2.free(), Q2.free(), E3;
   }
-  contactShape(A2, I2, g2, C2, B2) {
-    let Q2 = _A.intoRaw(I2), E2 = AI.intoRaw(g2), i2 = A2.intoRaw(), D2 = gg.fromBuffer(this.colliderSet.raw.coContactShape(this.handle, i2, Q2, E2, C2), B2);
-    return Q2.free(), E2.free(), i2.free(), D2;
+  contactShape(A2, I3, g3, C3, B2) {
+    let Q2 = _A.intoRaw(I3), E3 = AI.intoRaw(g3), i4 = A2.intoRaw(), D3 = gg.fromBuffer(this.colliderSet.raw.coContactShape(this.handle, i4, Q2, E3, C3), B2);
+    return Q2.free(), E3.free(), i4.free(), D3;
   }
-  contactCollider(A2, I2, g2) {
-    return gg.fromBuffer(this.colliderSet.raw.coContactCollider(this.handle, A2.handle, I2), g2);
+  contactCollider(A2, I3, g3) {
+    return gg.fromBuffer(this.colliderSet.raw.coContactCollider(this.handle, A2.handle, I3), g3);
   }
-  castRay(A2, I2, g2) {
-    let C2 = _A.intoRaw(A2.origin), B2 = _A.intoRaw(A2.dir), Q2 = this.colliderSet.raw.coCastRay(this.handle, C2, B2, I2, g2);
-    return C2.free(), B2.free(), Q2;
+  castRay(A2, I3, g3) {
+    let C3 = _A.intoRaw(A2.origin), B2 = _A.intoRaw(A2.dir), Q2 = this.colliderSet.raw.coCastRay(this.handle, C3, B2, I3, g3);
+    return C3.free(), B2.free(), Q2;
   }
-  castRayAndGetNormal(A2, I2, g2, C2) {
-    let B2 = _A.intoRaw(A2.origin), Q2 = _A.intoRaw(A2.dir), E2 = PI.fromBuffer(this.colliderSet.raw.coCastRayAndGetNormal(this.handle, B2, Q2, I2, g2), C2);
-    return B2.free(), Q2.free(), E2;
+  castRayAndGetNormal(A2, I3, g3, C3) {
+    let B2 = _A.intoRaw(A2.origin), Q2 = _A.intoRaw(A2.dir), E3 = PI.fromBuffer(this.colliderSet.raw.coCastRayAndGetNormal(this.handle, B2, Q2, I3, g3), C3);
+    return B2.free(), Q2.free(), E3;
   }
 };
 !(function(A2) {
@@ -15190,98 +15190,98 @@ var eg = class _eg {
     this.enabled = true, this.shape = A2, this.massPropsMode = FI.Density, this.density = 1, this.friction = 0.5, this.restitution = 0, this.rotation = AI.identity(), this.translation = _A.zeros(), this.isSensor = false, this.collisionGroups = 4294967295, this.solverGroups = 4294967295, this.frictionCombineRule = DI.Average, this.restitutionCombineRule = DI.Average, this.activeCollisionTypes = GI.DEFAULT, this.activeEvents = kI.NONE, this.activeHooks = hI.NONE, this.mass = 0, this.centerOfMass = _A.zeros(), this.contactForceEventThreshold = 0, this.contactSkin = 0, this.principalAngularInertia = _A.zeros(), this.angularInertiaLocalFrame = AI.identity();
   }
   static ball(A2) {
-    const I2 = new Bg(A2);
-    return new _eg(I2);
+    const I3 = new Bg(A2);
+    return new _eg(I3);
   }
-  static capsule(A2, I2) {
-    const g2 = new Dg(A2, I2);
-    return new _eg(g2);
+  static capsule(A2, I3) {
+    const g3 = new Dg(A2, I3);
+    return new _eg(g3);
   }
-  static segment(A2, I2) {
-    const g2 = new Sg(A2, I2);
-    return new _eg(g2);
+  static segment(A2, I3) {
+    const g3 = new Sg(A2, I3);
+    return new _eg(g3);
   }
-  static triangle(A2, I2, g2) {
-    const C2 = new og(A2, I2, g2);
-    return new _eg(C2);
+  static triangle(A2, I3, g3) {
+    const C3 = new og(A2, I3, g3);
+    return new _eg(C3);
   }
-  static roundTriangle(A2, I2, g2, C2) {
-    const B2 = new wg(A2, I2, g2, C2);
+  static roundTriangle(A2, I3, g3, C3) {
+    const B2 = new wg(A2, I3, g3, C3);
     return new _eg(B2);
   }
-  static polyline(A2, I2) {
-    const g2 = new Kg(A2, I2);
-    return new _eg(g2);
+  static polyline(A2, I3) {
+    const g3 = new Kg(A2, I3);
+    return new _eg(g3);
   }
-  static voxels(A2, I2) {
-    const g2 = new Ug(A2, I2);
-    return new _eg(g2);
+  static voxels(A2, I3) {
+    const g3 = new Ug(A2, I3);
+    return new _eg(g3);
   }
-  static trimesh(A2, I2, g2) {
-    const C2 = new hg(A2, I2, g2);
-    return new _eg(C2);
+  static trimesh(A2, I3, g3) {
+    const C3 = new hg(A2, I3, g3);
+    return new _eg(C3);
   }
-  static cuboid(A2, I2, g2) {
-    const C2 = new Eg(A2, I2, g2);
-    return new _eg(C2);
+  static cuboid(A2, I3, g3) {
+    const C3 = new Eg(A2, I3, g3);
+    return new _eg(C3);
   }
-  static roundCuboid(A2, I2, g2, C2) {
-    const B2 = new ig(A2, I2, g2, C2);
+  static roundCuboid(A2, I3, g3, C3) {
+    const B2 = new ig(A2, I3, g3, C3);
     return new _eg(B2);
   }
-  static heightfield(A2, I2, g2, C2, B2) {
-    const Q2 = new Gg(A2, I2, g2, C2, B2);
+  static heightfield(A2, I3, g3, C3, B2) {
+    const Q2 = new Gg(A2, I3, g3, C3, B2);
     return new _eg(Q2);
   }
-  static cylinder(A2, I2) {
-    const g2 = new Fg(A2, I2);
-    return new _eg(g2);
+  static cylinder(A2, I3) {
+    const g3 = new Fg(A2, I3);
+    return new _eg(g3);
   }
-  static roundCylinder(A2, I2, g2) {
-    const C2 = new Mg(A2, I2, g2);
-    return new _eg(C2);
+  static roundCylinder(A2, I3, g3) {
+    const C3 = new Mg(A2, I3, g3);
+    return new _eg(C3);
   }
-  static cone(A2, I2) {
-    const g2 = new Ng(A2, I2);
-    return new _eg(g2);
+  static cone(A2, I3) {
+    const g3 = new Ng(A2, I3);
+    return new _eg(g3);
   }
-  static roundCone(A2, I2, g2) {
-    const C2 = new sg(A2, I2, g2);
-    return new _eg(C2);
+  static roundCone(A2, I3, g3) {
+    const C3 = new sg(A2, I3, g3);
+    return new _eg(C3);
   }
   static convexHull(A2) {
-    const I2 = new yg(A2, null);
-    return new _eg(I2);
+    const I3 = new yg(A2, null);
+    return new _eg(I3);
   }
-  static convexMesh(A2, I2) {
-    const g2 = new yg(A2, I2);
-    return new _eg(g2);
+  static convexMesh(A2, I3) {
+    const g3 = new yg(A2, I3);
+    return new _eg(g3);
   }
-  static roundConvexHull(A2, I2) {
-    const g2 = new Jg(A2, null, I2);
-    return new _eg(g2);
+  static roundConvexHull(A2, I3) {
+    const g3 = new Jg(A2, null, I3);
+    return new _eg(g3);
   }
-  static roundConvexMesh(A2, I2, g2) {
-    const C2 = new Jg(A2, I2, g2);
-    return new _eg(C2);
+  static roundConvexMesh(A2, I3, g3) {
+    const C3 = new Jg(A2, I3, g3);
+    return new _eg(C3);
   }
-  static compound(A2, I2, g2) {
-    const C2 = new kg(A2, I2, g2);
-    return new _eg(C2);
+  static compound(A2, I3, g3) {
+    const C3 = new kg(A2, I3, g3);
+    return new _eg(C3);
   }
-  static convexDecomposition(A2, I2, g2) {
-    let C2;
-    if (g2) {
+  static convexDecomposition(A2, I3, g3) {
+    let C3;
+    if (g3) {
       const B3 = new T();
-      void 0 !== g2.alpha && (B3.alpha = g2.alpha), void 0 !== g2.beta && (B3.beta = g2.beta), void 0 !== g2.concavity && (B3.concavity = g2.concavity), void 0 !== g2.planeDownsampling && (B3.plane_downsampling = g2.planeDownsampling), void 0 !== g2.convexHullDownsampling && (B3.convex_hull_downsampling = g2.convexHullDownsampling), void 0 !== g2.maxConvexHulls && (B3.max_convex_hulls = g2.maxConvexHulls), void 0 !== g2.resolution && (B3.resolution = g2.resolution), void 0 !== g2.convexHullApproximation && (B3.convex_hull_approximation = g2.convexHullApproximation), C2 = t.convexDecompositionWithParams(A2, I2, B3), B3.free();
-    } else C2 = t.convexDecomposition(A2, I2);
-    if (!C2) return null;
-    const B2 = Cg.fromRawShape(C2);
+      void 0 !== g3.alpha && (B3.alpha = g3.alpha), void 0 !== g3.beta && (B3.beta = g3.beta), void 0 !== g3.concavity && (B3.concavity = g3.concavity), void 0 !== g3.planeDownsampling && (B3.plane_downsampling = g3.planeDownsampling), void 0 !== g3.convexHullDownsampling && (B3.convex_hull_downsampling = g3.convexHullDownsampling), void 0 !== g3.maxConvexHulls && (B3.max_convex_hulls = g3.maxConvexHulls), void 0 !== g3.resolution && (B3.resolution = g3.resolution), void 0 !== g3.convexHullApproximation && (B3.convex_hull_approximation = g3.convexHullApproximation), C3 = t.convexDecompositionWithParams(A2, I3, B3), B3.free();
+    } else C3 = t.convexDecomposition(A2, I3);
+    if (!C3) return null;
+    const B2 = Cg.fromRawShape(C3);
     return new _eg(B2);
   }
-  setTranslation(A2, I2, g2) {
-    if ("number" != typeof A2 || "number" != typeof I2 || "number" != typeof g2) throw TypeError("The translation components must be numbers.");
-    return this.translation = { x: A2, y: I2, z: g2 }, this;
+  setTranslation(A2, I3, g3) {
+    if ("number" != typeof A2 || "number" != typeof I3 || "number" != typeof g3) throw TypeError("The translation components must be numbers.");
+    return this.translation = { x: A2, y: I3, z: g3 }, this;
   }
   setRotation(A2) {
     return AI.copy(this.rotation, A2), this;
@@ -15301,8 +15301,8 @@ var eg = class _eg {
   setMass(A2) {
     return this.massPropsMode = FI.Mass, this.mass = A2, this;
   }
-  setMassProperties(A2, I2, g2, C2) {
-    return this.massPropsMode = FI.MassProps, this.mass = A2, _A.copy(this.centerOfMass, I2), _A.copy(this.principalAngularInertia, g2), AI.copy(this.angularInertiaLocalFrame, C2), this;
+  setMassProperties(A2, I3, g3, C3) {
+    return this.massPropsMode = FI.MassProps, this.mass = A2, _A.copy(this.centerOfMass, I3), _A.copy(this.principalAngularInertia, g3), AI.copy(this.angularInertiaLocalFrame, C3), this;
   }
   setRestitution(A2) {
     return this.restitution = A2, this;
@@ -15348,21 +15348,21 @@ var Tg = class {
     this.raw && this.raw.free(), this.raw = void 0, this.map && this.map.clear(), this.map = void 0;
   }
   castClosure(A2) {
-    return (I2) => A2 ? A2(this.get(I2)) : void 0;
+    return (I3) => A2 ? A2(this.get(I3)) : void 0;
   }
   finalizeDeserialization(A2) {
-    this.map.forEach(((I2) => I2.finalizeDeserialization(A2)));
+    this.map.forEach(((I3) => I3.finalizeDeserialization(A2)));
   }
-  createCollider(A2, I2, g2) {
-    let C2 = null != g2 && null != g2;
-    if (C2 && isNaN(g2)) throw Error("Cannot create a collider with a parent rigid-body handle that is not a number.");
-    let B2 = I2.shape.intoRaw(), Q2 = _A.intoRaw(I2.translation), E2 = AI.intoRaw(I2.rotation), i2 = _A.intoRaw(I2.centerOfMass), D2 = _A.intoRaw(I2.principalAngularInertia), S2 = AI.intoRaw(I2.angularInertiaLocalFrame), o2 = this.raw.createCollider(I2.enabled, B2, Q2, E2, I2.massPropsMode, I2.mass, i2, D2, S2, I2.density, I2.friction, I2.restitution, I2.frictionCombineRule, I2.restitutionCombineRule, I2.isSensor, I2.collisionGroups, I2.solverGroups, I2.activeCollisionTypes, I2.activeHooks, I2.activeEvents, I2.contactForceEventThreshold, I2.contactSkin, C2, C2 ? g2 : 0, A2.raw);
-    B2.free(), Q2.free(), E2.free(), i2.free(), D2.free(), S2.free();
-    let w2 = C2 ? A2.get(g2) : null, K2 = new Og(this, o2, w2, I2.shape);
-    return this.map.set(o2, K2), K2;
+  createCollider(A2, I3, g3) {
+    let C3 = null != g3 && null != g3;
+    if (C3 && isNaN(g3)) throw Error("Cannot create a collider with a parent rigid-body handle that is not a number.");
+    let B2 = I3.shape.intoRaw(), Q2 = _A.intoRaw(I3.translation), E3 = AI.intoRaw(I3.rotation), i4 = _A.intoRaw(I3.centerOfMass), D3 = _A.intoRaw(I3.principalAngularInertia), S3 = AI.intoRaw(I3.angularInertiaLocalFrame), o3 = this.raw.createCollider(I3.enabled, B2, Q2, E3, I3.massPropsMode, I3.mass, i4, D3, S3, I3.density, I3.friction, I3.restitution, I3.frictionCombineRule, I3.restitutionCombineRule, I3.isSensor, I3.collisionGroups, I3.solverGroups, I3.activeCollisionTypes, I3.activeHooks, I3.activeEvents, I3.contactForceEventThreshold, I3.contactSkin, C3, C3 ? g3 : 0, A2.raw);
+    B2.free(), Q2.free(), E3.free(), i4.free(), D3.free(), S3.free();
+    let w3 = C3 ? A2.get(g3) : null, K2 = new Og(this, o3, w3, I3.shape);
+    return this.map.set(o3, K2), K2;
   }
-  remove(A2, I2, g2, C2) {
-    this.raw.remove(A2, I2.raw, g2.raw, C2), this.unmap(A2);
+  remove(A2, I3, g3, C3) {
+    this.raw.remove(A2, I3.raw, g3.raw, C3), this.unmap(A2);
   }
   unmap(A2) {
     this.map.delete(A2);
@@ -15383,49 +15383,49 @@ var Tg = class {
     return this.map.getAll();
   }
 };
-function dg(A2, I2, g2, C2) {
-  return new (g2 || (g2 = Promise))((function(B2, Q2) {
-    function E2(A3) {
+function dg(A2, I3, g3, C3) {
+  return new (g3 || (g3 = Promise))((function(B2, Q2) {
+    function E3(A3) {
       try {
-        D2(C2.next(A3));
+        D3(C3.next(A3));
       } catch (A4) {
         Q2(A4);
       }
     }
-    __name(E2, "E");
-    function i2(A3) {
+    __name(E3, "E");
+    function i4(A3) {
       try {
-        D2(C2.throw(A3));
+        D3(C3.throw(A3));
       } catch (A4) {
         Q2(A4);
       }
     }
-    __name(i2, "i");
-    function D2(A3) {
-      var I3;
-      A3.done ? B2(A3.value) : (I3 = A3.value, I3 instanceof g2 ? I3 : new g2((function(A4) {
-        A4(I3);
-      }))).then(E2, i2);
+    __name(i4, "i");
+    function D3(A3) {
+      var I4;
+      A3.done ? B2(A3.value) : (I4 = A3.value, I4 instanceof g3 ? I4 : new g3((function(A4) {
+        A4(I4);
+      }))).then(E3, i4);
     }
-    __name(D2, "D");
-    D2((C2 = C2.apply(A2, I2 || [])).next());
+    __name(D3, "D");
+    D3((C3 = C3.apply(A2, I3 || [])).next());
   }));
 }
 __name(dg, "dg");
 for (ng = { byteLength: /* @__PURE__ */ __name(function(A2) {
-  var I2 = Xg(A2), g2 = I2[0], C2 = I2[1];
-  return 3 * (g2 + C2) / 4 - C2;
+  var I3 = Xg(A2), g3 = I3[0], C3 = I3[1];
+  return 3 * (g3 + C3) / 4 - C3;
 }, "byteLength"), toByteArray: /* @__PURE__ */ __name(function(A2) {
-  var I2, g2, C2 = Xg(A2), B2 = C2[0], Q2 = C2[1], E2 = new jg((function(A3, I3, g3) {
-    return 3 * (I3 + g3) / 4 - g3;
-  })(0, B2, Q2)), i2 = 0, D2 = Q2 > 0 ? B2 - 4 : B2;
-  for (g2 = 0; g2 < D2; g2 += 4) I2 = bg[A2.charCodeAt(g2)] << 18 | bg[A2.charCodeAt(g2 + 1)] << 12 | bg[A2.charCodeAt(g2 + 2)] << 6 | bg[A2.charCodeAt(g2 + 3)], E2[i2++] = I2 >> 16 & 255, E2[i2++] = I2 >> 8 & 255, E2[i2++] = 255 & I2;
-  2 === Q2 && (I2 = bg[A2.charCodeAt(g2)] << 2 | bg[A2.charCodeAt(g2 + 1)] >> 4, E2[i2++] = 255 & I2);
-  1 === Q2 && (I2 = bg[A2.charCodeAt(g2)] << 10 | bg[A2.charCodeAt(g2 + 1)] << 4 | bg[A2.charCodeAt(g2 + 2)] >> 2, E2[i2++] = I2 >> 8 & 255, E2[i2++] = 255 & I2);
-  return E2;
+  var I3, g3, C3 = Xg(A2), B2 = C3[0], Q2 = C3[1], E3 = new jg((function(A3, I4, g4) {
+    return 3 * (I4 + g4) / 4 - g4;
+  })(0, B2, Q2)), i4 = 0, D3 = Q2 > 0 ? B2 - 4 : B2;
+  for (g3 = 0; g3 < D3; g3 += 4) I3 = bg[A2.charCodeAt(g3)] << 18 | bg[A2.charCodeAt(g3 + 1)] << 12 | bg[A2.charCodeAt(g3 + 2)] << 6 | bg[A2.charCodeAt(g3 + 3)], E3[i4++] = I3 >> 16 & 255, E3[i4++] = I3 >> 8 & 255, E3[i4++] = 255 & I3;
+  2 === Q2 && (I3 = bg[A2.charCodeAt(g3)] << 2 | bg[A2.charCodeAt(g3 + 1)] >> 4, E3[i4++] = 255 & I3);
+  1 === Q2 && (I3 = bg[A2.charCodeAt(g3)] << 10 | bg[A2.charCodeAt(g3 + 1)] << 4 | bg[A2.charCodeAt(g3 + 2)] >> 2, E3[i4++] = I3 >> 8 & 255, E3[i4++] = 255 & I3);
+  return E3;
 }, "toByteArray"), fromByteArray: /* @__PURE__ */ __name(function(A2) {
-  for (var I2, g2 = A2.length, C2 = g2 % 3, B2 = [], Q2 = 16383, E2 = 0, i2 = g2 - C2; E2 < i2; E2 += Q2) B2.push(Pg(A2, E2, E2 + Q2 > i2 ? i2 : E2 + Q2));
-  1 === C2 ? (I2 = A2[g2 - 1], B2.push(Zg[I2 >> 2] + Zg[I2 << 4 & 63] + "==")) : 2 === C2 && (I2 = (A2[g2 - 2] << 8) + A2[g2 - 1], B2.push(Zg[I2 >> 10] + Zg[I2 >> 4 & 63] + Zg[I2 << 2 & 63] + "="));
+  for (var I3, g3 = A2.length, C3 = g3 % 3, B2 = [], Q2 = 16383, E3 = 0, i4 = g3 - C3; E3 < i4; E3 += Q2) B2.push(Pg(A2, E3, E3 + Q2 > i4 ? i4 : E3 + Q2));
+  1 === C3 ? (I3 = A2[g3 - 1], B2.push(Zg[I3 >> 2] + Zg[I3 << 4 & 63] + "==")) : 2 === C3 && (I3 = (A2[g3 - 2] << 8) + A2[g3 - 1], B2.push(Zg[I3 >> 10] + Zg[I3 >> 4 & 63] + Zg[I3 << 2 & 63] + "="));
   return B2.join("");
 }, "fromByteArray") }, Zg = [], bg = [], jg = "undefined" != typeof Uint8Array ? Uint8Array : Array, Wg = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", xg = 0, fg = Wg.length; xg < fg; ++xg) Zg[xg] = Wg[xg], bg[Wg.charCodeAt(xg)] = xg;
 var ng;
@@ -15436,14 +15436,14 @@ var Wg;
 var xg;
 var fg;
 function Xg(A2) {
-  var I2 = A2.length;
-  if (I2 % 4 > 0) throw new Error("Invalid string. Length must be a multiple of 4");
-  var g2 = A2.indexOf("=");
-  return -1 === g2 && (g2 = I2), [g2, g2 === I2 ? 0 : 4 - g2 % 4];
+  var I3 = A2.length;
+  if (I3 % 4 > 0) throw new Error("Invalid string. Length must be a multiple of 4");
+  var g3 = A2.indexOf("=");
+  return -1 === g3 && (g3 = I3), [g3, g3 === I3 ? 0 : 4 - g3 % 4];
 }
 __name(Xg, "Xg");
-function Pg(A2, I2, g2) {
-  for (var C2, B2, Q2 = [], E2 = I2; E2 < g2; E2 += 3) C2 = (A2[E2] << 16 & 16711680) + (A2[E2 + 1] << 8 & 65280) + (255 & A2[E2 + 2]), Q2.push(Zg[(B2 = C2) >> 18 & 63] + Zg[B2 >> 12 & 63] + Zg[B2 >> 6 & 63] + Zg[63 & B2]);
+function Pg(A2, I3, g3) {
+  for (var C3, B2, Q2 = [], E3 = I3; E3 < g3; E3 += 3) C3 = (A2[E3] << 16 & 16711680) + (A2[E3 + 1] << 8 & 65280) + (255 & A2[E3 + 2]), Q2.push(Zg[(B2 = C3) >> 18 & 63] + Zg[B2 >> 12 & 63] + Zg[B2 >> 6 & 63] + Zg[63 & B2]);
   return Q2.join("");
 }
 __name(Pg, "Pg");
@@ -15455,21 +15455,21 @@ function mg() {
 __name(mg, "mg");
 function Vg() {
   return (function() {
-    let A2, I2;
+    let A2, I3;
     try {
       const B2 = mA.__wbindgen_add_to_stack_pointer(-16);
       mA.version(B2);
-      var g2 = lA().getInt32(B2 + 0, true), C2 = lA().getInt32(B2 + 4, true);
-      return A2 = g2, I2 = C2, pA(g2, C2);
+      var g3 = lA().getInt32(B2 + 0, true), C3 = lA().getInt32(B2 + 4, true);
+      return A2 = g3, I3 = C3, pA(g3, C3);
     } finally {
-      mA.__wbindgen_add_to_stack_pointer(16), mA.__wbindgen_export2(A2, I2, 1);
+      mA.__wbindgen_add_to_stack_pointer(16), mA.__wbindgen_export2(A2, I3, 1);
     }
   })();
 }
 __name(Vg, "Vg");
 function ug(A2) {
-  var I2;
-  I2 = A2, mA.reserve_memory(I2);
+  var I3;
+  I3 = A2, mA.reserve_memory(I3);
 }
 __name(ug, "ug");
 bg["-".charCodeAt(0)] = 62, bg["_".charCodeAt(0)] = 63;
@@ -15527,8 +15527,8 @@ var GltfLoader = class {
     const state = new GltfState(this.gpu, userOptions, url);
     let extension = state.options.extension;
     if (extension === void 0) {
-      const i2 = state.url.lastIndexOf(".");
-      extension = i2 !== -1 ? state.url.substring(i2 + 1) : void 0;
+      const i4 = state.url.lastIndexOf(".");
+      extension = i4 !== -1 ? state.url.substring(i4 + 1) : void 0;
     }
     switch (extension) {
       case "gltf": {
@@ -15825,8 +15825,8 @@ function isMobileBrowser() {
     return navigator.userAgentData.mobile;
   }
   let check = false;
-  (function(a2) {
-    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a2) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a2.substr(0, 4))) check = true;
+  (function(a3) {
+    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a3) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a3.substr(0, 4))) check = true;
   })(navigator.userAgent || navigator.vendor || window.opera);
   return check;
 }
@@ -16135,8 +16135,8 @@ var AttachmentLayout = class _AttachmentLayout {
     const depthStencilFormat = DepthStencilFormatValue[dataView.getUint8(1)];
     const colorFormatCount = dataView.getUint8(2);
     const colorFormats = [];
-    for (let i2 = 0; i2 < colorFormatCount; ++i2) {
-      colorFormats.push(RenderableFormatValue[dataView.getUint8(3 + i2)]);
+    for (let i4 = 0; i4 < colorFormatCount; ++i4) {
+      colorFormats.push(RenderableFormatValue[dataView.getUint8(3 + i4)]);
     }
     return new _AttachmentLayout(colorFormats, depthStencilFormat, sampleCount);
   }
@@ -16234,8 +16234,8 @@ var AttachmentLayout = class _AttachmentLayout {
     dataView.setUint8(0, this.sampleCount);
     dataView.setUint8(1, this.depthStencilFormat ? DepthStencilFormatValue[this.depthStencilFormat] : 0);
     dataView.setUint8(2, this.colorFormats.length);
-    for (let i2 = 0; i2 < this.colorFormats.length; ++i2) {
-      dataView.setUint8(i2 + 3, RenderableFormatValue[this.colorFormats[i2]]);
+    for (let i4 = 0; i4 < this.colorFormats.length; ++i4) {
+      dataView.setUint8(i4 + 3, RenderableFormatValue[this.colorFormats[i4]]);
     }
     this.#serializedBuffer = outBuffer;
     return outBuffer;
@@ -16541,7 +16541,7 @@ var WebGPUMipmapGenerator = class {
         arrayLayerCount: 1
       });
       let dstMipLevel = renderToSource ? 1 : 0;
-      for (let i2 = 1; i2 < texture.mipLevelCount; ++i2) {
+      for (let i4 = 1; i4 < texture.mipLevelCount; ++i4) {
         const dstView = mipTexture.createView({
           baseMipLevel: dstMipLevel++,
           mipLevelCount: 1,
@@ -16579,13 +16579,13 @@ var WebGPUMipmapGenerator = class {
         height: Math.max(texture.height >> 1, 1),
         depthOrArrayLayers: arrayLayerCount
       };
-      for (let i2 = 1; i2 < texture.mipLevelCount; ++i2) {
+      for (let i4 = 1; i4 < texture.mipLevelCount; ++i4) {
         commandEncoder.copyTextureToTexture({
           texture: mipTexture,
-          mipLevel: i2 - 1
+          mipLevel: i4 - 1
         }, {
           texture,
-          mipLevel: i2
+          mipLevel: i4
         }, mipLevelSize);
         mipLevelSize.width = Math.max(mipLevelSize.width >> 1, 1);
         mipLevelSize.height = Math.max(mipLevelSize.height >> 1, 1);
@@ -17067,14 +17067,14 @@ var TextureLoaderBase = class {
    * @param format - Format to create the texture with
    * @returns Completed WebTextureResult
    */
-  fromColor(r2, g2, b2, a2 = 1, format = "rgba8unorm") {
+  fromColor(r3, g3, b3, a3 = 1, format = "rgba8unorm") {
     if (!this.#client) {
       throw new Error("Cannot create new textures after object has been destroyed.");
     }
     if (format != "rgba8unorm" && format != "rgba8unorm-srgb") {
       throw new Error('fromColor only supports "rgba8unorm" and "rgba8unorm-srgb" formats');
     }
-    const data = new Uint8Array([r2 * 255, g2 * 255, b2 * 255, a2 * 255]);
+    const data = new Uint8Array([r3 * 255, g3 * 255, b3 * 255, a3 * 255]);
     return this.#client.fromTextureData(new BasicTextureData(format, 1, 1, data), false);
   }
   /**
@@ -17089,8 +17089,8 @@ var TextureLoaderBase = class {
       throw new Error("Cannot create new textures after object has been destroyed.");
     }
     const data = new Uint8Array(width * height * 4);
-    for (let i2 = 0; i2 < data.length; ++i2) {
-      data[i2] = Math.random() * 255;
+    for (let i4 = 0; i4 < data.length; ++i4) {
+      data[i4] = Math.random() * 255;
     }
     return this.#client.fromTextureData(new BasicTextureData("rgba8unorm", width, height, data), false);
   }
@@ -17378,9 +17378,9 @@ function getDefaultRenderPipeline(device, attachmentLayout) {
   let pipeline = devicePipelines.get(attachmentLayout.id);
   if (!pipeline) {
     let outStruct = "struct OutColors { ";
-    for (let i2 = 0; i2 < attachmentLayout.colorFormats.length; ++i2) {
-      const outType = attachmentLayout.colorFormats[i2];
-      outStruct += `@location(${i2}) color_${i2}: ${AttachmentLayout.DefaultOutputType(outType)}, `;
+    for (let i4 = 0; i4 < attachmentLayout.colorFormats.length; ++i4) {
+      const outType = attachmentLayout.colorFormats[i4];
+      outStruct += `@location(${i4}) color_${i4}: ${AttachmentLayout.DefaultOutputType(outType)}, `;
     }
     outStruct += "}";
     const module = device.createShaderModule({
@@ -18158,15 +18158,15 @@ var SelectionManager = class {
     });
     return buffer;
   }
-  async getDecalIdAtPoint(x2, y2) {
+  async getDecalIdAtPoint(x3, y3) {
     const device = this.gpu.device;
     const readbackBuffer = this.#getSelectionReadbackBuffer();
     const commandEncoder = device.createCommandEncoder();
     const computePass = commandEncoder.beginComputePass({});
     computePass.setPipeline(this.selectionPipeline);
     computePass.setBindGroup(0, this.selectionBindGroup);
-    this.immediateArray[0] = x2;
-    this.immediateArray[1] = y2;
+    this.immediateArray[0] = x3;
+    this.immediateArray[1] = y3;
     computePass.setImmediates(0, this.immediateArray);
     computePass.dispatchWorkgroups(1);
     computePass.end();
@@ -19103,27 +19103,40 @@ var PhysicsFPSController = class extends ControllerInput {
   #walking = false;
   #crouching = false;
   #crouchPressed = false;
+  #virtualWalk = new Vec2();
+  #virtualLook = new Vec2();
   constructor(element) {
     super(element);
   }
-  setAngles(x2, y2) {
-    this.angles[0] = x2;
-    this.angles[1] = y2;
+  setAngles(x3, y3) {
+    this.angles[0] = x3;
+    this.angles[1] = y3;
     const q2 = this.rotation;
     q2.identity();
     Quat.rotateY(q2, q2, -this.angles[1]);
     Quat.rotateX(q2, q2, -this.angles[0]);
   }
+  setVirtualWalk(x3, y3) {
+    this.#virtualWalk[0] = x3;
+    this.#virtualWalk[1] = y3;
+  }
+  setVirtualLook(x3, y3) {
+    this.#virtualLook[0] = x3;
+    this.#virtualLook[1] = -y3;
+  }
   onMouseMove(xDelta, yDelta) {
     if (this.mousePressed(0)) {
-      this.angles[1] = (this.angles[1] + xDelta * 0.025) % (Math.PI * 2);
-      this.angles[0] += yDelta * 0.025;
-      this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI * 0.5), Math.PI * 0.5);
-      const q2 = this.rotation;
-      q2.identity();
-      Quat.rotateY(q2, q2, -this.angles[1]);
-      Quat.rotateX(q2, q2, -this.angles[0]);
+      this.#rotateView(xDelta, yDelta);
     }
+  }
+  #rotateView(xDelta, yDelta) {
+    this.angles[1] = (this.angles[1] + xDelta * 0.025) % (Math.PI * 2);
+    this.angles[0] += yDelta * 0.025;
+    this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI * 0.5), Math.PI * 0.5);
+    const q2 = this.rotation;
+    q2.identity();
+    Quat.rotateY(q2, q2, -this.angles[1]);
+    Quat.rotateX(q2, q2, -this.angles[0]);
   }
   get walking() {
     return this.#walking;
@@ -19182,6 +19195,9 @@ var PhysicsFPSController = class extends ControllerInput {
       console.warn("PhysicsFPSController has no RigidBody or Collider");
       return;
     }
+    if (this.#virtualLook.sqrMag > 0.025) {
+      this.#rotateView(this.#virtualLook[0], this.#virtualLook[1]);
+    }
     if (!this.flying) {
       this.#yVelocity += this.#onGround ? 0 : this.gravity / 1e3 * tickData.delta;
     } else {
@@ -19223,7 +19239,15 @@ var PhysicsFPSController = class extends ControllerInput {
       } else {
       }
     }
-    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0 || this.#yVelocity !== 0) {
+    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0) {
+      tmpDir.normalize();
+    }
+    tmpDir[0] += this.#virtualWalk[0];
+    tmpDir[2] -= this.#virtualWalk[1];
+    if (tmpDir.sqrMag > 1) {
+      tmpDir.normalize();
+    }
+    if (tmpDir.sqrMag > 0.025 || this.#yVelocity !== 0) {
       if (this.flying) {
         Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
       } else {
@@ -19231,7 +19255,6 @@ var PhysicsFPSController = class extends ControllerInput {
         tmpQuat.rotateY(-this.angles[1]);
         Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
       }
-      tmpDir.normalize();
       tmpDir.scale(this.speed * tickData.delta);
       if (!this.flying) {
         tmpDir[1] += this.#yVelocity;
@@ -19256,8 +19279,8 @@ var PhysicsFPSController = class extends ControllerInput {
 };
 
 // node_modules/tweakpane/dist/tweakpane.js
-function forceCast(v2) {
-  return v2;
+function forceCast(v3) {
+  return v3;
 }
 __name(forceCast, "forceCast");
 function isEmpty(value) {
@@ -19272,24 +19295,24 @@ function isRecord(value) {
   return value !== null && typeof value === "object";
 }
 __name(isRecord, "isRecord");
-function deepEqualsArray(a1, a2) {
-  if (a1.length !== a2.length) {
+function deepEqualsArray(a1, a22) {
+  if (a1.length !== a22.length) {
     return false;
   }
-  for (let i2 = 0; i2 < a1.length; i2++) {
-    if (a1[i2] !== a2[i2]) {
+  for (let i4 = 0; i4 < a1.length; i4++) {
+    if (a1[i4] !== a22[i4]) {
       return false;
     }
   }
   return true;
 }
 __name(deepEqualsArray, "deepEqualsArray");
-function deepMerge(r1, r2) {
-  const keys = Array.from(/* @__PURE__ */ new Set([...Object.keys(r1), ...Object.keys(r2)]));
+function deepMerge(r1, r22) {
+  const keys = Array.from(/* @__PURE__ */ new Set([...Object.keys(r1), ...Object.keys(r22)]));
   return keys.reduce((result, key) => {
     const v1 = r1[key];
-    const v2 = r2[key];
-    return isRecord(v1) && isRecord(v2) ? Object.assign(Object.assign({}, result), { [key]: deepMerge(v1, v2) }) : Object.assign(Object.assign({}, result), { [key]: key in r2 ? v2 : v1 });
+    const v22 = r22[key];
+    return isRecord(v1) && isRecord(v22) ? Object.assign(Object.assign({}, result), { [key]: deepMerge(v1, v22) }) : Object.assign(Object.assign({}, result), { [key]: key in r22 ? v22 : v1 });
   }, {});
 }
 __name(deepMerge, "deepMerge");
@@ -19431,7 +19454,7 @@ var ComplexValue = class {
   constructor(initialValue, config) {
     var _a;
     this.constraint_ = config === null || config === void 0 ? void 0 : config.constraint;
-    this.equals_ = (_a = config === null || config === void 0 ? void 0 : config.equals) !== null && _a !== void 0 ? _a : ((v1, v2) => v1 === v2);
+    this.equals_ = (_a = config === null || config === void 0 ? void 0 : config.equals) !== null && _a !== void 0 ? _a : ((v1, v22) => v1 === v22);
     this.emitter = new Emitter();
     this.rawValue_ = initialValue;
   }
@@ -19556,8 +19579,8 @@ var ValueMap = class _ValueMap {
     this.emitter = new Emitter();
     this.valMap_ = valueMap;
     for (const key in this.valMap_) {
-      const v2 = this.valMap_[key];
-      v2.emitter.on("change", () => {
+      const v3 = this.valMap_[key];
+      v3.emitter.on("change", () => {
         this.emitter.emit("change", {
           key,
           sender: this
@@ -19567,8 +19590,8 @@ var ValueMap = class _ValueMap {
   }
   static createCore(initialValue) {
     const keys = Object.keys(initialValue);
-    return keys.reduce((o2, key) => {
-      return Object.assign(o2, {
+    return keys.reduce((o3, key) => {
+      return Object.assign(o3, {
         [key]: createValue(initialValue[key])
       });
     }, {});
@@ -19635,9 +19658,9 @@ var StepConstraint = class {
     this.origin = origin;
   }
   constrain(value) {
-    const o2 = this.origin % this.step;
-    const r2 = Math.round((value - o2) / this.step);
-    return o2 + r2 * this.step;
+    const o3 = this.origin % this.step;
+    const r3 = Math.round((value - o3) / this.step);
+    return o3 + r3 * this.step;
   }
 };
 var NumberLiteralNode = class {
@@ -19655,18 +19678,18 @@ var NumberLiteralNode = class {
   }
 };
 var BINARY_OPERATION_MAP = {
-  "**": /* @__PURE__ */ __name((v1, v2) => Math.pow(v1, v2), "**"),
-  "*": /* @__PURE__ */ __name((v1, v2) => v1 * v2, "*"),
-  "/": /* @__PURE__ */ __name((v1, v2) => v1 / v2, "/"),
-  "%": /* @__PURE__ */ __name((v1, v2) => v1 % v2, "%"),
-  "+": /* @__PURE__ */ __name((v1, v2) => v1 + v2, "+"),
-  "-": /* @__PURE__ */ __name((v1, v2) => v1 - v2, "-"),
-  "<<": /* @__PURE__ */ __name((v1, v2) => v1 << v2, "<<"),
-  ">>": /* @__PURE__ */ __name((v1, v2) => v1 >> v2, ">>"),
-  ">>>": /* @__PURE__ */ __name((v1, v2) => v1 >>> v2, ">>>"),
-  "&": /* @__PURE__ */ __name((v1, v2) => v1 & v2, "&"),
-  "^": /* @__PURE__ */ __name((v1, v2) => v1 ^ v2, "^"),
-  "|": /* @__PURE__ */ __name((v1, v2) => v1 | v2, "|")
+  "**": /* @__PURE__ */ __name((v1, v22) => Math.pow(v1, v22), "**"),
+  "*": /* @__PURE__ */ __name((v1, v22) => v1 * v22, "*"),
+  "/": /* @__PURE__ */ __name((v1, v22) => v1 / v22, "/"),
+  "%": /* @__PURE__ */ __name((v1, v22) => v1 % v22, "%"),
+  "+": /* @__PURE__ */ __name((v1, v22) => v1 + v22, "+"),
+  "-": /* @__PURE__ */ __name((v1, v22) => v1 - v22, "-"),
+  "<<": /* @__PURE__ */ __name((v1, v22) => v1 << v22, "<<"),
+  ">>": /* @__PURE__ */ __name((v1, v22) => v1 >> v22, ">>"),
+  ">>>": /* @__PURE__ */ __name((v1, v22) => v1 >>> v22, ">>>"),
+  "&": /* @__PURE__ */ __name((v1, v22) => v1 & v22, "&"),
+  "^": /* @__PURE__ */ __name((v1, v22) => v1 ^ v22, "^"),
+  "|": /* @__PURE__ */ __name((v1, v22) => v1 | v22, "|")
 };
 var BinaryOperationNode = class {
   static {
@@ -19695,9 +19718,9 @@ var BinaryOperationNode = class {
   }
 };
 var UNARY_OPERATION_MAP = {
-  "+": /* @__PURE__ */ __name((v2) => v2, "+"),
-  "-": /* @__PURE__ */ __name((v2) => -v2, "-"),
-  "~": /* @__PURE__ */ __name((v2) => ~v2, "~")
+  "+": /* @__PURE__ */ __name((v3) => v3, "+"),
+  "-": /* @__PURE__ */ __name((v3) => -v3, "-"),
+  "~": /* @__PURE__ */ __name((v3) => ~v3, "~")
 };
 var UnaryOperationNode = class {
   static {
@@ -19720,8 +19743,8 @@ var UnaryOperationNode = class {
 };
 function combineReader(parsers) {
   return (text, cursor) => {
-    for (let i2 = 0; i2 < parsers.length; i2++) {
-      const result = parsers[i2](text, cursor);
+    for (let i4 = 0; i4 < parsers.length; i4++) {
+      const result = parsers[i4](text, cursor);
       if (result !== "") {
         return result;
       }
@@ -19732,8 +19755,8 @@ function combineReader(parsers) {
 __name(combineReader, "combineReader");
 function readWhitespace(text, cursor) {
   var _a;
-  const m2 = text.substr(cursor).match(/^\s+/);
-  return (_a = m2 && m2[0]) !== null && _a !== void 0 ? _a : "";
+  const m3 = text.substr(cursor).match(/^\s+/);
+  return (_a = m3 && m3[0]) !== null && _a !== void 0 ? _a : "";
 }
 __name(readWhitespace, "readWhitespace");
 function readNonZeroDigit(text, cursor) {
@@ -19743,8 +19766,8 @@ function readNonZeroDigit(text, cursor) {
 __name(readNonZeroDigit, "readNonZeroDigit");
 function readDecimalDigits(text, cursor) {
   var _a;
-  const m2 = text.substr(cursor).match(/^[0-9]+/);
-  return (_a = m2 && m2[0]) !== null && _a !== void 0 ? _a : "";
+  const m3 = text.substr(cursor).match(/^[0-9]+/);
+  return (_a = m3 && m3[0]) !== null && _a !== void 0 ? _a : "";
 }
 __name(readDecimalDigits, "readDecimalDigits");
 function readSignedInteger(text, cursor) {
@@ -19765,16 +19788,16 @@ function readSignedInteger(text, cursor) {
 }
 __name(readSignedInteger, "readSignedInteger");
 function readExponentPart(text, cursor) {
-  const e2 = text.substr(cursor, 1);
+  const e3 = text.substr(cursor, 1);
   cursor += 1;
-  if (e2.toLowerCase() !== "e") {
+  if (e3.toLowerCase() !== "e") {
     return "";
   }
   const si = readSignedInteger(text, cursor);
   if (si === "") {
     return "";
   }
-  return e2 + si;
+  return e3 + si;
 }
 __name(readExponentPart, "readExponentPart");
 function readDecimalIntegerLiteral(text, cursor) {
@@ -19836,8 +19859,8 @@ var readDecimalLiteral = combineReader([
 ]);
 function parseBinaryDigits(text, cursor) {
   var _a;
-  const m2 = text.substr(cursor).match(/^[01]+/);
-  return (_a = m2 && m2[0]) !== null && _a !== void 0 ? _a : "";
+  const m3 = text.substr(cursor).match(/^[01]+/);
+  return (_a = m3 && m3[0]) !== null && _a !== void 0 ? _a : "";
 }
 __name(parseBinaryDigits, "parseBinaryDigits");
 function readBinaryIntegerLiteral(text, cursor) {
@@ -19855,8 +19878,8 @@ function readBinaryIntegerLiteral(text, cursor) {
 __name(readBinaryIntegerLiteral, "readBinaryIntegerLiteral");
 function readOctalDigits(text, cursor) {
   var _a;
-  const m2 = text.substr(cursor).match(/^[0-7]+/);
-  return (_a = m2 && m2[0]) !== null && _a !== void 0 ? _a : "";
+  const m3 = text.substr(cursor).match(/^[0-7]+/);
+  return (_a = m3 && m3[0]) !== null && _a !== void 0 ? _a : "";
 }
 __name(readOctalDigits, "readOctalDigits");
 function readOctalIntegerLiteral(text, cursor) {
@@ -19874,8 +19897,8 @@ function readOctalIntegerLiteral(text, cursor) {
 __name(readOctalIntegerLiteral, "readOctalIntegerLiteral");
 function readHexDigits(text, cursor) {
   var _a;
-  const m2 = text.substr(cursor).match(/^[0-9a-f]+/i);
-  return (_a = m2 && m2[0]) !== null && _a !== void 0 ? _a : "";
+  const m3 = text.substr(cursor).match(/^[0-9a-f]+/i);
+  return (_a = m3 && m3[0]) !== null && _a !== void 0 ? _a : "";
 }
 __name(readHexDigits, "readHexDigits");
 function readHexIntegerLiteral(text, cursor) {
@@ -20033,8 +20056,8 @@ function parseEcmaNumberExpression(text) {
 __name(parseEcmaNumberExpression, "parseEcmaNumberExpression");
 function parseNumber(text) {
   var _a;
-  const r2 = parseEcmaNumberExpression(text);
-  return (_a = r2 === null || r2 === void 0 ? void 0 : r2.evaluate()) !== null && _a !== void 0 ? _a : null;
+  const r3 = parseEcmaNumberExpression(text);
+  return (_a = r3 === null || r3 === void 0 ? void 0 : r3.evaluate()) !== null && _a !== void 0 ? _a : null;
 }
 __name(parseNumber, "parseNumber");
 function numberFromUnknown(value) {
@@ -20061,8 +20084,8 @@ function createNumberFormatter(digits) {
 }
 __name(createNumberFormatter, "createNumberFormatter");
 function mapRange(value, start1, end1, start2, end2) {
-  const p2 = (value - start1) / (end1 - start1);
-  return start2 + p2 * (end2 - start2);
+  const p3 = (value - start1) / (end1 - start1);
+  return start2 + p3 * (end2 - start2);
 }
 __name(mapRange, "mapRange");
 function getDecimalDigits(value) {
@@ -20126,14 +20149,14 @@ function createNumberTextPropsObject(params, initialValue) {
   };
 }
 __name(createNumberTextPropsObject, "createNumberTextPropsObject");
-function createNumberTextInputParamsParser(p2) {
+function createNumberTextInputParamsParser(p3) {
   return {
-    format: p2.optional.function,
-    keyScale: p2.optional.number,
-    max: p2.optional.number,
-    min: p2.optional.number,
-    pointerScale: p2.optional.number,
-    step: p2.optional.number
+    format: p3.optional.function,
+    keyScale: p3.optional.number,
+    max: p3.optional.number,
+    min: p3.optional.number,
+    pointerScale: p3.optional.number,
+    step: p3.optional.number
   };
 }
 __name(createNumberTextInputParamsParser, "createNumberTextInputParamsParser");
@@ -20303,12 +20326,12 @@ var InputBindingValue = class {
     this.emitter.emit("change", Object.assign(Object.assign({}, ev), { sender: this }));
   }
 };
-function isInputBindingValue(v2) {
-  if (!("binding" in v2)) {
+function isInputBindingValue(v3) {
+  if (!("binding" in v3)) {
     return false;
   }
-  const b2 = v2["binding"];
-  return isBinding(b2) && "read" in b2 && "write" in b2;
+  const b3 = v3["binding"];
+  return isBinding(b3) && "read" in b3 && "write" in b3;
 }
 __name(isInputBindingValue, "isInputBindingValue");
 function parseObject(value, keyToParserMap) {
@@ -20345,20 +20368,20 @@ function isObject(value) {
 }
 __name(isObject, "isObject");
 function createMicroParserBuilder(parse) {
-  return (optional) => (v2) => {
-    if (!optional && v2 === void 0) {
+  return (optional) => (v3) => {
+    if (!optional && v3 === void 0) {
       return {
         succeeded: false,
         value: void 0
       };
     }
-    if (optional && v2 === void 0) {
+    if (optional && v3 === void 0) {
       return {
         succeeded: true,
         value: void 0
       };
     }
-    const result = parse(v2);
+    const result = parse(v3);
     return result !== void 0 ? {
       succeeded: true,
       value: result
@@ -20372,23 +20395,23 @@ __name(createMicroParserBuilder, "createMicroParserBuilder");
 function createMicroParserBuilders(optional) {
   return {
     custom: /* @__PURE__ */ __name((parse) => createMicroParserBuilder(parse)(optional), "custom"),
-    boolean: createMicroParserBuilder((v2) => typeof v2 === "boolean" ? v2 : void 0)(optional),
-    number: createMicroParserBuilder((v2) => typeof v2 === "number" ? v2 : void 0)(optional),
-    string: createMicroParserBuilder((v2) => typeof v2 === "string" ? v2 : void 0)(optional),
-    function: createMicroParserBuilder((v2) => typeof v2 === "function" ? v2 : void 0)(optional),
-    constant: /* @__PURE__ */ __name((value) => createMicroParserBuilder((v2) => v2 === value ? value : void 0)(optional), "constant"),
-    raw: createMicroParserBuilder((v2) => v2)(optional),
-    object: /* @__PURE__ */ __name((keyToParserMap) => createMicroParserBuilder((v2) => {
-      if (!isObject(v2)) {
+    boolean: createMicroParserBuilder((v3) => typeof v3 === "boolean" ? v3 : void 0)(optional),
+    number: createMicroParserBuilder((v3) => typeof v3 === "number" ? v3 : void 0)(optional),
+    string: createMicroParserBuilder((v3) => typeof v3 === "string" ? v3 : void 0)(optional),
+    function: createMicroParserBuilder((v3) => typeof v3 === "function" ? v3 : void 0)(optional),
+    constant: /* @__PURE__ */ __name((value) => createMicroParserBuilder((v3) => v3 === value ? value : void 0)(optional), "constant"),
+    raw: createMicroParserBuilder((v3) => v3)(optional),
+    object: /* @__PURE__ */ __name((keyToParserMap) => createMicroParserBuilder((v3) => {
+      if (!isObject(v3)) {
         return void 0;
       }
-      return parseObject(v2, keyToParserMap);
+      return parseObject(v3, keyToParserMap);
     })(optional), "object"),
-    array: /* @__PURE__ */ __name((itemParser) => createMicroParserBuilder((v2) => {
-      if (!Array.isArray(v2)) {
+    array: /* @__PURE__ */ __name((itemParser) => createMicroParserBuilder((v3) => {
+      if (!Array.isArray(v3)) {
         return void 0;
       }
-      return parseArray(v2, itemParser);
+      return parseArray(v3, itemParser);
     })(optional), "array")
   };
 }
@@ -20420,12 +20443,12 @@ function isValueBladeController(bc) {
   return "value" in bc;
 }
 __name(isValueBladeController, "isValueBladeController");
-function isBindingValue(v2) {
-  if (!isObject$1(v2) || !("binding" in v2)) {
+function isBindingValue(v3) {
+  if (!isObject$1(v3) || !("binding" in v3)) {
     return false;
   }
-  const b2 = v2.binding;
-  return isBinding(b2);
+  const b3 = v3.binding;
+  return isBinding(b3);
 }
 __name(isBindingValue, "isBindingValue");
 var SVG_NS = "http://www.w3.org/2000/svg";
@@ -20434,10 +20457,10 @@ function forceReflow(element) {
 }
 __name(forceReflow, "forceReflow");
 function disableTransitionTemporarily(element, callback) {
-  const t2 = element.style.transition;
+  const t3 = element.style.transition;
   element.style.transition = "none";
   callback();
-  element.style.transition = t2;
+  element.style.transition = t3;
 }
 __name(disableTransitionTemporarily, "disableTransitionTemporarily");
 function supportsTouch(doc) {
@@ -20590,8 +20613,8 @@ var LabelController = class {
     this.view.valueElement.appendChild(this.valueController.view.element);
   }
   importProps(state) {
-    return importBladeState(state, null, (p2) => ({
-      label: p2.optional.string
+    return importBladeState(state, null, (p3) => ({
+      label: p3.optional.string
     }), (result) => {
       this.props.set("label", result.label);
       return true;
@@ -20644,9 +20667,9 @@ var BladeController = class {
     this.viewProps.set("parent", this.parent_ ? this.parent_.viewProps : null);
   }
   importState(state) {
-    return importBladeState(state, null, (p2) => ({
-      disabled: p2.required.boolean,
-      hidden: p2.required.boolean
+    return importBladeState(state, null, (p3) => ({
+      disabled: p3.required.boolean,
+      hidden: p3.required.boolean
     }), (result) => {
       this.viewProps.importState(result);
       return true;
@@ -20680,11 +20703,11 @@ var LabeledValueBladeController = class extends BladeController {
     this.view.valueElement.appendChild(this.valueController.view.element);
   }
   importState(state) {
-    return importBladeState(state, (s2) => {
+    return importBladeState(state, (s4) => {
       var _a, _b, _c;
-      return super.importState(s2) && this.labelController.importProps(s2) && ((_c = (_b = (_a = this.valueController).importProps) === null || _b === void 0 ? void 0 : _b.call(_a, state)) !== null && _c !== void 0 ? _c : true);
-    }, (p2) => ({
-      value: p2.optional.raw
+      return super.importState(s4) && this.labelController.importProps(s4) && ((_c = (_b = (_a = this.valueController).importProps) === null || _b === void 0 ? void 0 : _b.call(_a, state)) !== null && _c !== void 0 ? _c : true);
+    }, (p3) => ({
+      value: p3.optional.raw
     }), (result) => {
       if (result.value) {
         this.value.rawValue = result.value;
@@ -20715,8 +20738,8 @@ var BindingController = class extends LabeledValueBladeController {
     return importBladeState(
       state,
       (_s) => super.importState(excludeValue(state)),
-      (p2) => ({
-        tag: p2.optional.string
+      (p3) => ({
+        tag: p3.optional.string
       }),
       (result) => {
         this.tag = result.tag;
@@ -20743,9 +20766,9 @@ var InputBindingController = class extends BindingController {
     __name(this, "InputBindingController");
   }
   importState(state) {
-    return importBladeState(state, (s2) => super.importState(s2), (p2) => ({
-      binding: p2.required.object({
-        value: p2.required.raw
+    return importBladeState(state, (s4) => super.importState(s4), (p3) => ({
+      binding: p3.required.object({
+        value: p3.required.raw
       })
     }), (result) => {
       this.value.binding.inject(result.binding.value);
@@ -20824,12 +20847,12 @@ var MonitorBindingValue = class {
     this.emitter.emit("change", Object.assign(Object.assign({}, ev), { sender: this }));
   }
 };
-function isMonitorBindingValue(v2) {
-  if (!("binding" in v2)) {
+function isMonitorBindingValue(v3) {
+  if (!("binding" in v3)) {
     return false;
   }
-  const b2 = v2["binding"];
-  return isBinding(b2) && "read" in b2 && !("write" in b2);
+  const b3 = v3["binding"];
+  return isBinding(b3) && "read" in b3 && !("write" in b3);
 }
 __name(isMonitorBindingValue, "isMonitorBindingValue");
 var MonitorBindingController = class extends BindingController {
@@ -20935,8 +20958,8 @@ var ButtonController = class {
     this.view.buttonElement.addEventListener("click", this.onClick_);
   }
   importProps(state) {
-    return importBladeState(state, null, (p2) => ({
-      title: p2.optional.string
+    return importBladeState(state, null, (p3) => ({
+      title: p3.optional.string
     }), (result) => {
       this.props.set("title", result.title);
       return true;
@@ -20977,7 +21000,7 @@ var ButtonBladeController = class extends BladeController {
     this.labelController = lc;
   }
   importState(state) {
-    return importBladeState(state, (s2) => super.importState(s2) && this.buttonController.importProps(s2) && this.labelController.importProps(s2), () => ({}), () => true);
+    return importBladeState(state, (s4) => super.importState(s4) && this.buttonController.importProps(s4) && this.labelController.importProps(s4), () => ({}), () => true);
   }
   exportState() {
     return exportBladeState(() => super.exportState(), Object.assign(Object.assign({}, this.buttonController.exportProps()), this.labelController.exportProps()));
@@ -21009,10 +21032,10 @@ var ButtonBladePlugin = createPlugin({
   id: "button",
   type: "blade",
   accept(params) {
-    const result = parseRecord(params, (p2) => ({
-      title: p2.required.string,
-      view: p2.required.constant("button"),
-      label: p2.optional.string
+    const result = parseRecord(params, (p3) => ({
+      title: p3.required.string,
+      view: p3.required.constant("button"),
+      label: p3.optional.string
     }));
     return result ? { params: result } : null;
   },
@@ -21120,9 +21143,9 @@ var RackApi = class {
     return this;
   }
   refresh() {
-    this.children.forEach((c2) => {
-      if (isRefreshable(c2)) {
-        c2.refresh();
+    this.children.forEach((c3) => {
+      if (isRefreshable(c3)) {
+        c3.refresh();
       }
     });
   }
@@ -21158,17 +21181,17 @@ var ContainerBladeController = class extends BladeController {
     this.rackController = config.rackController;
   }
   importState(state) {
-    return importBladeState(state, (s2) => super.importState(s2), (p2) => ({
-      children: p2.required.array(p2.required.raw)
+    return importBladeState(state, (s4) => super.importState(s4), (p3) => ({
+      children: p3.required.array(p3.required.raw)
     }), (result) => {
-      return this.rackController.rack.children.every((c2, index) => {
-        return c2.importState(result.children[index]);
+      return this.rackController.rack.children.every((c3, index) => {
+        return c3.importState(result.children[index]);
       });
     });
   }
   exportState() {
     return exportBladeState(() => super.exportState(), {
-      children: this.rackController.rack.children.map((c2) => c2.exportState())
+      children: this.rackController.rack.children.map((c3) => c3.exportState())
     });
   }
 };
@@ -21216,8 +21239,8 @@ var NestedOrderedSet = class {
     if (subList) {
       subList.emitter.on("add", this.onSubListAdd_);
       subList.emitter.on("remove", this.onSubListRemove_);
-      subList.allItems().forEach((i2) => {
-        this.cache_.add(i2);
+      subList.allItems().forEach((i4) => {
+        this.cache_.add(i4);
       });
     }
     this.emitter.emit("add", {
@@ -21236,8 +21259,8 @@ var NestedOrderedSet = class {
     this.cache_.delete(item);
     const subList = this.extract_(item);
     if (subList) {
-      subList.allItems().forEach((i2) => {
-        this.cache_.delete(i2);
+      subList.allItems().forEach((i4) => {
+        this.cache_.delete(i4);
       });
       subList.emitter.off("add", this.onSubListAdd_);
       subList.emitter.off("remove", this.onSubListRemove_);
@@ -21268,10 +21291,10 @@ var NestedOrderedSet = class {
     });
   }
 };
-function findValueBladeController(bcs, v2) {
-  for (let i2 = 0; i2 < bcs.length; i2++) {
-    const bc = bcs[i2];
-    if (isValueBladeController(bc) && bc.value === v2) {
+function findValueBladeController(bcs, v3) {
+  for (let i4 = 0; i4 < bcs.length; i4++) {
+    const bc = bcs[i4];
+    if (isValueBladeController(bc) && bc.value === v3) {
       return bc;
     }
   }
@@ -21423,7 +21446,7 @@ var Rack = class {
       sender: this
     });
   }
-  onRackLayout_(_2) {
+  onRackLayout_(_3) {
     this.updatePositions_();
     this.emitter.emit("layout", {
       sender: this
@@ -21457,8 +21480,8 @@ var RackController = class {
     rack.emitter.on("remove", this.onRackRemove_);
     this.rack = rack;
     this.viewProps.handleDispose(() => {
-      for (let i2 = this.rack.children.length - 1; i2 >= 0; i2--) {
-        const bc = this.rack.children[i2];
+      for (let i4 = this.rack.children.length - 1; i4 >= 0; i4--) {
+        const bc = this.rack.children[i4];
         bc.viewProps.set("disposed", true);
       }
     });
@@ -21555,9 +21578,9 @@ function bindFoldable(foldable, elem) {
   foldable.value("expanded").emitter.on("beforechange", () => {
     foldable.set("completed", false);
     if (isEmpty(foldable.get("expandedHeight"))) {
-      const h2 = computeExpandedFolderHeight(foldable, elem);
-      if (h2 > 0) {
-        foldable.set("expandedHeight", h2);
+      const h3 = computeExpandedFolderHeight(foldable, elem);
+      if (h3 > 0) {
+        foldable.set("expandedHeight", h3);
       }
     }
     foldable.set("shouldFixHeight", true);
@@ -21717,9 +21740,9 @@ var FolderController = class extends ContainerBladeController {
     return this.view.element.ownerDocument;
   }
   importState(state) {
-    return importBladeState(state, (s2) => super.importState(s2), (p2) => ({
-      expanded: p2.required.boolean,
-      title: p2.optional.string
+    return importBladeState(state, (s4) => super.importState(s4), (p3) => ({
+      expanded: p3.required.boolean,
+      title: p3.optional.string
     }), (result) => {
       this.foldable.set("expanded", result.expanded);
       this.props.set("title", result.title);
@@ -21740,10 +21763,10 @@ var FolderBladePlugin = createPlugin({
   id: "folder",
   type: "blade",
   accept(params) {
-    const result = parseRecord(params, (p2) => ({
-      title: p2.required.string,
-      view: p2.required.constant("folder"),
-      expanded: p2.optional.boolean
+    const result = parseRecord(params, (p3) => ({
+      title: p3.required.string,
+      view: p3.required.constant("folder"),
+      expanded: p3.optional.boolean
     }));
     return result ? { params: result } : null;
   },
@@ -21943,9 +21966,9 @@ var TabPageController = class extends ContainerBladeController {
     return this.ic_;
   }
   importState(state) {
-    return importBladeState(state, (s2) => super.importState(s2), (p2) => ({
-      selected: p2.required.boolean,
-      title: p2.required.string
+    return importBladeState(state, (s4) => super.importState(s4), (p3) => ({
+      selected: p3.required.boolean,
+      title: p3.required.string
     }), (result) => {
       this.ic_.props.set("selected", result.selected);
       this.ic_.props.set("title", result.title);
@@ -22089,15 +22112,15 @@ var Tab = class {
       this.empty.rawValue = true;
       return;
     }
-    const firstSelIndex = this.items_.findIndex((s2) => s2.rawValue);
+    const firstSelIndex = this.items_.findIndex((s4) => s4.rawValue);
     if (firstSelIndex < 0) {
-      this.items_.forEach((s2, i2) => {
-        s2.rawValue = i2 === 0;
+      this.items_.forEach((s4, i4) => {
+        s4.rawValue = i4 === 0;
       });
       this.selectedIndex.rawValue = 0;
     } else {
-      this.items_.forEach((s2, i2) => {
-        s2.rawValue = i2 === firstSelIndex;
+      this.items_.forEach((s4, i4) => {
+        s4.rawValue = i4 === firstSelIndex;
       });
       this.selectedIndex.rawValue = firstSelIndex;
     }
@@ -22105,9 +22128,9 @@ var Tab = class {
   }
   onItemSelectedChange_(ev) {
     if (ev.rawValue) {
-      const index = this.items_.findIndex((s2) => s2 === ev.sender);
-      this.items_.forEach((s2, i2) => {
-        s2.rawValue = i2 === index;
+      const index = this.items_.findIndex((s4) => s4 === ev.sender);
+      this.items_.forEach((s4, i4) => {
+        s4.rawValue = i4 === index;
       });
       this.selectedIndex.rawValue = index;
     } else {
@@ -22193,9 +22216,9 @@ var TabBladePlugin = createPlugin({
   id: "tab",
   type: "blade",
   accept(params) {
-    const result = parseRecord(params, (p2) => ({
-      pages: p2.required.array(p2.required.object({ title: p2.required.string })),
-      view: p2.required.constant("tab")
+    const result = parseRecord(params, (p3) => ({
+      pages: p3.required.array(p3.required.object({ title: p3.required.string })),
+      view: p3.required.constant("tab")
     }));
     if (!result || result.pages.length === 0) {
       return null;
@@ -22203,25 +22226,25 @@ var TabBladePlugin = createPlugin({
     return { params: result };
   },
   controller(args) {
-    const c2 = new TabController(args.document, {
+    const c3 = new TabController(args.document, {
       blade: args.blade,
       viewProps: args.viewProps
     });
-    args.params.pages.forEach((p2) => {
+    args.params.pages.forEach((p3) => {
       const pc = new TabPageController(args.document, {
         blade: createBlade(),
         itemProps: ValueMap.fromObject({
           selected: false,
-          title: p2.title
+          title: p3.title
         }),
         props: ValueMap.fromObject({
           selected: false
         }),
         viewProps: ViewProps.create()
       });
-      c2.add(pc);
+      c3.add(pc);
     });
-    return c2;
+    return c3;
   },
   api(args) {
     if (args.controller instanceof TabController) {
@@ -22238,9 +22261,9 @@ function createBladeController(plugin, args) {
   if (!ac) {
     return null;
   }
-  const params = parseRecord(args.params, (p2) => ({
-    disabled: p2.optional.boolean,
-    hidden: p2.optional.boolean
+  const params = parseRecord(args.params, (p3) => ({
+    disabled: p3.optional.boolean,
+    hidden: p3.optional.boolean
   }));
   return plugin.controller({
     blade: createBlade(),
@@ -22347,17 +22370,17 @@ var CompositeConstraint = class {
     this.constraints = constraints;
   }
   constrain(value) {
-    return this.constraints.reduce((result, c2) => {
-      return c2.constrain(result);
+    return this.constraints.reduce((result, c3) => {
+      return c3.constrain(result);
     }, value);
   }
 };
-function findConstraint(c2, constraintClass) {
-  if (c2 instanceof constraintClass) {
-    return c2;
+function findConstraint(c3, constraintClass) {
+  if (c3 instanceof constraintClass) {
+    return c3;
   }
-  if (c2 instanceof CompositeConstraint) {
-    const result = c2.constraints.reduce((tmpResult, sc) => {
+  if (c3 instanceof CompositeConstraint) {
+    const result = c3.constraints.reduce((tmpResult, sc) => {
       if (tmpResult) {
         return tmpResult;
       }
@@ -22392,17 +22415,17 @@ var ListConstraint = class {
 };
 function parseListOptions(value) {
   var _a;
-  const p2 = MicroParsers;
+  const p3 = MicroParsers;
   if (Array.isArray(value)) {
-    return (_a = parseRecord({ items: value }, (p3) => ({
-      items: p3.required.array(p3.required.object({
-        text: p3.required.string,
-        value: p3.required.raw
+    return (_a = parseRecord({ items: value }, (p4) => ({
+      items: p4.required.array(p4.required.object({
+        text: p4.required.string,
+        value: p4.required.raw
       }))
     }))) === null || _a === void 0 ? void 0 : _a.items;
   }
   if (typeof value === "object") {
-    return p2.required.raw(value).value;
+    return p3.required.raw(value).value;
   }
   return void 0;
 }
@@ -22455,7 +22478,7 @@ var ListView = class {
     });
   }
   update_() {
-    const values = this.props_.get("options").map((o2) => o2.value);
+    const values = this.props_.get("options").map((o3) => o3.value);
     this.selectElement.selectedIndex = values.indexOf(this.value_.rawValue);
   }
   onValueChange_() {
@@ -22478,13 +22501,13 @@ var ListController = class {
     });
     this.view.selectElement.addEventListener("change", this.onSelectChange_);
   }
-  onSelectChange_(e2) {
-    const selectElem = forceCast(e2.currentTarget);
+  onSelectChange_(e3) {
+    const selectElem = forceCast(e3.currentTarget);
     this.value.rawValue = this.props.get("options")[selectElem.selectedIndex].value;
   }
   importProps(state) {
-    return importBladeState(state, null, (p2) => ({
-      options: p2.required.custom(parseListOptions)
+    return importBladeState(state, null, (p3) => ({
+      options: p3.required.custom(parseListOptions)
     }), (result) => {
       this.props.set("options", normalizeListOptions(result.options));
       return true;
@@ -22568,8 +22591,8 @@ var TextController = class {
     });
     this.view.inputElement.addEventListener("change", this.onInputChange_);
   }
-  onInputChange_(e2) {
-    const inputElem = forceCast(e2.currentTarget);
+  onInputChange_(e3) {
+    const inputElem = forceCast(e3.currentTarget);
     const value = inputElem.value;
     const parsedValue = this.parser_(value);
     if (!isEmpty(parsedValue)) {
@@ -22863,14 +22886,14 @@ var NumberTextView = class {
       return;
     }
     this.element.classList.add(cn$h(void 0, "drg"));
-    const x2 = ev.rawValue / this.props_.get("pointerScale");
-    const aox = x2 + (x2 > 0 ? -1 : x2 < 0 ? 1 : 0);
+    const x3 = ev.rawValue / this.props_.get("pointerScale");
+    const aox = x3 + (x3 > 0 ? -1 : x3 < 0 ? 1 : 0);
     const adx = constrainRange(-aox, -4, 4);
-    this.guideHeadElem_.setAttributeNS(null, "d", [`M ${aox + adx},0 L${aox},4 L${aox + adx},8`, `M ${x2},-1 L${x2},9`].join(" "));
-    this.guideBodyElem_.setAttributeNS(null, "d", `M 0,4 L${x2},4`);
+    this.guideHeadElem_.setAttributeNS(null, "d", [`M ${aox + adx},0 L${aox},4 L${aox + adx},8`, `M ${x3},-1 L${x3},9`].join(" "));
+    this.guideBodyElem_.setAttributeNS(null, "d", `M 0,4 L${x3},4`);
     const formatter = this.props_.get("formatter");
     this.tooltipElem_.textContent = formatter(this.value.rawValue);
-    this.tooltipElem_.style.left = `${x2}px`;
+    this.tooltipElem_.style.left = `${x3}px`;
   }
   refresh() {
     const formatter = this.props_.get("formatter");
@@ -22918,17 +22941,17 @@ var NumberTextController = class {
     var _a, _b;
     const min = (_a = this.sliderProps_) === null || _a === void 0 ? void 0 : _a.get("min");
     const max = (_b = this.sliderProps_) === null || _b === void 0 ? void 0 : _b.get("max");
-    let v2 = value;
+    let v3 = value;
     if (min !== void 0) {
-      v2 = Math.max(v2, min);
+      v3 = Math.max(v3, min);
     }
     if (max !== void 0) {
-      v2 = Math.min(v2, max);
+      v3 = Math.min(v3, max);
     }
-    return v2;
+    return v3;
   }
-  onInputChange_(e2) {
-    const inputElem = forceCast(e2.currentTarget);
+  onInputChange_(e3) {
+    const inputElem = forceCast(e3.currentTarget);
     const value = inputElem.value;
     const parsedValue = this.parser_(value);
     if (!isEmpty(parsedValue)) {
@@ -22968,22 +22991,22 @@ var NumberTextController = class {
     return this.constrainValue_(this.originRawValue_ + dx * this.props.get("pointerScale"));
   }
   onPointerMove_(ev) {
-    const v2 = this.computeDraggingValue_(ev.data);
-    if (v2 === null) {
+    const v3 = this.computeDraggingValue_(ev.data);
+    if (v3 === null) {
       return;
     }
-    this.value.setRawValue(v2, {
+    this.value.setRawValue(v3, {
       forceEmit: false,
       last: false
     });
     this.dragging_.rawValue = this.value.rawValue - this.originRawValue_;
   }
   onPointerUp_(ev) {
-    const v2 = this.computeDraggingValue_(ev.data);
-    if (v2 === null) {
+    const v3 = this.computeDraggingValue_(ev.data);
+    if (v3 === null) {
       return;
     }
-    this.value.setRawValue(v2, {
+    this.value.setRawValue(v3, {
       forceEmit: true,
       last: true
     });
@@ -23016,8 +23039,8 @@ var SliderView = class {
     this.update_();
   }
   update_() {
-    const p2 = constrainRange(mapRange(this.value.rawValue, this.props_.get("min"), this.props_.get("max"), 0, 100), 0, 100);
-    this.knobElement.style.width = `${p2}%`;
+    const p3 = constrainRange(mapRange(this.value.rawValue, this.props_.get("min"), this.props_.get("max"), 0, 100), 0, 100);
+    this.knobElement.style.width = `${p3}%`;
   }
   onChange_() {
     this.update_();
@@ -23047,11 +23070,11 @@ var SliderController = class {
     this.view.trackElement.addEventListener("keydown", this.onKeyDown_);
     this.view.trackElement.addEventListener("keyup", this.onKeyUp_);
   }
-  handlePointerEvent_(d2, opts) {
-    if (!d2.point) {
+  handlePointerEvent_(d3, opts) {
+    if (!d3.point) {
       return;
     }
-    this.value.setRawValue(mapRange(constrainRange(d2.point.x, 0, d2.bounds.width), 0, d2.bounds.width, this.props.get("min"), this.props.get("max")), opts);
+    this.value.setRawValue(mapRange(constrainRange(d3.point.x, 0, d3.bounds.width), 0, d3.bounds.width, this.props.get("min"), this.props.get("max")), opts);
   }
   onPointerDownOrMove_(ev) {
     this.handlePointerEvent_(ev.data, {
@@ -23137,9 +23160,9 @@ var SliderTextController = class {
     return this.textC_;
   }
   importProps(state) {
-    return importBladeState(state, null, (p2) => ({
-      max: p2.required.number,
-      min: p2.required.number
+    return importBladeState(state, null, (p3) => ({
+      max: p3.required.number,
+      min: p3.required.number
     }), (result) => {
       const sliderProps = this.sliderC_.props;
       sliderProps.set("max", result.max);
@@ -23177,8 +23200,8 @@ function getCssVar(key) {
   return `--${CSS_VAR_MAP[key]}`;
 }
 __name(getCssVar, "getCssVar");
-function createPointDimensionParser(p2) {
-  return createNumberTextInputParamsParser(p2);
+function createPointDimensionParser(p3) {
+  return createNumberTextInputParamsParser(p3);
 }
 __name(createPointDimensionParser, "createPointDimensionParser");
 function parsePointDimensionParams(value) {
@@ -23300,9 +23323,9 @@ var BooleanInputPlugin = createPlugin({
     if (typeof value !== "boolean") {
       return null;
     }
-    const result = parseRecord(params, (p2) => ({
-      options: p2.optional.custom(parseListOptions),
-      readonly: p2.optional.constant(false)
+    const result = parseRecord(params, (p3) => ({
+      options: p3.optional.custom(parseListOptions),
+      readonly: p3.optional.constant(false)
     }));
     return result ? {
       initialValue: value,
@@ -23317,8 +23340,8 @@ var BooleanInputPlugin = createPlugin({
   controller: /* @__PURE__ */ __name((args) => {
     const doc = args.document;
     const value = args.value;
-    const c2 = args.constraint;
-    const lc = c2 && findConstraint(c2, ListConstraint);
+    const c3 = args.constraint;
+    const lc = c3 && findConstraint(c3, ListConstraint);
     if (lc) {
       return new ListController(doc, {
         props: new ValueMap({
@@ -23374,112 +23397,112 @@ var ColorView = class {
     }
   }
 };
-function rgbToHslInt(r2, g2, b2) {
-  const rp = constrainRange(r2 / 255, 0, 1);
-  const gp = constrainRange(g2 / 255, 0, 1);
-  const bp = constrainRange(b2 / 255, 0, 1);
+function rgbToHslInt(r3, g3, b3) {
+  const rp = constrainRange(r3 / 255, 0, 1);
+  const gp = constrainRange(g3 / 255, 0, 1);
+  const bp = constrainRange(b3 / 255, 0, 1);
   const cmax = Math.max(rp, gp, bp);
   const cmin = Math.min(rp, gp, bp);
-  const c2 = cmax - cmin;
-  let h2 = 0;
-  let s2 = 0;
-  const l2 = (cmin + cmax) / 2;
-  if (c2 !== 0) {
-    s2 = c2 / (1 - Math.abs(cmax + cmin - 1));
+  const c3 = cmax - cmin;
+  let h3 = 0;
+  let s4 = 0;
+  const l3 = (cmin + cmax) / 2;
+  if (c3 !== 0) {
+    s4 = c3 / (1 - Math.abs(cmax + cmin - 1));
     if (rp === cmax) {
-      h2 = (gp - bp) / c2;
+      h3 = (gp - bp) / c3;
     } else if (gp === cmax) {
-      h2 = 2 + (bp - rp) / c2;
+      h3 = 2 + (bp - rp) / c3;
     } else {
-      h2 = 4 + (rp - gp) / c2;
+      h3 = 4 + (rp - gp) / c3;
     }
-    h2 = h2 / 6 + (h2 < 0 ? 1 : 0);
+    h3 = h3 / 6 + (h3 < 0 ? 1 : 0);
   }
-  return [h2 * 360, s2 * 100, l2 * 100];
+  return [h3 * 360, s4 * 100, l3 * 100];
 }
 __name(rgbToHslInt, "rgbToHslInt");
-function hslToRgbInt(h2, s2, l2) {
-  const hp = (h2 % 360 + 360) % 360;
-  const sp = constrainRange(s2 / 100, 0, 1);
-  const lp = constrainRange(l2 / 100, 0, 1);
-  const c2 = (1 - Math.abs(2 * lp - 1)) * sp;
-  const x2 = c2 * (1 - Math.abs(hp / 60 % 2 - 1));
-  const m2 = lp - c2 / 2;
+function hslToRgbInt(h3, s4, l3) {
+  const hp = (h3 % 360 + 360) % 360;
+  const sp = constrainRange(s4 / 100, 0, 1);
+  const lp = constrainRange(l3 / 100, 0, 1);
+  const c3 = (1 - Math.abs(2 * lp - 1)) * sp;
+  const x3 = c3 * (1 - Math.abs(hp / 60 % 2 - 1));
+  const m3 = lp - c3 / 2;
   let rp, gp, bp;
   if (hp >= 0 && hp < 60) {
-    [rp, gp, bp] = [c2, x2, 0];
+    [rp, gp, bp] = [c3, x3, 0];
   } else if (hp >= 60 && hp < 120) {
-    [rp, gp, bp] = [x2, c2, 0];
+    [rp, gp, bp] = [x3, c3, 0];
   } else if (hp >= 120 && hp < 180) {
-    [rp, gp, bp] = [0, c2, x2];
+    [rp, gp, bp] = [0, c3, x3];
   } else if (hp >= 180 && hp < 240) {
-    [rp, gp, bp] = [0, x2, c2];
+    [rp, gp, bp] = [0, x3, c3];
   } else if (hp >= 240 && hp < 300) {
-    [rp, gp, bp] = [x2, 0, c2];
+    [rp, gp, bp] = [x3, 0, c3];
   } else {
-    [rp, gp, bp] = [c2, 0, x2];
+    [rp, gp, bp] = [c3, 0, x3];
   }
-  return [(rp + m2) * 255, (gp + m2) * 255, (bp + m2) * 255];
+  return [(rp + m3) * 255, (gp + m3) * 255, (bp + m3) * 255];
 }
 __name(hslToRgbInt, "hslToRgbInt");
-function rgbToHsvInt(r2, g2, b2) {
-  const rp = constrainRange(r2 / 255, 0, 1);
-  const gp = constrainRange(g2 / 255, 0, 1);
-  const bp = constrainRange(b2 / 255, 0, 1);
+function rgbToHsvInt(r3, g3, b3) {
+  const rp = constrainRange(r3 / 255, 0, 1);
+  const gp = constrainRange(g3 / 255, 0, 1);
+  const bp = constrainRange(b3 / 255, 0, 1);
   const cmax = Math.max(rp, gp, bp);
   const cmin = Math.min(rp, gp, bp);
-  const d2 = cmax - cmin;
-  let h2;
-  if (d2 === 0) {
-    h2 = 0;
+  const d3 = cmax - cmin;
+  let h3;
+  if (d3 === 0) {
+    h3 = 0;
   } else if (cmax === rp) {
-    h2 = 60 * (((gp - bp) / d2 % 6 + 6) % 6);
+    h3 = 60 * (((gp - bp) / d3 % 6 + 6) % 6);
   } else if (cmax === gp) {
-    h2 = 60 * ((bp - rp) / d2 + 2);
+    h3 = 60 * ((bp - rp) / d3 + 2);
   } else {
-    h2 = 60 * ((rp - gp) / d2 + 4);
+    h3 = 60 * ((rp - gp) / d3 + 4);
   }
-  const s2 = cmax === 0 ? 0 : d2 / cmax;
-  const v2 = cmax;
-  return [h2, s2 * 100, v2 * 100];
+  const s4 = cmax === 0 ? 0 : d3 / cmax;
+  const v3 = cmax;
+  return [h3, s4 * 100, v3 * 100];
 }
 __name(rgbToHsvInt, "rgbToHsvInt");
-function hsvToRgbInt(h2, s2, v2) {
-  const hp = loopRange(h2, 360);
-  const sp = constrainRange(s2 / 100, 0, 1);
-  const vp = constrainRange(v2 / 100, 0, 1);
-  const c2 = vp * sp;
-  const x2 = c2 * (1 - Math.abs(hp / 60 % 2 - 1));
-  const m2 = vp - c2;
+function hsvToRgbInt(h3, s4, v3) {
+  const hp = loopRange(h3, 360);
+  const sp = constrainRange(s4 / 100, 0, 1);
+  const vp = constrainRange(v3 / 100, 0, 1);
+  const c3 = vp * sp;
+  const x3 = c3 * (1 - Math.abs(hp / 60 % 2 - 1));
+  const m3 = vp - c3;
   let rp, gp, bp;
   if (hp >= 0 && hp < 60) {
-    [rp, gp, bp] = [c2, x2, 0];
+    [rp, gp, bp] = [c3, x3, 0];
   } else if (hp >= 60 && hp < 120) {
-    [rp, gp, bp] = [x2, c2, 0];
+    [rp, gp, bp] = [x3, c3, 0];
   } else if (hp >= 120 && hp < 180) {
-    [rp, gp, bp] = [0, c2, x2];
+    [rp, gp, bp] = [0, c3, x3];
   } else if (hp >= 180 && hp < 240) {
-    [rp, gp, bp] = [0, x2, c2];
+    [rp, gp, bp] = [0, x3, c3];
   } else if (hp >= 240 && hp < 300) {
-    [rp, gp, bp] = [x2, 0, c2];
+    [rp, gp, bp] = [x3, 0, c3];
   } else {
-    [rp, gp, bp] = [c2, 0, x2];
+    [rp, gp, bp] = [c3, 0, x3];
   }
-  return [(rp + m2) * 255, (gp + m2) * 255, (bp + m2) * 255];
+  return [(rp + m3) * 255, (gp + m3) * 255, (bp + m3) * 255];
 }
 __name(hsvToRgbInt, "hsvToRgbInt");
-function hslToHsvInt(h2, s2, l2) {
-  const sd = l2 + s2 * (100 - Math.abs(2 * l2 - 100)) / (2 * 100);
+function hslToHsvInt(h3, s4, l3) {
+  const sd = l3 + s4 * (100 - Math.abs(2 * l3 - 100)) / (2 * 100);
   return [
-    h2,
-    sd !== 0 ? s2 * (100 - Math.abs(2 * l2 - 100)) / sd : 0,
-    l2 + s2 * (100 - Math.abs(2 * l2 - 100)) / (2 * 100)
+    h3,
+    sd !== 0 ? s4 * (100 - Math.abs(2 * l3 - 100)) / sd : 0,
+    l3 + s4 * (100 - Math.abs(2 * l3 - 100)) / (2 * 100)
   ];
 }
 __name(hslToHsvInt, "hslToHsvInt");
-function hsvToHslInt(h2, s2, v2) {
-  const sd = 100 - Math.abs(v2 * (200 - s2) / 100 - 100);
-  return [h2, sd !== 0 ? s2 * v2 / sd : 0, v2 * (200 - s2) / (2 * 100)];
+function hsvToHslInt(h3, s4, v3) {
+  const sd = 100 - Math.abs(v3 * (200 - s4) / 100 - 100);
+  return [h3, sd !== 0 ? s4 * v3 / sd : 0, v3 * (200 - s4) / (2 * 100)];
 }
 __name(hsvToHslInt, "hsvToHslInt");
 function removeAlphaComponent(comps) {
@@ -23492,19 +23515,19 @@ function appendAlphaComponent(comps, alpha) {
 __name(appendAlphaComponent, "appendAlphaComponent");
 var MODE_CONVERTER_MAP = {
   hsl: {
-    hsl: /* @__PURE__ */ __name((h2, s2, l2) => [h2, s2, l2], "hsl"),
+    hsl: /* @__PURE__ */ __name((h3, s4, l3) => [h3, s4, l3], "hsl"),
     hsv: hslToHsvInt,
     rgb: hslToRgbInt
   },
   hsv: {
     hsl: hsvToHslInt,
-    hsv: /* @__PURE__ */ __name((h2, s2, v2) => [h2, s2, v2], "hsv"),
+    hsv: /* @__PURE__ */ __name((h3, s4, v3) => [h3, s4, v3], "hsv"),
     rgb: hsvToRgbInt
   },
   rgb: {
     hsl: rgbToHslInt,
     hsv: rgbToHsvInt,
-    rgb: /* @__PURE__ */ __name((r2, g2, b2) => [r2, g2, b2], "rgb")
+    rgb: /* @__PURE__ */ __name((r3, g3, b3) => [r3, g3, b3], "rgb")
   }
 };
 function getColorMaxComponents(mode, type) {
@@ -23533,7 +23556,7 @@ __name(constrainColorComponents, "constrainColorComponents");
 function convertColorType(comps, mode, from, to) {
   const fms = getColorMaxComponents(mode, from);
   const tms = getColorMaxComponents(mode, to);
-  return comps.map((c2, index) => c2 / fms[index] * tms[index]);
+  return comps.map((c3, index) => c3 / fms[index] * tms[index]);
 }
 __name(convertColorType, "convertColorType");
 function convertColor(components, from, to) {
@@ -23618,7 +23641,7 @@ var ColorPickerView = class {
       this.svPaletteView_.element,
       this.hPaletteView_.element,
       this.textsView_.modeSelectElement,
-      ...this.textsView_.inputViews.map((v2) => v2.inputElement)
+      ...this.textsView_.inputViews.map((v3) => v3.inputElement)
     ];
     if (this.alphaViews_) {
       elems.push(this.alphaViews_.palette.element, this.alphaViews_.text.inputElement);
@@ -23631,14 +23654,14 @@ function parseColorType(value) {
 }
 __name(parseColorType, "parseColorType");
 function parseColorInputParams(params) {
-  return parseRecord(params, (p2) => ({
-    color: p2.optional.object({
-      alpha: p2.optional.boolean,
-      type: p2.optional.custom(parseColorType)
+  return parseRecord(params, (p3) => ({
+    color: p3.optional.object({
+      alpha: p3.optional.boolean,
+      type: p3.optional.custom(parseColorType)
     }),
-    expanded: p2.optional.boolean,
-    picker: p2.optional.custom(parsePickerLayout),
-    readonly: p2.optional.constant(false)
+    expanded: p3.optional.boolean,
+    picker: p3.optional.custom(parsePickerLayout),
+    readonly: p3.optional.constant(false)
   }));
 }
 __name(parseColorInputParams, "parseColorInputParams");
@@ -23681,12 +23704,12 @@ function createColor(comps, mode, type) {
   return TYPE_TO_CONSTRUCTOR_MAP[type](comps, mode);
 }
 __name(createColor, "createColor");
-function isFloatColor(c2) {
-  return c2.type === "float";
+function isFloatColor(c3) {
+  return c3.type === "float";
 }
 __name(isFloatColor, "isFloatColor");
-function isIntColor(c2) {
-  return c2.type === "int";
+function isIntColor(c3) {
+  return c3.type === "int";
 }
 __name(isIntColor, "isIntColor");
 function convertFloatToInt(cf) {
@@ -23711,29 +23734,29 @@ function convertIntToFloat(ci) {
   ], ci.mode);
 }
 __name(convertIntToFloat, "convertIntToFloat");
-function mapColorType(c2, type) {
-  if (c2.type === type) {
-    return c2;
+function mapColorType(c3, type) {
+  if (c3.type === type) {
+    return c3;
   }
-  if (isIntColor(c2) && type === "float") {
-    return convertIntToFloat(c2);
+  if (isIntColor(c3) && type === "float") {
+    return convertIntToFloat(c3);
   }
-  if (isFloatColor(c2) && type === "int") {
-    return convertFloatToInt(c2);
+  if (isFloatColor(c3) && type === "int") {
+    return convertFloatToInt(c3);
   }
   throw TpError.shouldNeverHappen();
 }
 __name(mapColorType, "mapColorType");
-function equalsStringColorFormat(f1, f2) {
-  return f1.alpha === f2.alpha && f1.mode === f2.mode && f1.notation === f2.notation && f1.type === f2.type;
+function equalsStringColorFormat(f1, f22) {
+  return f1.alpha === f22.alpha && f1.mode === f22.mode && f1.notation === f22.notation && f1.type === f22.type;
 }
 __name(equalsStringColorFormat, "equalsStringColorFormat");
 function parseCssNumberOrPercentage(text, max) {
-  const m2 = text.match(/^(.+)%$/);
-  if (!m2) {
+  const m3 = text.match(/^(.+)%$/);
+  if (!m3) {
     return Math.min(parseFloat(text), max);
   }
-  return Math.min(parseFloat(m2[1]) * 0.01 * max, max);
+  return Math.min(parseFloat(m3[1]) * 0.01 * max, max);
 }
 __name(parseCssNumberOrPercentage, "parseCssNumberOrPercentage");
 var ANGLE_TO_DEG_MAP = {
@@ -23743,24 +23766,24 @@ var ANGLE_TO_DEG_MAP = {
   turn: /* @__PURE__ */ __name((angle) => angle * 360, "turn")
 };
 function parseCssNumberOrAngle(text) {
-  const m2 = text.match(/^([0-9.]+?)(deg|grad|rad|turn)$/);
-  if (!m2) {
+  const m3 = text.match(/^([0-9.]+?)(deg|grad|rad|turn)$/);
+  if (!m3) {
     return parseFloat(text);
   }
-  const angle = parseFloat(m2[1]);
-  const unit = m2[2];
+  const angle = parseFloat(m3[1]);
+  const unit = m3[2];
   return ANGLE_TO_DEG_MAP[unit](angle);
 }
 __name(parseCssNumberOrAngle, "parseCssNumberOrAngle");
 function parseFunctionalRgbColorComponents(text) {
-  const m2 = text.match(/^rgb\(\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
-  if (!m2) {
+  const m3 = text.match(/^rgb\(\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
+  if (!m3) {
     return null;
   }
   const comps = [
-    parseCssNumberOrPercentage(m2[1], 255),
-    parseCssNumberOrPercentage(m2[2], 255),
-    parseCssNumberOrPercentage(m2[3], 255)
+    parseCssNumberOrPercentage(m3[1], 255),
+    parseCssNumberOrPercentage(m3[2], 255),
+    parseCssNumberOrPercentage(m3[3], 255)
   ];
   if (isNaN(comps[0]) || isNaN(comps[1]) || isNaN(comps[2])) {
     return null;
@@ -23774,15 +23797,15 @@ function parseFunctionalRgbColor(text) {
 }
 __name(parseFunctionalRgbColor, "parseFunctionalRgbColor");
 function parseFunctionalRgbaColorComponents(text) {
-  const m2 = text.match(/^rgba\(\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
-  if (!m2) {
+  const m3 = text.match(/^rgba\(\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
+  if (!m3) {
     return null;
   }
   const comps = [
-    parseCssNumberOrPercentage(m2[1], 255),
-    parseCssNumberOrPercentage(m2[2], 255),
-    parseCssNumberOrPercentage(m2[3], 255),
-    parseCssNumberOrPercentage(m2[4], 1)
+    parseCssNumberOrPercentage(m3[1], 255),
+    parseCssNumberOrPercentage(m3[2], 255),
+    parseCssNumberOrPercentage(m3[3], 255),
+    parseCssNumberOrPercentage(m3[4], 1)
   ];
   if (isNaN(comps[0]) || isNaN(comps[1]) || isNaN(comps[2]) || isNaN(comps[3])) {
     return null;
@@ -23796,14 +23819,14 @@ function parseFunctionalRgbaColor(text) {
 }
 __name(parseFunctionalRgbaColor, "parseFunctionalRgbaColor");
 function parseFunctionalHslColorComponents(text) {
-  const m2 = text.match(/^hsl\(\s*([0-9A-Fa-f.]+(?:deg|grad|rad|turn)?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
-  if (!m2) {
+  const m3 = text.match(/^hsl\(\s*([0-9A-Fa-f.]+(?:deg|grad|rad|turn)?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
+  if (!m3) {
     return null;
   }
   const comps = [
-    parseCssNumberOrAngle(m2[1]),
-    parseCssNumberOrPercentage(m2[2], 100),
-    parseCssNumberOrPercentage(m2[3], 100)
+    parseCssNumberOrAngle(m3[1]),
+    parseCssNumberOrPercentage(m3[2], 100),
+    parseCssNumberOrPercentage(m3[3], 100)
   ];
   if (isNaN(comps[0]) || isNaN(comps[1]) || isNaN(comps[2])) {
     return null;
@@ -23817,15 +23840,15 @@ function parseFunctionalHslColor(text) {
 }
 __name(parseFunctionalHslColor, "parseFunctionalHslColor");
 function parseHslaColorComponents(text) {
-  const m2 = text.match(/^hsla\(\s*([0-9A-Fa-f.]+(?:deg|grad|rad|turn)?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
-  if (!m2) {
+  const m3 = text.match(/^hsla\(\s*([0-9A-Fa-f.]+(?:deg|grad|rad|turn)?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*,\s*([0-9A-Fa-f.]+%?)\s*\)$/);
+  if (!m3) {
     return null;
   }
   const comps = [
-    parseCssNumberOrAngle(m2[1]),
-    parseCssNumberOrPercentage(m2[2], 100),
-    parseCssNumberOrPercentage(m2[3], 100),
-    parseCssNumberOrPercentage(m2[4], 1)
+    parseCssNumberOrAngle(m3[1]),
+    parseCssNumberOrPercentage(m3[2], 100),
+    parseCssNumberOrPercentage(m3[3], 100),
+    parseCssNumberOrPercentage(m3[4], 1)
   ];
   if (isNaN(comps[0]) || isNaN(comps[1]) || isNaN(comps[2]) || isNaN(comps[3])) {
     return null;
@@ -23891,14 +23914,14 @@ function parseHexRgbaColor(text) {
 }
 __name(parseHexRgbaColor, "parseHexRgbaColor");
 function parseObjectRgbColorComponents(text) {
-  const m2 = text.match(/^\{\s*r\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*g\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*b\s*:\s*([0-9A-Fa-f.]+%?)\s*\}$/);
-  if (!m2) {
+  const m3 = text.match(/^\{\s*r\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*g\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*b\s*:\s*([0-9A-Fa-f.]+%?)\s*\}$/);
+  if (!m3) {
     return null;
   }
   const comps = [
-    parseFloat(m2[1]),
-    parseFloat(m2[2]),
-    parseFloat(m2[3])
+    parseFloat(m3[1]),
+    parseFloat(m3[2]),
+    parseFloat(m3[3])
   ];
   if (isNaN(comps[0]) || isNaN(comps[1]) || isNaN(comps[2])) {
     return null;
@@ -23914,15 +23937,15 @@ function createObjectRgbColorParser(type) {
 }
 __name(createObjectRgbColorParser, "createObjectRgbColorParser");
 function parseObjectRgbaColorComponents(text) {
-  const m2 = text.match(/^\{\s*r\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*g\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*b\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*a\s*:\s*([0-9A-Fa-f.]+%?)\s*\}$/);
-  if (!m2) {
+  const m3 = text.match(/^\{\s*r\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*g\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*b\s*:\s*([0-9A-Fa-f.]+%?)\s*,\s*a\s*:\s*([0-9A-Fa-f.]+%?)\s*\}$/);
+  if (!m3) {
     return null;
   }
   const comps = [
-    parseFloat(m2[1]),
-    parseFloat(m2[2]),
-    parseFloat(m2[3]),
-    parseFloat(m2[4])
+    parseFloat(m3[1]),
+    parseFloat(m3[2]),
+    parseFloat(m3[3]),
+    parseFloat(m3[4])
   ];
   if (isNaN(comps[0]) || isNaN(comps[1]) || isNaN(comps[2]) || isNaN(comps[3])) {
     return null;
@@ -24013,15 +24036,15 @@ function detectStringColor(text) {
 }
 __name(detectStringColor, "detectStringColor");
 function detectStringColorFormat(text, type = "int") {
-  const r2 = detectStringColor(text);
-  if (!r2) {
+  const r3 = detectStringColor(text);
+  if (!r3) {
     return null;
   }
-  if (r2.notation === "hex" && type !== "float") {
-    return Object.assign(Object.assign({}, r2), { type: "int" });
+  if (r3.notation === "hex" && type !== "float") {
+    return Object.assign(Object.assign({}, r3), { type: "int" });
   }
-  if (r2.notation === "func") {
-    return Object.assign(Object.assign({}, r2), { type });
+  if (r3.notation === "func") {
+    return Object.assign(Object.assign({}, r3), { type });
   }
   return null;
 }
@@ -24261,8 +24284,8 @@ var APaletteView = class {
     this.update_();
   }
   update_() {
-    const c2 = this.value.rawValue;
-    const rgbaComps = c2.getComponents("rgb");
+    const c3 = this.value.rawValue;
+    const rgbaComps = c3.getComponents("rgb");
     const leftColor = new IntColor([rgbaComps[0], rgbaComps[1], rgbaComps[2], 0], "rgb");
     const rightColor = new IntColor([rgbaComps[0], rgbaComps[1], rgbaComps[2], 255], "rgb");
     const gradientComps = [
@@ -24271,7 +24294,7 @@ var APaletteView = class {
       colorToFunctionalRgbaString(rightColor)
     ];
     this.colorElem_.style.background = `linear-gradient(${gradientComps.join(",")})`;
-    this.previewElem_.style.backgroundColor = colorToFunctionalRgbaString(c2);
+    this.previewElem_.style.backgroundColor = colorToFunctionalRgbaString(c3);
     const left = mapRange(rgbaComps[3], 0, 1, 0, 100);
     this.markerElem_.style.left = `${left}%`;
   }
@@ -24302,14 +24325,14 @@ var APaletteController = class {
     this.view.element.addEventListener("keydown", this.onKeyDown_);
     this.view.element.addEventListener("keyup", this.onKeyUp_);
   }
-  handlePointerEvent_(d2, opts) {
-    if (!d2.point) {
+  handlePointerEvent_(d3, opts) {
+    if (!d3.point) {
       return;
     }
-    const alpha = d2.point.x / d2.bounds.width;
-    const c2 = this.value.rawValue;
-    const [h2, s2, v2] = c2.getComponents("hsv");
-    this.value.setRawValue(new IntColor([h2, s2, v2, alpha], "hsv"), opts);
+    const alpha = d3.point.x / d3.bounds.width;
+    const c3 = this.value.rawValue;
+    const [h3, s4, v3] = c3.getComponents("hsv");
+    this.value.setRawValue(new IntColor([h3, s4, v3, alpha], "hsv"), opts);
   }
   onPointerDown_(ev) {
     this.handlePointerEvent_(ev.data, {
@@ -24334,9 +24357,9 @@ var APaletteController = class {
     if (step === 0) {
       return;
     }
-    const c2 = this.value.rawValue;
-    const [h2, s2, v2, a2] = c2.getComponents("hsv");
-    this.value.setRawValue(new IntColor([h2, s2, v2, a2 + step], "hsv"), {
+    const c3 = this.value.rawValue;
+    const [h3, s4, v3, a3] = c3.getComponents("hsv");
+    this.value.setRawValue(new IntColor([h3, s4, v3, a3 + step], "hsv"), {
       forceEmit: false,
       last: false
     });
@@ -24413,10 +24436,10 @@ var ColorTextsView = class {
   applyInputViews_() {
     removeChildElements(this.inputsElem_);
     const doc = this.element.ownerDocument;
-    this.inputViews_.forEach((v2) => {
+    this.inputViews_.forEach((v3) => {
       const compElem = doc.createElement("div");
       compElem.classList.add(cn$a("c"));
-      compElem.appendChild(v2.element);
+      compElem.appendChild(v3.element);
       this.inputsElem_.appendChild(compElem);
     });
   }
@@ -24456,30 +24479,30 @@ function createComponentControllers(doc, config) {
     parser: parseNumber,
     viewProps: config.viewProps
   };
-  return [0, 1, 2].map((i2) => {
-    const c2 = createComponentController(doc, cc, i2);
+  return [0, 1, 2].map((i4) => {
+    const c3 = createComponentController(doc, cc, i4);
     connectValues({
       primary: config.value,
-      secondary: c2.value,
-      forward(p2) {
-        const mc = mapColorType(p2, config.colorType);
-        return mc.getComponents(config.colorMode)[i2];
+      secondary: c3.value,
+      forward(p3) {
+        const mc = mapColorType(p3, config.colorType);
+        return mc.getComponents(config.colorMode)[i4];
       },
-      backward(p2, s2) {
+      backward(p3, s4) {
         const pickedMode = config.colorMode;
-        const mc = mapColorType(p2, config.colorType);
+        const mc = mapColorType(p3, config.colorType);
         const comps = mc.getComponents(pickedMode);
-        comps[i2] = s2;
-        const c3 = createColor(appendAlphaComponent(removeAlphaComponent(comps), comps[3]), pickedMode, config.colorType);
-        return mapColorType(c3, "int");
+        comps[i4] = s4;
+        const c4 = createColor(appendAlphaComponent(removeAlphaComponent(comps), comps[3]), pickedMode, config.colorType);
+        return mapColorType(c4, "int");
       }
     });
-    return c2;
+    return c3;
   });
 }
 __name(createComponentControllers, "createComponentControllers");
 function createHexController(doc, config) {
-  const c2 = new TextController(doc, {
+  const c3 = new TextController(doc, {
     parser: createColorStringParser("int"),
     props: ValueMap.fromObject({
       formatter: colorToHexRgbString
@@ -24489,11 +24512,11 @@ function createHexController(doc, config) {
   });
   connectValues({
     primary: config.value,
-    secondary: c2.value,
-    forward: /* @__PURE__ */ __name((p2) => new IntColor(removeAlphaComponent(p2.getComponents()), p2.mode), "forward"),
-    backward: /* @__PURE__ */ __name((p2, s2) => new IntColor(appendAlphaComponent(removeAlphaComponent(s2.getComponents(p2.mode)), p2.getComponents()[3]), p2.mode), "backward")
+    secondary: c3.value,
+    forward: /* @__PURE__ */ __name((p3) => new IntColor(removeAlphaComponent(p3.getComponents()), p3.mode), "forward"),
+    backward: /* @__PURE__ */ __name((p3, s4) => new IntColor(appendAlphaComponent(removeAlphaComponent(s4.getComponents(p3.mode)), p3.getComponents()[3]), p3.mode), "backward")
   });
-  return [c2];
+  return [c3];
 }
 __name(createHexController, "createHexController");
 function isColorMode(mode) {
@@ -24563,10 +24586,10 @@ var HPaletteView = class {
     this.update_();
   }
   update_() {
-    const c2 = this.value.rawValue;
-    const [h2] = c2.getComponents("hsv");
-    this.markerElem_.style.backgroundColor = colorToFunctionalRgbString(new IntColor([h2, 100, 100], "hsv"));
-    const left = mapRange(h2, 0, 360, 0, 100);
+    const c3 = this.value.rawValue;
+    const [h3] = c3.getComponents("hsv");
+    this.markerElem_.style.backgroundColor = colorToFunctionalRgbString(new IntColor([h3, 100, 100], "hsv"));
+    const left = mapRange(h3, 0, 360, 0, 100);
     this.markerElem_.style.left = `${left}%`;
   }
   onValueChange_() {
@@ -24596,14 +24619,14 @@ var HPaletteController = class {
     this.view.element.addEventListener("keydown", this.onKeyDown_);
     this.view.element.addEventListener("keyup", this.onKeyUp_);
   }
-  handlePointerEvent_(d2, opts) {
-    if (!d2.point) {
+  handlePointerEvent_(d3, opts) {
+    if (!d3.point) {
       return;
     }
-    const hue = mapRange(constrainRange(d2.point.x, 0, d2.bounds.width), 0, d2.bounds.width, 0, 360);
-    const c2 = this.value.rawValue;
-    const [, s2, v2, a2] = c2.getComponents("hsv");
-    this.value.setRawValue(new IntColor([hue, s2, v2, a2], "hsv"), opts);
+    const hue = mapRange(constrainRange(d3.point.x, 0, d3.bounds.width), 0, d3.bounds.width, 0, 360);
+    const c3 = this.value.rawValue;
+    const [, s4, v3, a3] = c3.getComponents("hsv");
+    this.value.setRawValue(new IntColor([hue, s4, v3, a3], "hsv"), opts);
   }
   onPointerDown_(ev) {
     this.handlePointerEvent_(ev.data, {
@@ -24628,9 +24651,9 @@ var HPaletteController = class {
     if (step === 0) {
       return;
     }
-    const c2 = this.value.rawValue;
-    const [h2, s2, v2, a2] = c2.getComponents("hsv");
-    this.value.setRawValue(new IntColor([h2 + step, s2, v2, a2], "hsv"), {
+    const c3 = this.value.rawValue;
+    const [h3, s4, v3, a3] = c3.getComponents("hsv");
+    this.value.setRawValue(new IntColor([h3 + step, s4, v3, a3], "hsv"), {
       forceEmit: false,
       last: false
     });
@@ -24677,22 +24700,22 @@ var SvPaletteView = class {
     if (!ctx) {
       return;
     }
-    const c2 = this.value.rawValue;
-    const hsvComps = c2.getComponents("hsv");
+    const c3 = this.value.rawValue;
+    const hsvComps = c3.getComponents("hsv");
     const width = this.canvasElement.width;
     const height = this.canvasElement.height;
     const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
     for (let iy = 0; iy < height; iy++) {
       for (let ix = 0; ix < width; ix++) {
-        const s2 = mapRange(ix, 0, width, 0, 100);
-        const v2 = mapRange(iy, 0, height, 100, 0);
-        const rgbComps = hsvToRgbInt(hsvComps[0], s2, v2);
-        const i2 = (iy * width + ix) * 4;
-        data[i2] = rgbComps[0];
-        data[i2 + 1] = rgbComps[1];
-        data[i2 + 2] = rgbComps[2];
-        data[i2 + 3] = 255;
+        const s4 = mapRange(ix, 0, width, 0, 100);
+        const v3 = mapRange(iy, 0, height, 100, 0);
+        const rgbComps = hsvToRgbInt(hsvComps[0], s4, v3);
+        const i4 = (iy * width + ix) * 4;
+        data[i4] = rgbComps[0];
+        data[i4 + 1] = rgbComps[1];
+        data[i4 + 2] = rgbComps[2];
+        data[i4 + 3] = 255;
       }
     }
     ctx.putImageData(imgData, 0, 0);
@@ -24728,14 +24751,14 @@ var SvPaletteController = class {
     this.view.element.addEventListener("keydown", this.onKeyDown_);
     this.view.element.addEventListener("keyup", this.onKeyUp_);
   }
-  handlePointerEvent_(d2, opts) {
-    if (!d2.point) {
+  handlePointerEvent_(d3, opts) {
+    if (!d3.point) {
       return;
     }
-    const saturation = mapRange(d2.point.x, 0, d2.bounds.width, 0, 100);
-    const value = mapRange(d2.point.y, 0, d2.bounds.height, 100, 0);
-    const [h2, , , a2] = this.value.rawValue.getComponents("hsv");
-    this.value.setRawValue(new IntColor([h2, saturation, value, a2], "hsv"), opts);
+    const saturation = mapRange(d3.point.x, 0, d3.bounds.width, 0, 100);
+    const value = mapRange(d3.point.y, 0, d3.bounds.height, 100, 0);
+    const [h3, , , a3] = this.value.rawValue.getComponents("hsv");
+    this.value.setRawValue(new IntColor([h3, saturation, value, a3], "hsv"), opts);
   }
   onPointerDown_(ev) {
     this.handlePointerEvent_(ev.data, {
@@ -24759,14 +24782,14 @@ var SvPaletteController = class {
     if (isArrowKey(ev.key)) {
       ev.preventDefault();
     }
-    const [h2, s2, v2, a2] = this.value.rawValue.getComponents("hsv");
+    const [h3, s4, v3, a3] = this.value.rawValue.getComponents("hsv");
     const keyScale = getKeyScaleForColor(false);
     const ds = getStepForKey(keyScale, getHorizontalStepKeys(ev));
     const dv = getStepForKey(keyScale, getVerticalStepKeys(ev));
     if (ds === 0 && dv === 0) {
       return;
     }
-    this.value.setRawValue(new IntColor([h2, s2 + ds, v2 + dv, a2], "hsv"), {
+    this.value.setRawValue(new IntColor([h3, s4 + ds, v3 + dv, a3], "hsv"), {
       forceEmit: false,
       last: false
     });
@@ -24821,11 +24844,11 @@ var ColorPickerController = class {
       connectValues({
         primary: this.value,
         secondary: this.alphaIcs_.text.value,
-        forward: /* @__PURE__ */ __name((p2) => p2.getComponents()[3], "forward"),
-        backward: /* @__PURE__ */ __name((p2, s2) => {
-          const comps = p2.getComponents();
-          comps[3] = s2;
-          return new IntColor(comps, p2.mode);
+        forward: /* @__PURE__ */ __name((p3) => p3.getComponents()[3], "forward"),
+        backward: /* @__PURE__ */ __name((p3, s4) => {
+          const comps = p3.getComponents();
+          comps[3] = s4;
+          return new IntColor(comps, p3.mode);
         }, "backward")
       });
     }
@@ -24947,8 +24970,8 @@ var ColorController = class {
       connectValues({
         primary: this.foldable_.value("expanded"),
         secondary: this.popC_.shows,
-        forward: /* @__PURE__ */ __name((p2) => p2, "forward"),
-        backward: /* @__PURE__ */ __name((_2, s2) => s2, "backward")
+        forward: /* @__PURE__ */ __name((p3) => p3, "forward"),
+        backward: /* @__PURE__ */ __name((_3, s4) => s4, "backward")
       });
     } else if (this.view.pickerElement) {
       this.view.pickerElement.appendChild(this.pickerC_.view.element);
@@ -24958,12 +24981,12 @@ var ColorController = class {
   get textController() {
     return this.textC_;
   }
-  onButtonBlur_(e2) {
+  onButtonBlur_(e3) {
     if (!this.popC_) {
       return;
     }
     const elem = this.view.element;
-    const nextTarget = forceCast(e2.relatedTarget);
+    const nextTarget = forceCast(e3.relatedTarget);
     if (!nextTarget || !elem.contains(nextTarget)) {
       this.popC_.shows.rawValue = false;
     }
@@ -25059,17 +25082,17 @@ function isColorObject(obj) {
   return isRgbColorObject(obj);
 }
 __name(isColorObject, "isColorObject");
-function equalsColor(v1, v2) {
-  if (v1.mode !== v2.mode) {
+function equalsColor(v1, v22) {
+  if (v1.mode !== v22.mode) {
     return false;
   }
-  if (v1.type !== v2.type) {
+  if (v1.type !== v22.type) {
     return false;
   }
   const comps1 = v1.getComponents();
-  const comps2 = v2.getComponents();
-  for (let i2 = 0; i2 < comps1.length; i2++) {
-    if (comps1[i2] !== comps2[i2]) {
+  const comps2 = v22.getComponents();
+  for (let i4 = 0; i4 < comps1.length; i4++) {
+    if (comps1[i4] !== comps2[i4]) {
       return false;
     }
   }
@@ -25130,7 +25153,7 @@ function shouldSupportAlpha$1(inputParams) {
 }
 __name(shouldSupportAlpha$1, "shouldSupportAlpha$1");
 function createFormatter$1(supportsAlpha) {
-  return supportsAlpha ? (v2) => colorToHexRgbaString(v2, "0x") : (v2) => colorToHexRgbString(v2, "0x");
+  return supportsAlpha ? (v3) => colorToHexRgbaString(v3, "0x") : (v3) => colorToHexRgbString(v3, "0x");
 }
 __name(createFormatter$1, "createFormatter$1");
 function isForColor(params) {
@@ -25203,8 +25226,8 @@ function shouldSupportAlpha(initialValue) {
 __name(shouldSupportAlpha, "shouldSupportAlpha");
 function createColorObjectBindingReader(type) {
   return (value) => {
-    const c2 = colorFromObject(value, type);
-    return mapColorType(c2, "int");
+    const c3 = colorFromObject(value, type);
+    return mapColorType(c3, "int");
   };
 }
 __name(createColorObjectBindingReader, "createColorObjectBindingReader");
@@ -25325,10 +25348,10 @@ var PointNdTextView = class {
     this.textViews = config.textViews;
     this.element = doc.createElement("div");
     this.element.classList.add(cn$6());
-    this.textViews.forEach((v2) => {
+    this.textViews.forEach((v3) => {
       const axisElem = doc.createElement("div");
       axisElem.classList.add(cn$6("a"));
-      axisElem.appendChild(v2.element);
+      axisElem.appendChild(v3.element);
       this.element.appendChild(axisElem);
     });
   }
@@ -25352,15 +25375,15 @@ var PointNdTextController = class {
   constructor(doc, config) {
     this.value = config.value;
     this.viewProps = config.viewProps;
-    this.acs_ = config.axes.map((_2, index) => createAxisController(doc, config, index));
-    this.acs_.forEach((c2, index) => {
+    this.acs_ = config.axes.map((_3, index) => createAxisController(doc, config, index));
+    this.acs_.forEach((c3, index) => {
       connectValues({
         primary: this.value,
-        secondary: c2.value,
-        forward: /* @__PURE__ */ __name((p2) => config.assembly.toComponents(p2)[index], "forward"),
-        backward: /* @__PURE__ */ __name((p2, s2) => {
-          const comps = config.assembly.toComponents(p2);
-          comps[index] = s2;
+        secondary: c3.value,
+        forward: /* @__PURE__ */ __name((p3) => config.assembly.toComponents(p3)[index], "forward"),
+        backward: /* @__PURE__ */ __name((p3, s4) => {
+          const comps = config.assembly.toComponents(p3);
+          comps[index] = s4;
           return config.assembly.fromComponents(comps);
         }, "backward")
       });
@@ -25414,7 +25437,7 @@ var NumberInputPlugin = createPlugin({
     if (typeof value !== "number") {
       return null;
     }
-    const result = parseRecord(params, (p2) => Object.assign(Object.assign({}, createNumberTextInputParamsParser(p2)), { options: p2.optional.custom(parseListOptions), readonly: p2.optional.constant(false) }));
+    const result = parseRecord(params, (p3) => Object.assign(Object.assign({}, createNumberTextInputParamsParser(p3)), { options: p3.optional.custom(parseListOptions), readonly: p3.optional.constant(false) }));
     return result ? {
       initialValue: value,
       params: result
@@ -25427,8 +25450,8 @@ var NumberInputPlugin = createPlugin({
   },
   controller: /* @__PURE__ */ __name((args) => {
     const value = args.value;
-    const c2 = args.constraint;
-    const lc = c2 && findConstraint(c2, ListConstraint);
+    const c3 = args.constraint;
+    const lc = c3 && findConstraint(c3, ListConstraint);
     if (lc) {
       return new ListController(args.document, {
         props: new ValueMap({
@@ -25439,7 +25462,7 @@ var NumberInputPlugin = createPlugin({
       });
     }
     const textPropsObj = createNumberTextPropsObject(args.params, value.rawValue);
-    const drc = c2 && findConstraint(c2, DefiniteRangeConstraint);
+    const drc = c3 && findConstraint(c3, DefiniteRangeConstraint);
     if (drc) {
       return new SliderTextController(args.document, Object.assign(Object.assign({}, createSliderTextProps(Object.assign(Object.assign({}, textPropsObj), { keyScale: createValue(textPropsObj.keyScale), max: drc.values.value("max"), min: drc.values.value("min") }))), { parser: parseNumber, value, viewProps: args.viewProps }));
     }
@@ -25467,9 +25490,9 @@ var Point2d = class {
   static {
     __name(this, "Point2d");
   }
-  constructor(x2 = 0, y2 = 0) {
-    this.x = x2;
-    this.y = y2;
+  constructor(x3 = 0, y3 = 0) {
+    this.x = x3;
+    this.y = y3;
   }
   getComponents() {
     return [this.x, this.y];
@@ -25478,15 +25501,15 @@ var Point2d = class {
     if (isEmpty(obj)) {
       return false;
     }
-    const x2 = obj.x;
-    const y2 = obj.y;
-    if (typeof x2 !== "number" || typeof y2 !== "number") {
+    const x3 = obj.x;
+    const y3 = obj.y;
+    if (typeof x3 !== "number" || typeof y3 !== "number") {
       return false;
     }
     return true;
   }
-  static equals(v1, v2) {
-    return v1.x === v2.x && v1.y === v2.y;
+  static equals(v1, v22) {
+    return v1.x === v22.x && v1.y === v22.y;
   }
   toObject() {
     return {
@@ -25496,7 +25519,7 @@ var Point2d = class {
   }
 };
 var Point2dAssembly = {
-  toComponents: /* @__PURE__ */ __name((p2) => p2.getComponents(), "toComponents"),
+  toComponents: /* @__PURE__ */ __name((p3) => p3.getComponents(), "toComponents"),
   fromComponents: /* @__PURE__ */ __name((comps) => new Point2d(...comps), "fromComponents")
 };
 var cn$5 = ClassName("p2d");
@@ -25590,10 +25613,10 @@ var Point2dPickerView = class {
     return [this.padElement];
   }
   update_() {
-    const [x2, y2] = this.value.rawValue.getComponents();
+    const [x3, y3] = this.value.rawValue.getComponents();
     const max = this.props_.get("max");
-    const px = mapRange(x2, -max, +max, 0, 100);
-    const py = mapRange(y2, -max, +max, 0, 100);
+    const px = mapRange(x3, -max, +max, 0, 100);
+    const py = mapRange(y3, -max, +max, 0, 100);
     const ipy = this.props_.get("invertsY") ? 100 - py : py;
     this.lineElem_.setAttributeNS(null, "x2", `${px}%`);
     this.lineElem_.setAttributeNS(null, "y2", `${ipy}%`);
@@ -25643,13 +25666,13 @@ var Point2dPickerController = class {
     this.view.padElement.addEventListener("keydown", this.onPadKeyDown_);
     this.view.padElement.addEventListener("keyup", this.onPadKeyUp_);
   }
-  handlePointerEvent_(d2, opts) {
-    if (!d2.point) {
+  handlePointerEvent_(d3, opts) {
+    if (!d3.point) {
       return;
     }
     const max = this.props.get("max");
-    const px = mapRange(d2.point.x, 0, d2.bounds.width, -max, +max);
-    const py = mapRange(this.props.get("invertsY") ? d2.bounds.height - d2.point.y : d2.point.y, 0, d2.bounds.height, -max, +max);
+    const px = mapRange(d3.point.x, 0, d3.bounds.width, -max, +max);
+    const py = mapRange(this.props.get("invertsY") ? d3.bounds.height - d3.point.y : d3.point.y, 0, d3.bounds.height, -max, +max);
     this.value.setRawValue(new Point2d(px, py), opts);
   }
   onPointerDown_(ev) {
@@ -25747,8 +25770,8 @@ var Point2dController = class {
       connectValues({
         primary: this.foldable_.value("expanded"),
         secondary: this.popC_.shows,
-        forward: /* @__PURE__ */ __name((p2) => p2, "forward"),
-        backward: /* @__PURE__ */ __name((_2, s2) => s2, "backward")
+        forward: /* @__PURE__ */ __name((p3) => p3, "forward"),
+        backward: /* @__PURE__ */ __name((_3, s4) => s4, "backward")
       });
     } else if (this.view.pickerElement) {
       this.view.pickerElement.appendChild(this.pickerC_.view.element);
@@ -25758,12 +25781,12 @@ var Point2dController = class {
   get textController() {
     return this.textC_;
   }
-  onPadButtonBlur_(e2) {
+  onPadButtonBlur_(e3) {
     if (!this.popC_) {
       return;
     }
     const elem = this.view.element;
-    const nextTarget = forceCast(e2.relatedTarget);
+    const nextTarget = forceCast(e3.relatedTarget);
     if (!nextTarget || !elem.contains(nextTarget)) {
       this.popC_.shows.rawValue = false;
     }
@@ -25853,7 +25876,7 @@ var Point2dInputPlugin = createPlugin({
     if (!Point2d.isObject(value)) {
       return null;
     }
-    const result = parseRecord(params, (p2) => Object.assign(Object.assign({}, createPointDimensionParser(p2)), { expanded: p2.optional.boolean, picker: p2.optional.custom(parsePickerLayout), readonly: p2.optional.constant(false), x: p2.optional.custom(parsePointDimensionParams), y: p2.optional.object(Object.assign(Object.assign({}, createPointDimensionParser(p2)), { inverted: p2.optional.boolean })) }));
+    const result = parseRecord(params, (p3) => Object.assign(Object.assign({}, createPointDimensionParser(p3)), { expanded: p3.optional.boolean, picker: p3.optional.custom(parsePickerLayout), readonly: p3.optional.constant(false), x: p3.optional.custom(parsePointDimensionParams), y: p3.optional.object(Object.assign(Object.assign({}, createPointDimensionParser(p3)), { inverted: p3.optional.boolean })) }));
     return result ? {
       initialValue: value,
       params: result
@@ -25869,15 +25892,15 @@ var Point2dInputPlugin = createPlugin({
     var _a, _b;
     const doc = args.document;
     const value = args.value;
-    const c2 = args.constraint;
+    const c3 = args.constraint;
     const dParams = [args.params.x, args.params.y];
     return new Point2dController(doc, {
-      axes: value.rawValue.getComponents().map((comp, i2) => {
+      axes: value.rawValue.getComponents().map((comp, i4) => {
         var _a2;
         return createPointAxis({
-          constraint: c2.components[i2],
+          constraint: c3.components[i4],
           initialValue: comp,
-          params: deepMerge(args.params, (_a2 = dParams[i2]) !== null && _a2 !== void 0 ? _a2 : {})
+          params: deepMerge(args.params, (_a2 = dParams[i4]) !== null && _a2 !== void 0 ? _a2 : {})
         });
       }),
       expanded: (_a = args.params.expanded) !== null && _a !== void 0 ? _a : false,
@@ -25894,10 +25917,10 @@ var Point3d = class {
   static {
     __name(this, "Point3d");
   }
-  constructor(x2 = 0, y2 = 0, z2 = 0) {
-    this.x = x2;
-    this.y = y2;
-    this.z = z2;
+  constructor(x3 = 0, y3 = 0, z3 = 0) {
+    this.x = x3;
+    this.y = y3;
+    this.z = z3;
   }
   getComponents() {
     return [this.x, this.y, this.z];
@@ -25906,16 +25929,16 @@ var Point3d = class {
     if (isEmpty(obj)) {
       return false;
     }
-    const x2 = obj.x;
-    const y2 = obj.y;
-    const z2 = obj.z;
-    if (typeof x2 !== "number" || typeof y2 !== "number" || typeof z2 !== "number") {
+    const x3 = obj.x;
+    const y3 = obj.y;
+    const z3 = obj.z;
+    if (typeof x3 !== "number" || typeof y3 !== "number" || typeof z3 !== "number") {
       return false;
     }
     return true;
   }
-  static equals(v1, v2) {
-    return v1.x === v2.x && v1.y === v2.y && v1.z === v2.z;
+  static equals(v1, v22) {
+    return v1.x === v22.x && v1.y === v22.y && v1.z === v22.z;
   }
   toObject() {
     return {
@@ -25926,7 +25949,7 @@ var Point3d = class {
   }
 };
 var Point3dAssembly = {
-  toComponents: /* @__PURE__ */ __name((p2) => p2.getComponents(), "toComponents"),
+  toComponents: /* @__PURE__ */ __name((p3) => p3.getComponents(), "toComponents"),
   fromComponents: /* @__PURE__ */ __name((comps) => new Point3d(...comps), "fromComponents")
 };
 function point3dFromUnknown(value) {
@@ -25957,7 +25980,7 @@ var Point3dInputPlugin = createPlugin({
     if (!Point3d.isObject(value)) {
       return null;
     }
-    const result = parseRecord(params, (p2) => Object.assign(Object.assign({}, createPointDimensionParser(p2)), { readonly: p2.optional.constant(false), x: p2.optional.custom(parsePointDimensionParams), y: p2.optional.custom(parsePointDimensionParams), z: p2.optional.custom(parsePointDimensionParams) }));
+    const result = parseRecord(params, (p3) => Object.assign(Object.assign({}, createPointDimensionParser(p3)), { readonly: p3.optional.constant(false), x: p3.optional.custom(parsePointDimensionParams), y: p3.optional.custom(parsePointDimensionParams), z: p3.optional.custom(parsePointDimensionParams) }));
     return result ? {
       initialValue: value,
       params: result
@@ -25971,16 +25994,16 @@ var Point3dInputPlugin = createPlugin({
   },
   controller: /* @__PURE__ */ __name((args) => {
     const value = args.value;
-    const c2 = args.constraint;
+    const c3 = args.constraint;
     const dParams = [args.params.x, args.params.y, args.params.z];
     return new PointNdTextController(args.document, {
       assembly: Point3dAssembly,
-      axes: value.rawValue.getComponents().map((comp, i2) => {
+      axes: value.rawValue.getComponents().map((comp, i4) => {
         var _a;
         return createPointAxis({
-          constraint: c2.components[i2],
+          constraint: c3.components[i4],
           initialValue: comp,
-          params: deepMerge(args.params, (_a = dParams[i2]) !== null && _a !== void 0 ? _a : {})
+          params: deepMerge(args.params, (_a = dParams[i4]) !== null && _a !== void 0 ? _a : {})
         });
       }),
       parser: parseNumber,
@@ -25993,11 +26016,11 @@ var Point4d = class {
   static {
     __name(this, "Point4d");
   }
-  constructor(x2 = 0, y2 = 0, z2 = 0, w2 = 0) {
-    this.x = x2;
-    this.y = y2;
-    this.z = z2;
-    this.w = w2;
+  constructor(x3 = 0, y3 = 0, z3 = 0, w3 = 0) {
+    this.x = x3;
+    this.y = y3;
+    this.z = z3;
+    this.w = w3;
   }
   getComponents() {
     return [this.x, this.y, this.z, this.w];
@@ -26006,17 +26029,17 @@ var Point4d = class {
     if (isEmpty(obj)) {
       return false;
     }
-    const x2 = obj.x;
-    const y2 = obj.y;
-    const z2 = obj.z;
-    const w2 = obj.w;
-    if (typeof x2 !== "number" || typeof y2 !== "number" || typeof z2 !== "number" || typeof w2 !== "number") {
+    const x3 = obj.x;
+    const y3 = obj.y;
+    const z3 = obj.z;
+    const w3 = obj.w;
+    if (typeof x3 !== "number" || typeof y3 !== "number" || typeof z3 !== "number" || typeof w3 !== "number") {
       return false;
     }
     return true;
   }
-  static equals(v1, v2) {
-    return v1.x === v2.x && v1.y === v2.y && v1.z === v2.z && v1.w === v2.w;
+  static equals(v1, v22) {
+    return v1.x === v22.x && v1.y === v22.y && v1.z === v22.z && v1.w === v22.w;
   }
   toObject() {
     return {
@@ -26028,7 +26051,7 @@ var Point4d = class {
   }
 };
 var Point4dAssembly = {
-  toComponents: /* @__PURE__ */ __name((p2) => p2.getComponents(), "toComponents"),
+  toComponents: /* @__PURE__ */ __name((p3) => p3.getComponents(), "toComponents"),
   fromComponents: /* @__PURE__ */ __name((comps) => new Point4d(...comps), "fromComponents")
 };
 function point4dFromUnknown(value) {
@@ -26061,7 +26084,7 @@ var Point4dInputPlugin = createPlugin({
     if (!Point4d.isObject(value)) {
       return null;
     }
-    const result = parseRecord(params, (p2) => Object.assign(Object.assign({}, createPointDimensionParser(p2)), { readonly: p2.optional.constant(false), w: p2.optional.custom(parsePointDimensionParams), x: p2.optional.custom(parsePointDimensionParams), y: p2.optional.custom(parsePointDimensionParams), z: p2.optional.custom(parsePointDimensionParams) }));
+    const result = parseRecord(params, (p3) => Object.assign(Object.assign({}, createPointDimensionParser(p3)), { readonly: p3.optional.constant(false), w: p3.optional.custom(parsePointDimensionParams), x: p3.optional.custom(parsePointDimensionParams), y: p3.optional.custom(parsePointDimensionParams), z: p3.optional.custom(parsePointDimensionParams) }));
     return result ? {
       initialValue: value,
       params: result
@@ -26075,7 +26098,7 @@ var Point4dInputPlugin = createPlugin({
   },
   controller: /* @__PURE__ */ __name((args) => {
     const value = args.value;
-    const c2 = args.constraint;
+    const c3 = args.constraint;
     const dParams = [
       args.params.x,
       args.params.y,
@@ -26084,12 +26107,12 @@ var Point4dInputPlugin = createPlugin({
     ];
     return new PointNdTextController(args.document, {
       assembly: Point4dAssembly,
-      axes: value.rawValue.getComponents().map((comp, i2) => {
+      axes: value.rawValue.getComponents().map((comp, i4) => {
         var _a;
         return createPointAxis({
-          constraint: c2.components[i2],
+          constraint: c3.components[i4],
           initialValue: comp,
-          params: deepMerge(args.params, (_a = dParams[i2]) !== null && _a !== void 0 ? _a : {})
+          params: deepMerge(args.params, (_a = dParams[i4]) !== null && _a !== void 0 ? _a : {})
         });
       }),
       parser: parseNumber,
@@ -26114,9 +26137,9 @@ var StringInputPlugin = createPlugin({
     if (typeof value !== "string") {
       return null;
     }
-    const result = parseRecord(params, (p2) => ({
-      readonly: p2.optional.constant(false),
-      options: p2.optional.custom(parseListOptions)
+    const result = parseRecord(params, (p3) => ({
+      readonly: p3.optional.constant(false),
+      options: p3.optional.custom(parseListOptions)
     }));
     return result ? {
       initialValue: value,
@@ -26131,8 +26154,8 @@ var StringInputPlugin = createPlugin({
   controller: /* @__PURE__ */ __name((args) => {
     const doc = args.document;
     const value = args.value;
-    const c2 = args.constraint;
-    const lc = c2 && findConstraint(c2, ListConstraint);
+    const c3 = args.constraint;
+    const lc = c3 && findConstraint(c3, ListConstraint);
     if (lc) {
       return new ListController(doc, {
         props: new ValueMap({
@@ -26143,7 +26166,7 @@ var StringInputPlugin = createPlugin({
       });
     }
     return new TextController(doc, {
-      parser: /* @__PURE__ */ __name((v2) => v2, "parser"),
+      parser: /* @__PURE__ */ __name((v3) => v3, "parser"),
       props: ValueMap.fromObject({
         formatter: formatString
       }),
@@ -26274,9 +26297,9 @@ var BooleanMonitorPlugin = createPlugin({
     if (typeof value !== "boolean") {
       return null;
     }
-    const result = parseRecord(params, (p2) => ({
-      readonly: p2.required.constant(true),
-      rows: p2.optional.number
+    const result = parseRecord(params, (p3) => ({
+      readonly: p3.required.constant(true),
+      rows: p3.optional.number
     }));
     return result ? {
       initialValue: value,
@@ -26355,18 +26378,18 @@ var GraphLogView = class {
     return this.svgElem_;
   }
   update_() {
-    const { clientWidth: w2, clientHeight: h2 } = this.element;
+    const { clientWidth: w3, clientHeight: h3 } = this.element;
     const maxIndex = this.value.rawValue.length - 1;
     const min = this.props_.get("min");
     const max = this.props_.get("max");
     const points = [];
-    this.value.rawValue.forEach((v2, index) => {
-      if (v2 === void 0) {
+    this.value.rawValue.forEach((v3, index) => {
+      if (v3 === void 0) {
         return;
       }
-      const x2 = mapRange(index, 0, maxIndex, 0, w2);
-      const y2 = mapRange(v2, min, max, h2, 0);
-      points.push([x2, y2].join(","));
+      const x3 = mapRange(index, 0, maxIndex, 0, w3);
+      const y3 = mapRange(v3, min, max, h3, 0);
+      points.push([x3, y3].join(","));
     });
     this.lineElem_.setAttributeNS(null, "points", points.join(" "));
     const tooltipElem = this.tooltipElem_;
@@ -26375,8 +26398,8 @@ var GraphLogView = class {
       tooltipElem.classList.remove(cn$1("t", "a"));
       return;
     }
-    const tx = mapRange(this.cursor_.rawValue, 0, maxIndex, 0, w2);
-    const ty = mapRange(value, min, max, h2, 0);
+    const tx = mapRange(this.cursor_.rawValue, 0, maxIndex, 0, w3);
+    const ty = mapRange(value, min, max, h3, 0);
     tooltipElem.style.left = `${tx}px`;
     tooltipElem.style.top = `${ty}px`;
     tooltipElem.textContent = `${this.formatter_(value)}`;
@@ -26426,9 +26449,9 @@ var GraphLogController = class {
     }
   }
   importProps(state) {
-    return importBladeState(state, null, (p2) => ({
-      max: p2.required.number,
-      min: p2.required.number
+    return importBladeState(state, null, (p3) => ({
+      max: p3.required.number,
+      min: p3.required.number
     }), (result) => {
       this.props.set("max", result.max);
       this.props.set("min", result.min);
@@ -26445,8 +26468,8 @@ var GraphLogController = class {
     this.cursor_.rawValue = -1;
   }
   onGraphMouseMove_(ev) {
-    const { clientWidth: w2 } = this.view.element;
-    this.cursor_.rawValue = Math.floor(mapRange(ev.offsetX, 0, w2, 0, this.value.rawValue.length));
+    const { clientWidth: w3 } = this.view.element;
+    this.cursor_.rawValue = Math.floor(mapRange(ev.offsetX, 0, w3, 0, this.value.rawValue.length));
   }
   onGraphPointerDown_(ev) {
     this.onGraphPointerMove_(ev);
@@ -26508,13 +26531,13 @@ var NumberMonitorPlugin = createPlugin({
     if (typeof value !== "number") {
       return null;
     }
-    const result = parseRecord(params, (p2) => ({
-      format: p2.optional.function,
-      max: p2.optional.number,
-      min: p2.optional.number,
-      readonly: p2.required.constant(true),
-      rows: p2.optional.number,
-      view: p2.optional.string
+    const result = parseRecord(params, (p3) => ({
+      format: p3.optional.function,
+      max: p3.optional.number,
+      min: p3.optional.number,
+      readonly: p3.required.constant(true),
+      rows: p3.optional.number,
+      view: p3.optional.string
     }));
     return result ? {
       initialValue: value,
@@ -26545,10 +26568,10 @@ var StringMonitorPlugin = createPlugin({
     if (typeof value !== "string") {
       return null;
     }
-    const result = parseRecord(params, (p2) => ({
-      multiline: p2.optional.boolean,
-      readonly: p2.required.constant(true),
-      rows: p2.optional.number
+    const result = parseRecord(params, (p3) => ({
+      multiline: p3.optional.boolean,
+      readonly: p3.required.constant(true),
+      rows: p3.optional.number
     }));
     return result ? {
       initialValue: value,
@@ -26629,11 +26652,11 @@ function createInputBindingController(plugin, args) {
     initialValue: result.initialValue,
     params: result.params
   };
-  const params = parseRecord(args.params, (p2) => ({
-    disabled: p2.optional.boolean,
-    hidden: p2.optional.boolean,
-    label: p2.optional.string,
-    tag: p2.optional.string
+  const params = parseRecord(args.params, (p3) => ({
+    disabled: p3.optional.boolean,
+    hidden: p3.optional.boolean,
+    label: p3.optional.string,
+    tag: p3.optional.string
   }));
   const reader = plugin.binding.reader(valueArgs);
   const constraint = plugin.binding.constraint ? plugin.binding.constraint(valueArgs) : void 0;
@@ -26695,12 +26718,12 @@ function createMonitorBindingController(plugin, args) {
     initialValue: result.initialValue,
     params: result.params
   };
-  const params = parseRecord(args.params, (p2) => ({
-    bufferSize: p2.optional.number,
-    disabled: p2.optional.boolean,
-    hidden: p2.optional.boolean,
-    interval: p2.optional.number,
-    label: p2.optional.string
+  const params = parseRecord(args.params, (p3) => ({
+    bufferSize: p3.optional.number,
+    disabled: p3.optional.boolean,
+    hidden: p3.optional.boolean,
+    interval: p3.optional.number,
+    label: p3.optional.string
   }));
   const reader = plugin.binding.reader(bindingArgs);
   const bufferSize = (_b = (_a = params === null || params === void 0 ? void 0 : params.bufferSize) !== null && _a !== void 0 ? _a : plugin.binding.defaultBufferSize && plugin.binding.defaultBufferSize(result.params)) !== null && _b !== void 0 ? _b : 1;
@@ -26754,16 +26777,16 @@ var PluginPool = class {
       ...this.pluginsMap_.monitors
     ];
   }
-  register(bundleId, r2) {
-    if (!isCompatible(r2.core)) {
-      throw TpError.notCompatible(bundleId, r2.id);
+  register(bundleId, r3) {
+    if (!isCompatible(r3.core)) {
+      throw TpError.notCompatible(bundleId, r3.id);
     }
-    if (r2.type === "blade") {
-      this.pluginsMap_.blades.unshift(r2);
-    } else if (r2.type === "input") {
-      this.pluginsMap_.inputs.unshift(r2);
-    } else if (r2.type === "monitor") {
-      this.pluginsMap_.monitors.unshift(r2);
+    if (r3.type === "blade") {
+      this.pluginsMap_.blades.unshift(r3);
+    } else if (r3.type === "input") {
+      this.pluginsMap_.inputs.unshift(r3);
+    } else if (r3.type === "monitor") {
+      this.pluginsMap_.monitors.unshift(r3);
     }
   }
   createInput_(document2, target, params) {
@@ -26892,8 +26915,8 @@ function createDefaultPluginPool() {
     ButtonBladePlugin,
     FolderBladePlugin,
     TabBladePlugin
-  ].forEach((p2) => {
-    pool.register("core", p2);
+  ].forEach((p3) => {
+    pool.register("core", p3);
   });
   return pool;
 }
@@ -27053,11 +27076,11 @@ var ListBladePlugin = /* @__PURE__ */ (function() {
     type: "blade",
     core: VERSION$1,
     accept(params) {
-      const result = parseRecord(params, (p2) => ({
-        options: p2.required.custom(parseListOptions),
-        value: p2.required.raw,
-        view: p2.required.constant("list"),
-        label: p2.optional.string
+      const result = parseRecord(params, (p3) => ({
+        options: p3.required.custom(parseListOptions),
+        value: p3.required.raw,
+        view: p3.required.constant("list"),
+        label: p3.optional.string
       }));
       return result ? { params: result } : null;
     },
@@ -27153,8 +27176,8 @@ var SeparatorBladePlugin = {
   type: "blade",
   core: VERSION$1,
   accept(params) {
-    const result = parseRecord(params, (p2) => ({
-      view: p2.required.constant("separator")
+    const result = parseRecord(params, (p3) => ({
+      view: p3.required.constant("separator")
     }));
     return result ? { params: result } : null;
   },
@@ -27176,13 +27199,13 @@ var SliderBladePlugin = {
   type: "blade",
   core: VERSION$1,
   accept(params) {
-    const result = parseRecord(params, (p2) => ({
-      max: p2.required.number,
-      min: p2.required.number,
-      view: p2.required.constant("slider"),
-      format: p2.optional.function,
-      label: p2.optional.string,
-      value: p2.optional.number
+    const result = parseRecord(params, (p3) => ({
+      max: p3.required.number,
+      min: p3.required.number,
+      view: p3.required.constant("slider"),
+      format: p3.optional.function,
+      label: p3.optional.string,
+      value: p3.optional.number
     }));
     return result ? { params: result } : null;
   },
@@ -27193,7 +27216,7 @@ var SliderBladePlugin = {
       max: args.params.max,
       min: args.params.min
     });
-    const v2 = createValue(initialValue, {
+    const v3 = createValue(initialValue, {
       constraint: drc
     });
     const vc = new SliderTextController(args.document, Object.assign(Object.assign({}, createSliderTextProps({
@@ -27202,13 +27225,13 @@ var SliderBladePlugin = {
       max: drc.values.value("max"),
       min: drc.values.value("min"),
       pointerScale: getSuitablePointerScale(args.params, initialValue)
-    })), { parser: parseNumber, value: v2, viewProps: args.viewProps }));
+    })), { parser: parseNumber, value: v3, viewProps: args.viewProps }));
     return new LabeledValueBladeController(args.document, {
       blade: args.blade,
       props: ValueMap.fromObject({
         label: args.params.label
       }),
-      value: v2,
+      value: v3,
       valueController: vc
     });
   },
@@ -27228,24 +27251,24 @@ var TextBladePlugin = /* @__PURE__ */ (function() {
     type: "blade",
     core: VERSION$1,
     accept(params) {
-      const result = parseRecord(params, (p2) => ({
-        parse: p2.required.function,
-        value: p2.required.raw,
-        view: p2.required.constant("text"),
-        format: p2.optional.function,
-        label: p2.optional.string
+      const result = parseRecord(params, (p3) => ({
+        parse: p3.required.function,
+        value: p3.required.raw,
+        view: p3.required.constant("text"),
+        format: p3.optional.function,
+        label: p3.optional.string
       }));
       return result ? { params: result } : null;
     },
     controller(args) {
       var _a;
-      const v2 = createValue(args.params.value);
+      const v3 = createValue(args.params.value);
       const ic = new TextController(args.document, {
         parser: args.params.parse,
         props: ValueMap.fromObject({
-          formatter: (_a = args.params.format) !== null && _a !== void 0 ? _a : ((v3) => String(v3))
+          formatter: (_a = args.params.format) !== null && _a !== void 0 ? _a : ((v4) => String(v4))
         }),
-        value: v2,
+        value: v3,
         viewProps: args.viewProps
       });
       return new LabeledValueBladeController(args.document, {
@@ -27253,7 +27276,7 @@ var TextBladePlugin = /* @__PURE__ */ (function() {
         props: ValueMap.fromObject({
           label: args.params.label
         }),
-        value: v2,
+        value: v3,
         valueController: ic
       });
     },
@@ -27338,8 +27361,8 @@ var Pane = class extends RootApi {
       embedStyle(this.document, `plugin-${bundle.id}`, bundle.css);
     }
     const plugins = "plugin" in bundle ? [bundle.plugin] : "plugins" in bundle ? bundle.plugins : [];
-    plugins.forEach((p2) => {
-      this.pool_.register(bundle.id, p2);
+    plugins.forEach((p3) => {
+      this.pool_.register(bundle.id, p3);
     });
   }
   setUpDefaultPlugins_() {
@@ -27556,6 +27579,491 @@ var AppState = class {
   }
 };
 
+// node_modules/nipplejs/dist/index.mjs
+var t2 = "dynamic";
+var i2 = "semi";
+var e2 = "static";
+var s2 = "undefined" != typeof window && "ontouchstart" in window;
+var o2 = { start: "mousedown", move: "mousemove", end: "mouseup, mouseleave", pressure: "webkitmouseforcechanged" };
+var n2;
+var r2;
+"undefined" != typeof window && !!window.PointerEvent ? n2 = { start: "pointerdown", move: "pointermove", end: "pointerup, pointercancel, pointerleave", pressure: "webkitmouseforcechanged" } : s2 ? (n2 = { start: "touchstart", move: "touchmove", end: "touchend, touchcancel", pressure: "webkitmouseforcechanged" }, r2 = o2) : n2 = o2;
+var d2 = n2;
+var h2 = r2;
+var a2 = Math.PI / 4;
+var l2 = Math.PI / 2;
+var c2 = /* @__PURE__ */ __name((t3, i4) => {
+  const e3 = i4.x - t3.x, s4 = i4.y - t3.y;
+  return Math.sqrt(e3 * e3 + s4 * s4);
+}, "c");
+var p2 = /* @__PURE__ */ __name((t3) => t3 * (Math.PI / 180), "p");
+var u2 = /* @__PURE__ */ __name((t3) => t3 * (180 / Math.PI), "u");
+var y2 = /* @__PURE__ */ new Map();
+var f2 = /* @__PURE__ */ __name((t3) => {
+  y2.has(t3) && clearTimeout(y2.get(t3)), y2.set(t3, setTimeout(t3, 100));
+}, "f");
+var m2 = /* @__PURE__ */ __name((t3, i4, e3) => {
+  const s4 = i4.split(/[ ,]+/g);
+  for (let i5 = 0; i5 < s4.length; i5 += 1) t3.addEventListener(s4[i5], e3, false);
+}, "m");
+var g2 = /* @__PURE__ */ __name((t3, i4, e3) => {
+  const s4 = i4.split(/[ ,]+/g);
+  for (let i5 = 0; i5 < s4.length; i5 += 1) t3.removeEventListener(s4[i5], e3);
+}, "g");
+var v2 = /* @__PURE__ */ __name((t3) => "force" in t3 ? t3.force : "pressure" in t3 ? t3.pressure : "webkitForce" in t3 ? t3.webkitForce / 3 : "buttons" in t3 && 0 !== t3.buttons ? 1 : 0, "v");
+var x2 = /* @__PURE__ */ __name((t3, i4) => ({ identifier: "identifier" in i4 ? i4.identifier : "pointerId" in i4 ? i4.pointerId : 1, isTouch: "touches" in t3 || "changedTouches" in t3, position: { x: i4.pageX, y: i4.pageY }, pressure: v2(i4), type: t3.type, initial: t3, raw: i4 }), "x");
+var k2 = /* @__PURE__ */ __name(() => ({ x: window.scrollX, y: window.scrollY }), "k");
+var b2 = /* @__PURE__ */ __name((t3, i4) => {
+  const { left: e3, top: s4, right: o3, bottom: n3, x: r3, y: d3 } = i4;
+  s4 || o3 || n3 || e3 ? T2(t3.style, { top: s4, right: o3, bottom: n3, left: e3 }) : ($2(r3) || $2(d3)) && T2(t3.style, { left: $2(r3) ? `${r3}px` : void 0, top: $2(d3) ? `${d3}px` : void 0 });
+}, "b");
+var w2 = /* @__PURE__ */ __name((t3, i4 = "") => ({ [t3]: i4 }), "w");
+var T2 = /* @__PURE__ */ __name((t3, i4) => {
+  for (const e3 in i4) Object.hasOwn(i4, e3) && (t3[e3] = i4[e3]);
+  return t3;
+}, "T");
+var $2 = /* @__PURE__ */ __name((t3) => "number" == typeof t3 && !isNaN(t3), "$");
+var z2 = { debug: 0, info: 1, warning: 2, error: 3, none: 4 };
+var O2 = "warning";
+var I2 = class {
+  static {
+    __name(this, "I");
+  }
+  constructor(t3) {
+    this.uid = 0, this.index = 0, this.name = "super", this._domHandlers_ = /* @__PURE__ */ new Map(), this._handlers_ = {}, this.name = t3, this.log("construct", this.name, this.index);
+  }
+  mapOnEvents(t3, i4) {
+    const e3 = t3.split(/[ ,]+/g);
+    for (let t4 = 0; t4 < e3.length; t4 += 1) i4(e3[t4]);
+  }
+  on(t3, i4) {
+    this.mapOnEvents(t3, ((t4) => {
+      this._handlers_[t4] = this._handlers_[t4] || /* @__PURE__ */ new Set(), this._handlers_[t4].add(i4);
+    }));
+  }
+  off(t3, i4) {
+    void 0 === t3 ? this._handlers_ = {} : this.mapOnEvents(t3, ((t4) => {
+      void 0 === i4 ? this._handlers_[t4] = /* @__PURE__ */ new Set() : this._handlers_[t4] && this._handlers_[t4].delete(i4);
+    }));
+  }
+  trigger(t3, i4) {
+    this.mapOnEvents(t3, ((t4) => {
+      this.log(`- "${t4}" [trigger]`);
+      const e3 = this._handlers_[t4];
+      if (e3 && e3.size) {
+        const s4 = [...e3];
+        for (const e4 of s4) e4.call(this, { type: t4, target: this, data: i4 });
+      }
+    }));
+  }
+  bindEvt(t3, i4, e3) {
+    const s4 = /* @__PURE__ */ __name((t4) => {
+      for (const s5 of ((t5) => {
+        t5.type.toLowerCase().includes("move") && t5.preventDefault();
+        const i5 = [];
+        if ("changedTouches" in t5) for (const e4 of Array.from(t5.changedTouches)) e4 && i5.push(e4);
+        else i5.push(t5);
+        return i5.map(((i6) => x2(t5, i6)));
+      })(t4)) this.log(`- "${i4}" [dom:trigger:${s5.identifier}]`), e3.call(this, s5);
+    }, "s");
+    this._domHandlers_.set(e3, s4), m2(t3, d2[i4], s4), h2?.[i4] && m2(t3, h2[i4], s4);
+  }
+  unbindEvt(t3, i4, e3) {
+    const s4 = this._domHandlers_.get(e3);
+    s4 ? (g2(t3, d2[i4], s4), h2?.[i4] && g2(t3, h2[i4], s4), this._domHandlers_.delete(e3)) : this.error(`Internal handler not found for event ${i4}.`, e3);
+  }
+  logPrefix() {
+    return { super: "", joystick: "  ", collection: "    ", factory: "      " }[this.name];
+  }
+  logSuffix() {
+    return `[${this.name}|${this.uid}]`;
+  }
+  static get logLevel() {
+    return O2;
+  }
+  static set logLevel(t3) {
+    O2 = t3;
+  }
+  log(...t3) {
+    z2[O2] <= z2.debug && console.log(this.logPrefix(), ...t3, this.logSuffix());
+  }
+  info(...t3) {
+    z2[O2] <= z2.info && console.info(this.logPrefix(), ...t3, this.logSuffix());
+  }
+  warn(...t3) {
+    z2[O2] <= z2.warning && console.warn(this.logPrefix(), ...t3, this.logSuffix());
+  }
+  error(...t3) {
+    z2[O2] <= z2.error && console.error(this.logPrefix(), ...t3, this.logSuffix());
+  }
+};
+var E2 = class i3 extends I2 {
+  static {
+    __name(this, "i");
+  }
+  constructor(t3, e3) {
+    super("joystick"), this.direction = {}, this.defaults = { size: 100, threshold: 0.1, color: "white", fadeTime: 250, dataOnly: false, restJoystick: true, restOpacity: 0.5, mode: "dynamic", zone: document.body, lockX: false, lockY: false, shape: "circle" }, this.position = e3.position, this.frontPosition = e3.frontPosition, this.collection = t3, this.options = { ...this.defaults, ...e3 }, "dynamic" === this.options.mode && (this.options.restOpacity = 0), this.uid = i3.index++, this.ui = { el: document.createElement("div"), back: document.createElement("div"), front: document.createElement("div") };
+  }
+  init() {
+    this.options.dataOnly || this.buildEl(), this.trigger("added", this), this.trigger("joystickCreated", this);
+  }
+  get identifier() {
+    return this._identifier;
+  }
+  set identifier(t3) {
+    $2(t3) ? (this._identifier = t3, this.trigger("attached", { collection: this.collection, joystick: this, identifier: t3 })) : (this.trigger("detached", { collection: this.collection, joystick: this, identifier: this._identifier }), this._identifier = void 0);
+  }
+  resolveColors() {
+    const t3 = this.options.color;
+    return "object" == typeof t3 && null !== t3 ? t3 : { front: t3, back: t3 };
+  }
+  buildEl() {
+    this.ui.el.className = `joystick collection_${this.collection.uid}`, this.ui.back.className = "back", this.ui.front.className = "front", this.ui.el.setAttribute("id", `joystick_${this.collection.uid}_${this.uid}`), this.ui.el.appendChild(this.ui.back), this.ui.el.appendChild(this.ui.front);
+    const t3 = `${this.options.fadeTime}ms`, i4 = w2("borderRadius", "50%"), e3 = w2("transition", `opacity ${t3}`), s4 = this.resolveColors();
+    T2(this.ui.el.style, { position: "absolute", opacity: this.options.restOpacity.toString(), display: "block", zIndex: "999", touchAction: "none", userSelect: "none", ...e3 }), T2(this.ui.back.style, { position: "absolute", display: "block", width: `${this.options.size}px`, height: `${this.options.size}px`, left: "0", marginLeft: -this.options.size / 2 + "px", marginTop: -this.options.size / 2 + "px", background: s4.back, ..."circle" === this.options.shape ? i4 : {} }), T2(this.ui.front.style, { width: this.options.size / 2 + "px", height: this.options.size / 2 + "px", position: "absolute", display: "block", left: "0", marginLeft: -this.options.size / 4 + "px", marginTop: -this.options.size / 4 + "px", background: s4.front, opacity: ".5", transform: "translate(0px, 0px)", ...i4 });
+  }
+  get pressure() {
+    return this._pressure ?? 0;
+  }
+  set pressure(t3) {
+    t3 !== this._pressure && (this._pressure = t3, this.trigger("pressure", t3));
+  }
+  startPressureInterval(t3) {
+    this.pressureInterval || (this.pressureInterval = window.setInterval((() => {
+      this.pressure = v2(t3);
+    }), 100));
+  }
+  stopPressureInterval() {
+    clearInterval(this.pressureInterval), this.pressureInterval = void 0;
+  }
+  addToDom() {
+    this.options.dataOnly || this.options.zone.contains(this.ui.el) || this.options.zone.appendChild(this.ui.el);
+  }
+  removeFromDom() {
+    !this.options.dataOnly && this.options.zone.contains(this.ui.el) && this.options.zone.removeChild(this.ui.el);
+  }
+  clearTimeouts() {
+    clearTimeout(this.removeTimeout), clearTimeout(this.showTimeout), clearTimeout(this.restTimeout), clearTimeout(this.activeTimeout), this.removeTimeout = void 0, this.showTimeout = void 0, this.restTimeout = void 0, this.activeTimeout = void 0;
+  }
+  start(t3, i4) {
+    this.trigger("start", this), this.clearTimeouts(), this.options.dataOnly ? "function" == typeof i4 && i4.call(this) : (this.addToDom(), this.startPressureInterval(t3), requestAnimationFrame((() => {
+      this.ui.el.style.opacity = "1";
+    })), this.showTimeout = window.setTimeout((() => {
+      this.showTimeout = void 0, this.trigger("shown", this), "function" == typeof i4 && i4.call(this);
+    }), this.options.fadeTime));
+  }
+  end(i4) {
+    if (this.resetDirection(), this.clearTimeouts(), this.stopPressureInterval(), this.pressure = 0, this.trigger("end", this), this.options.dataOnly) "function" == typeof i4 && i4.call(this);
+    else {
+      if (this.ui.el.style.opacity = this.options.restOpacity.toString(), this.options.restJoystick) {
+        const t3 = this.options.restJoystick, e3 = { x: true === t3 || false !== t3.x ? 0 : this.frontPosition.x, y: true === t3 || false !== t3.y ? 0 : this.frontPosition.y };
+        this.setPosition(i4, e3);
+      }
+      clearTimeout(this.removeTimeout), this.removeTimeout = window.setTimeout((() => {
+        this.removeTimeout = void 0, this.ui.el.style.display = this.options.mode === t2 ? "none" : "block", this.trigger("hidden", this), this.options.mode === t2 && (this.trigger("removed", this), this.destroy()), "function" == typeof i4 && i4.call(this);
+      }), this.options.fadeTime);
+    }
+  }
+  setTransition(t3 = false, i4) {
+    if (t3) {
+      const t4 = 100, e3 = T2(w2("transition", `transform ${`${t4}ms`}`), w2("transform", `translate(${this.frontPosition.x}px, ${this.frontPosition.y}px)`));
+      T2(this.ui.front.style, e3), clearTimeout(this.activeTimeout), this.activeTimeout = window.setTimeout((() => {
+        this.activeTimeout = void 0, "function" == typeof i4 && i4.call(this);
+      }), t4);
+    } else T2(this.ui.front.style, w2("transition", "none"));
+  }
+  setPosition(t3, i4) {
+    this.frontPosition = { x: i4.x, y: i4.y }, this.setTransition(true), clearTimeout(this.restTimeout), this.restTimeout = window.setTimeout((() => {
+      this.restTimeout = void 0, "function" == typeof t3 && t3.call(this), this.setTransition(false), this.trigger("rested", this);
+    }), this.options.fadeTime);
+  }
+  resetDirection() {
+    this.direction = {};
+  }
+  computeDirectionAndTriggerEvents(t3) {
+    const i4 = t3.angle.radian, e3 = {};
+    return i4 > a2 && i4 < 3 * a2 && !t3.lockX ? e3.angle = "up" : i4 > -a2 && i4 <= a2 && !t3.lockY ? e3.angle = "left" : i4 > 3 * -a2 && i4 <= -a2 && !t3.lockX ? e3.angle = "down" : t3.lockY || (e3.angle = "right"), t3.lockY || (e3.x = i4 > -l2 && i4 < l2 ? "left" : "right"), t3.lockX || (e3.y = i4 > 0 ? "up" : "down"), t3.angle = { radian: p2(180 - t3.angle.degree), degree: 180 - t3.angle.degree }, this.triggerDirectionEvents(t3, e3), t3;
+  }
+  triggerDirectionEvents(t3, i4) {
+    if (t3.force > this.options.threshold) {
+      const e3 = { x: this.direction.x, y: this.direction.y, angle: this.direction.angle };
+      this.direction = i4, t3.direction = i4, e3.x !== i4.x && this.trigger(`plain plain:${i4.x}`, t3), e3.y !== i4.y && this.trigger(`plain plain:${i4.y}`, t3), e3.angle !== i4.angle && this.trigger(`dir dir:${i4.angle}`, t3);
+    } else this.resetDirection();
+    this.trigger("move", t3);
+  }
+  destroy() {
+    this.clearTimeouts(), this.identifier = void 0, this.removeFromDom(), this.trigger("joystickDestroyed", this), this.off();
+  }
+};
+E2.index = 0;
+var j2 = E2;
+var C2 = class s3 extends I2 {
+  static {
+    __name(this, "s");
+  }
+  constructor(o3, n3) {
+    super("collection"), this.all = /* @__PURE__ */ new Map(), this.idles = /* @__PURE__ */ new Set(), this.actives = /* @__PURE__ */ new Map(), this.resting = /* @__PURE__ */ new Map(), this.parentIsFlex = false, this.defaults = { catchDistance: 200, color: "white", dataOnly: false, dynamicPage: false, fadeTime: 250, follow: false, lockX: false, lockY: false, maxNumberOfJoysticks: 10, mode: t2, multitouch: false, position: { top: "0px", left: "0px" }, restJoystick: true, restOpacity: 0.5, shape: "circle", size: 100, threshold: 0.1, zone: document.body }, this.factory = o3, this.uid = s3.index++, this.options = { ...this.defaults, ...n3 }, this.options.mode !== e2 && this.options.mode !== i2 || (this.options.multitouch = false), this.options.multitouch || (this.options.maxNumberOfJoysticks = 1);
+    const r3 = this.options.zone.parentElement && getComputedStyle(this.options.zone.parentElement);
+    "flex" === r3?.display && (this.parentIsFlex = true);
+    "static" === getComputedStyle(this.options.zone).position && this.warn('The zone element has no CSS "position" set (it is "static").', "Joysticks may not be positioned correctly.", 'Set "position: relative" (or absolute/fixed) on the zone element.'), this.box = this.options.zone.getBoundingClientRect(), this.bindEvt(this.options.zone, "start", this.processOnStart), T2(this.options.zone.style, { touchAction: "none", userSelect: "none", webkitUserSelect: "none" }), "undefined" != typeof ResizeObserver && (this.resizeObserver = new ResizeObserver((() => {
+      this.reposition();
+    })), this.resizeObserver.observe(this.options.zone));
+  }
+  init() {
+    if (this.trigger("collectionCreated", this), this.options.mode === e2) {
+      this.createJoystick(this.options.position).addToDom();
+    }
+  }
+  getJoystickByUid(t3) {
+    return void 0 === t3 ? this.all.values().next().value : this.all.get(t3);
+  }
+  bindJoystick(t3) {
+    t3.on("joystickDestroyed", (() => {
+      this.deleteJoystickFromLists(t3);
+    })), t3.on("attached", ((i4) => {
+      this.idles.delete(i4.data.joystick.uid), this.actives.set(i4.data.identifier, t3);
+    })), t3.on("detached", ((t4) => {
+      this.idles.add(t4.data.joystick.uid), this.deleteIdentifierFromLists(t4.data.identifier);
+    })), t3.on("end", ((i4) => {
+      $2(i4.data.identifier) && (this.actives.delete(i4.data.identifier), this.resting.set(i4.data.identifier, t3)), this.idles.add(i4.data.uid);
+    })), t3.on("start", ((t4) => {
+      $2(t4.data.identifier) && this.resting.delete(t4.data.identifier);
+    })), t3.on("hidden", ((t4) => {
+      $2(t4.data.identifier) && this.resting.delete(t4.data.identifier);
+    })), t3.on("pressure", ((i4) => {
+      this.trigger(`pressure ${t3.uid}:pressure`, i4.data);
+    })), t3.on("attached detached", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.joystick.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("added start shown hidden rested removed end joystickCreated joystickDestroyed", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("move", ((t4) => {
+      this.trigger(`move ${t4.data.instance.uid}:move`, t4.data);
+    })), t3.on("dir dir:up dir:right dir:down dir:left", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.instance.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("plain plain:up plain:right plain:down plain:left", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.instance.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    }));
+  }
+  deleteJoystickFromLists(t3) {
+    this.deleteUidFromLists(t3.uid), $2(t3.identifier) && this.deleteIdentifierFromLists(t3.identifier);
+  }
+  deleteUidFromLists(t3) {
+    this.all.delete(t3), this.idles.delete(t3);
+  }
+  deleteIdentifierFromLists(t3) {
+    this.actives.delete(t3), this.resting.delete(t3);
+  }
+  getOrCreate(t3) {
+    if (this.options.mode === i2 || this.options.mode === e2) {
+      const e3 = this.idles.values().next().value;
+      if ($2(e3)) {
+        const t4 = this.all.get(e3);
+        if (t4) return t4;
+        this.error(`Couldn't find the joystick ${e3}. Creating a new one.`), this.deleteUidFromLists(e3);
+      }
+      if (this.options.mode === i2) return this.createJoystick(t3);
+      this.warn("Couldn't find the expected joystick. Creating a new one.");
+    }
+    return this.createJoystick(t3);
+  }
+  createJoystick(t3) {
+    const i4 = this.factory.scroll, e3 = this.parentIsFlex ? i4.x : i4.x + this.box.left, s4 = this.parentIsFlex ? i4.y : i4.y + this.box.top;
+    let o3, n3;
+    if ($2(t3.x) && $2(t3.y)) o3 = { x: t3.x - e3, y: t3.y - s4 }, n3 = { x: t3.x, y: t3.y };
+    else {
+      if (!(t3.top || t3.right || t3.bottom || t3.left)) return void this.error("Invalid or missing position.", t3);
+      {
+        const e4 = document.createElement("DIV");
+        T2(e4.style, { visibility: "hidden", position: "absolute", top: t3.top, right: t3.right, bottom: t3.bottom, left: t3.left }), this.options.zone.appendChild(e4);
+        const s5 = e4.getBoundingClientRect();
+        this.options.zone.removeChild(e4), o3 = t3, n3 = { x: s5.left + i4.x, y: s5.top + i4.y };
+      }
+    }
+    const r3 = new j2(this, { color: this.options.color, size: this.options.size, threshold: this.options.threshold, fadeTime: this.options.fadeTime, dataOnly: this.options.dataOnly, restJoystick: this.options.restJoystick, restOpacity: this.options.restOpacity, mode: this.options.mode, position: n3, zone: this.options.zone, frontPosition: { x: 0, y: 0 }, shape: this.options.shape });
+    return this.all.has(r3.uid) && this.error(`Joystick with uid ${r3.uid} already exists.`), this.options.dataOnly || (b2(r3.ui.el, o3), b2(r3.ui.front, r3.frontPosition)), this.all.set(r3.uid, r3), this.idles.add(r3.uid), this.bindJoystick(r3), r3.init(), r3;
+  }
+  processOnStart(t3, e3 = 0) {
+    if (this.box = this.options.zone.getBoundingClientRect(), !this.actives.has(t3.identifier) && this.actives.size >= this.options.maxNumberOfJoysticks) return void this.warn("No more joysticks allowed.");
+    const s4 = this.actives.get(t3.identifier) || this.resting.get(t3.identifier) || this.getOrCreate(t3.position), o3 = /* @__PURE__ */ __name(() => {
+      s4.start(t3.raw), s4.identifier = t3.identifier, this.processOnMove(t3, true);
+    }, "o");
+    if (this.options.mode === i2) {
+      c2(t3.position, s4.position) <= this.options.catchDistance ? o3() : e3 < 3 ? (s4.destroy(), this.processOnStart(t3, e3 + 1)) : this.error("Max semi-mode recursion depth reached.");
+    } else o3();
+  }
+  processOnMove(t3, i4 = false) {
+    const e3 = this.actives.get(t3.identifier), s4 = this.factory.scroll;
+    if (!e3) return this.error(`Found zombie joystick onMove with identifier ${t3.identifier}`), void this.deleteIdentifierFromLists(t3.identifier);
+    this.options.dynamicPage && this.reposition();
+    const o3 = e3.options.size / 2;
+    let n3 = { x: t3.position.x, y: t3.position.y };
+    this.options.lockX && (n3.y = e3.position.y), this.options.lockY && (n3.x = e3.position.x);
+    let r3 = c2(n3, e3.position);
+    const d3 = ((t4, i5) => {
+      const e4 = i5.x - t4.x, s5 = i5.y - t4.y;
+      return u2(Math.atan2(s5, e4));
+    })(n3, e3.position), h3 = p2(d3), a3 = r3 / o3, l3 = { distance: r3, position: n3 };
+    let y3, f3;
+    "circle" === e3.options.shape ? (y3 = Math.min(r3, o3), f3 = ((t4, i5, e4) => {
+      const s5 = p2(e4);
+      return { x: t4.x - i5 * Math.cos(s5), y: t4.y - i5 * Math.sin(s5) };
+    })(e3.position, y3, d3)) : (f3 = ((t4, i5, e4) => ({ x: Math.min(Math.max(t4.x, i5.x - e4), i5.x + e4), y: Math.min(Math.max(t4.y, i5.y - e4), i5.y + e4) }))(n3, e3.position, o3), y3 = c2(f3, e3.position));
+    let m3 = { x: 0, y: 0 };
+    if (this.options.follow) {
+      if (r3 > o3) {
+        const t4 = n3.x - f3.x, i5 = n3.y - f3.y;
+        m3 = { x: t4, y: -i5 }, e3.position.x += t4, e3.position.y += i5, T2(e3.ui.el.style, { top: e3.position.y - (this.box.top + s4.y) + "px", left: e3.position.x - (this.box.left + s4.x) + "px" }), r3 = c2(n3, e3.position);
+      }
+    } else n3 = f3, r3 = y3;
+    const g3 = n3.x - e3.position.x, v3 = n3.y - e3.position.y;
+    e3.frontPosition = { x: g3, y: v3 }, this.options.dataOnly || (i4 && e3.setTransition(true, (() => {
+      e3.setTransition(false);
+    })), e3.ui.front.style.transform = `translate(${g3}px,${v3}px)`);
+    const x3 = { position: n3, force: a3, pressure: t3.pressure, distance: r3, angle: { radian: h3, degree: d3 }, vector: { x: g3 / o3, y: -v3 / o3 }, raw: l3, instance: e3, lockX: this.options.lockX, lockY: this.options.lockY, baseDelta: m3 };
+    e3.computeDirectionAndTriggerEvents(x3);
+  }
+  processOnEnd(t3) {
+    const i4 = this.actives.get(t3.identifier);
+    if (!i4) return this.error(`Found zombie joystick onEnd with identifier ${t3.identifier}`), void this.deleteIdentifierFromLists(t3.identifier);
+    i4.end();
+  }
+  reposition() {
+    this.factory.scroll = k2(), this.box = this.options.zone.getBoundingClientRect();
+    const t3 = this.factory.scroll;
+    this.all.forEach(((i4) => {
+      if (i4.options.dataOnly) return;
+      const e3 = i4.ui.el.getBoundingClientRect();
+      i4.position = { x: t3.x + e3.left, y: t3.y + e3.top };
+    }));
+  }
+  destroy() {
+    this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = void 0), this.unbindEvt(this.options.zone, "start", this.processOnStart), this.all.forEach(((t3) => {
+      t3.destroy();
+    })), this.all.clear(), this.idles.clear(), this.actives.clear(), this.resting.clear(), this.trigger("collectionDestroyed", this), this.off();
+  }
+};
+C2.index = 0;
+var _2 = C2;
+var D2 = new class extends I2 {
+  constructor() {
+    super("factory"), this.scroll = k2(), this.binded = false, this.joysticksByUid = /* @__PURE__ */ new Map(), this.joysticksByIdentifier = /* @__PURE__ */ new Map(), this.collections = /* @__PURE__ */ new Set(), this.resizeHandler = null, this.scrollHandler = null, this.repositionAll = () => {
+      this.collections.forEach(((t3) => {
+        t3.reposition();
+      }));
+    }, this.refreshScroll = () => {
+      this.scroll = k2();
+    }, this.bindResize(), this.bindScroll(), this.trigger("factoryCreated", this);
+  }
+  bindResize() {
+    this.resizeHandler = () => f2(this.repositionAll), m2(window, "resize", this.resizeHandler);
+  }
+  bindScroll() {
+    this.scrollHandler = () => f2(this.refreshScroll), m2(window, "scroll", this.scrollHandler);
+  }
+  getJoystickByUid(t3) {
+    return this.joysticksByUid.get(t3);
+  }
+  getJoystickByIdentifier(t3) {
+    return this.joysticksByIdentifier.get(t3);
+  }
+  create(t3) {
+    const i4 = new _2(this, t3);
+    return this.bindCollection(i4), this.collections.add(i4), i4.init(), i4;
+  }
+  removeJoystickFromLists(t3) {
+    this.joysticksByUid.delete(t3.uid), $2(t3.identifier) && this.joysticksByIdentifier.delete(t3.identifier);
+  }
+  bindCollection(t3) {
+    t3.on("collectionDestroyed", ((t4) => {
+      this.collections.delete(t4.data), t4.data.all.forEach(((t5) => {
+        this.removeJoystickFromLists(t5);
+      })), this.unbindDocument();
+    })), t3.on("joystickDestroyed", ((t4) => {
+      this.removeJoystickFromLists(t4.data), this.unbindDocument();
+    })), t3.on("end", ((t4) => {
+      $2(t4.data.identifier) && this.joysticksByIdentifier.delete(t4.data.identifier), this.unbindDocument();
+    })), t3.on("added", ((t4) => {
+      this.joysticksByUid.set(t4.data.uid, t4.data), this.bindDocument();
+    })), t3.on("attached", ((t4) => {
+      this.joysticksByIdentifier.set(t4.data.identifier, t4.data.joystick);
+    })), t3.on("pressure", ((t4) => {
+      this.trigger(`pressure ${t4.target.uid}:pressure`, t4.data);
+    })), t3.on("collectionCreated collectionDestroyed", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("attached detached", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.joystick.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("added start shown hidden rested removed end joystickCreated joystickDestroyed", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("move", ((t4) => {
+      this.trigger(`move ${t4.data.instance.uid}:move`, t4.data);
+    })), t3.on("dir dir:up dir:right dir:down dir:left", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.instance.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    })), t3.on("plain plain:up plain:right plain:down plain:left", ((t4) => {
+      const i4 = `${t4.type} ${t4.data.instance.uid}:${t4.type}`;
+      this.trigger(i4, t4.data);
+    }));
+  }
+  cleanInactiveTouches(i4) {
+    if (!("touches" in i4.initial)) return;
+    const e3 = Array.from(i4.initial.touches).map(((t3) => t3.identifier));
+    this.log("Cleaning inactive", e3, Array.from(this.joysticksByIdentifier.keys()));
+    const s4 = Array.from(this.joysticksByIdentifier.entries());
+    for (const [o3, n3] of s4) if (n3.collection.options.mode === t2 && !e3.includes(o3)) {
+      if (!n3) return void this.error(`No collection found for cleaning identifier ${o3}`);
+      this.log("\u{1F4A3} Cleaning", o3);
+      const t3 = i4.raw;
+      n3.collection.processOnEnd(x2(i4.initial, { identifier: o3, pageX: t3.pageX, pageY: t3.pageY, clientX: t3.clientX, clientY: t3.clientY }));
+    }
+  }
+  bindDocument() {
+    this.binded || (this.log("bind dom"), this.bindEvt(document, "start", this.onstart), this.bindEvt(document, "move", this.onmove), this.bindEvt(document, "end", this.onend), this.bindEvt(document, "pressure", this.onpressure), this.binded = true);
+  }
+  unbindDocument(t3 = false) {
+    !this.binded || this.joysticksByUid.size && true !== t3 || (this.log((t3 ? "force " : "") + "unbind dom"), this.unbindEvt(document, "start", this.onstart), this.unbindEvt(document, "move", this.onmove), this.unbindEvt(document, "end", this.onend), this.unbindEvt(document, "pressure", this.onpressure), this.binded = false);
+  }
+  onstart(t3) {
+    this.cleanInactiveTouches(t3);
+  }
+  onmove(t3) {
+    this.handleEventInCollection(t3, ((i4) => {
+      i4.processOnMove(t3);
+    }));
+  }
+  onend(t3) {
+    this.cleanInactiveTouches(t3), this.handleEventInCollection(t3, ((i4) => {
+      i4.processOnEnd(t3);
+    }));
+  }
+  onpressure(t3) {
+    t3.initial.preventDefault();
+    const i4 = this.joysticksByIdentifier.get(t3.identifier);
+    i4 ? i4.pressure = t3.pressure : this.error(`No joystick found for pressure event ${t3.identifier}`);
+  }
+  handleEventInCollection(t3, i4) {
+    const e3 = this.joysticksByIdentifier.get(t3.identifier);
+    e3 && i4(e3.collection);
+  }
+  destroy() {
+    this.unbindDocument(true), this.collections.forEach(((t3) => {
+      t3.destroy();
+    })), this.resizeHandler && (g2(window, "resize", this.resizeHandler), this.resizeHandler = null), this.scrollHandler && (g2(window, "scroll", this.scrollHandler), this.scrollHandler = null), this.trigger("factoryDestroyed", this), this.off();
+  }
+}();
+var P2 = /* @__PURE__ */ __name((t3) => D2.create(t3), "P");
+var S2 = /* @__PURE__ */ __name((t3) => {
+  I2.logLevel = t3;
+}, "S");
+var L2 = /* @__PURE__ */ __name(() => I2.logLevel, "L");
+var J2 = { create: P2, factory: D2, setLogLevel: S2, getLogLevel: L2 };
+
 // src/main.ts
 var GRAVITY = { x: 0, y: -9.81, z: 0 };
 var PaintballColors = [
@@ -27570,6 +28078,8 @@ var PaintballColors = [
 (/* @__PURE__ */ __name((function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     appState;
+    walkJoystick;
+    lookJoystick;
     viewButton = document.querySelector("#view-button");
     emojiButton = document.querySelector("#emoji-button");
     shootButton = document.querySelector("#shoot-button");
@@ -27634,6 +28144,30 @@ var PaintballColors = [
       this.controller = new PhysicsFPSController(gpu.canvas);
       this.controller.speed = 4e-3;
       this.controller.flying = this.appState.config.flying;
+      if (window.matchMedia("(pointer: coarse)").matches) {
+        this.walkJoystick = J2.create({
+          zone: document.querySelector(".left-input-zone"),
+          mode: "static",
+          position: { left: "30%", bottom: "20%" }
+        });
+        this.lookJoystick = J2.create({
+          zone: document.querySelector(".right-input-zone"),
+          mode: "static",
+          position: { left: "70%", bottom: "20%" }
+        });
+        this.walkJoystick.on("move", (evt) => {
+          this.controller.setVirtualWalk(evt.data.vector.x, evt.data.vector.y);
+        });
+        this.walkJoystick.on("end", () => {
+          this.controller.setVirtualWalk(0, 0);
+        });
+        this.lookJoystick.on("move", (evt) => {
+          this.controller.setVirtualLook(evt.data.vector.x, evt.data.vector.y);
+        });
+        this.lookJoystick.on("end", () => {
+          this.controller.setVirtualLook(0, 0);
+        });
+      }
       this.player = new Actor(
         this.controller
       );
@@ -27821,8 +28355,8 @@ var PaintballColors = [
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
           this.crosshairs.style.display = "";
-          for (let i2 = 0; i2 < 3; ++i2) {
-            this.paintballDecals[i2] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i2}.png`);
+          for (let i4 = 0; i4 < 3; ++i4) {
+            this.paintballDecals[i4] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i4}.png`);
           }
           break;
         case 2 /* Erase */:
@@ -27849,8 +28383,8 @@ var PaintballColors = [
     lastSelectedDecal = 0;
     centerX = 0;
     centerY = 0;
-    async getSelectedDecal(gpu, x2, y2) {
-      const decalId = await gpu.selectionManager.getDecalIdAtPoint(x2, y2);
+    async getSelectedDecal(gpu, x3, y3) {
+      const decalId = await gpu.selectionManager.getDecalIdAtPoint(x3, y3);
       if (decalId != this.lastSelectedDecal) {
         this.lastSelectedDecal = decalId;
         this.gpu.decalManager.selectedDecal = decalId;

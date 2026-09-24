@@ -55,6 +55,28 @@
         z-index: 10;
       }
 
+      .left-input-zone {
+        position: absolute;
+        left: 0;
+        right: 50%;
+        top: 0;
+        bottom: 0;
+      }
+      .right-input-zone {
+        position: absolute;
+        left: 50%;
+        right: 0;
+        top: 0;
+        bottom: 0;
+      }
+
+      /* Non-touchscreens */
+      @media (pointer: fine) {
+        .left-input-zone, .right-input-zone {
+          display: none;
+        }
+      }
+
       .crosshairs {
         position: absolute;
         left: 0;
@@ -105,7 +127,7 @@
   </head>
   <body>
     <script type='module' src='https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js'></script>
-    <div id='emoji-picker-container'>
+      <div id='emoji-picker-container'>
       <button id='view-button'>👀</button>
       <button id='emoji-button'>😀</button>
       <button id='shoot-button'>🔫</button>
@@ -121,11 +143,13 @@
     </div>
 
     <canvas id='webgpu-canvas'></canvas>
+    <div class='crosshairs'></div>
+    <div class='left-input-zone'></div>
+    <div class='right-input-zone'></div>
     <div class='loading-splash'>
       <h1>😄 Emoji Graffiti 🎨</h1>
       <h2>Loading...</h2>
     </div>
-    <div class='crosshairs'></div>
     <script type='module' src='./dist/main.js'></script>
   </body>
 </html>

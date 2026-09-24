@@ -15,6 +15,8 @@ import { PhysicsFPSController } from './controllers/physics-fps-controller.ts';
 import { DebugMenu } from './debug-menu.ts';
 import { AppState, InputMode } from './app-state.ts';
 
+import nipplejs from 'nipplejs';
+
 const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
 const PaintballColors = [
@@ -30,6 +32,9 @@ const PaintballColors = [
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     appState: AppState;
+
+    walkJoystick: any;
+    lookJoystick: any; 
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
@@ -105,6 +110,35 @@ const PaintballColors = [
       this.controller = new PhysicsFPSController(gpu.canvas);
       this.controller.speed = 0.004;
       this.controller.flying = this.appState.config.flying;
+
+      // Has a touchscreen?
+      if(window.matchMedia("(pointer: coarse)").matches) {
+        this.walkJoystick = nipplejs.create({
+          zone: document.querySelector('.left-input-zone')!,
+          mode: 'static',
+          position: { left: '30%', bottom: '20%' },
+        });
+
+        this.lookJoystick = nipplejs.create({
+          zone: document.querySelector('.right-input-zone')!,
+          mode: 'static',
+          position: { left: '70%', bottom: '20%' },
+        });
+
+        this.walkJoystick.on('move', (evt: any) => {
+          this.controller.setVirtualWalk(evt.data.vector.x, evt.data.vector.y);
+        });
+        this.walkJoystick.on('end', () => {
+          this.controller.setVirtualWalk(0, 0);
+        });
+
+        this.lookJoystick.on('move', (evt: any) => {
+          this.controller.setVirtualLook(evt.data.vector.x, evt.data.vector.y);
+        });
+        this.lookJoystick.on('end', () => {
+          this.controller.setVirtualLook(0, 0);
+        });
+      }
 
       this.player = new Actor(
         this.controller,
