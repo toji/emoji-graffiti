@@ -112,17 +112,19 @@ const PaintballColors = [
       this.controller.flying = this.appState.config.flying;
 
       // Has a touchscreen?
-      if(window.matchMedia("(pointer: coarse)").matches) {
+      if(this.appState.touchscreen) {
+        document.querySelector('.touch-inputs')?.classList.add('touchscreen');
+
         this.walkJoystick = nipplejs.create({
           zone: document.querySelector('.left-input-zone')!,
           mode: 'static',
-          position: { left: '30%', bottom: '20%' },
+          position: { left: '30%', bottom: '30%' },
         });
 
         this.lookJoystick = nipplejs.create({
           zone: document.querySelector('.right-input-zone')!,
           mode: 'static',
-          position: { left: '70%', bottom: '20%' },
+          position: { left: '70%', bottom: '30%' },
         });
 
         this.walkJoystick.on('move', (evt: any) => {
@@ -222,11 +224,70 @@ const PaintballColors = [
         this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
       });
 
-      // Detach from the camera on right click
-      gpu.canvas.addEventListener('contextmenu', (ev) => {
-        ev.preventDefault();
+      if (this.appState.touchscreen) {
+        const clickZone: HTMLElement = document.querySelector('.touch-click-zone')!;
+        clickZone.addEventListener('pointerdown', async (ev: PointerEvent) => {
+          if(this.appState.mode == InputMode.Erase) {
+            await this.getSelectedDecal(gpu,
+              Math.floor(ev.clientX * devicePixelRatio),
+              Math.floor(ev.clientY * devicePixelRatio));
+          }
+          this.#onAction();
+        });
+      } else {
+        // Detach from the camera on right click
+        gpu.canvas.addEventListener('contextmenu', (ev) => {
+          ev.preventDefault();
+          this.#onAction();
+        });
+      }
 
-        if (this.appState.mode == InputMode.Paint) {
+      gpu.canvas.addEventListener('click', (ev) => {
+        this.emojiPicker.style.display = 'none';
+      });
+
+      // Initialize the Emoji picker control
+      this.emojiPicker = document.querySelector('emoji-picker')!;
+      this.emojiPicker.addEventListener('emoji-click', (event: Event) => {
+        const emojiEvent = (event as CustomEvent);
+        this.onEmojiPicked(emojiEvent.detail);
+      });
+      fetch('./media/emoji/custom.json').then(async (result) => {
+        // @ts-ignore
+        this.emojiPicker.customEmoji = await result.json();
+      });
+
+      this.viewButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.View);
+      });
+
+      this.emojiButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Paint);
+      });
+
+      this.shootButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Shoot);
+      });
+
+      this.eraseButton.addEventListener('click', () => {
+        this.#switchMode(InputMode.Erase);
+      });
+
+      this.clearButton.addEventListener('click', () => {
+        this.appState.clearDecals();
+      });
+
+      this.gpu.canvas.addEventListener('mousemove', async (ev: MouseEvent) => {
+        if (this.appState.mode == InputMode.Erase) {
+          this.getSelectedDecal(gpu,
+            Math.floor(ev.clientX * devicePixelRatio),
+            Math.floor(ev.clientY * devicePixelRatio));
+        }
+      });
+    }
+
+    #onAction() {
+      if (this.appState.mode == InputMode.Paint) {
           // Lock the current decal instance in place
           const curDecal = this.decal.get(Decal);
           if (curDecal) {
@@ -286,50 +347,6 @@ const PaintballColors = [
         }
 
         return false;
-      });
-
-      gpu.canvas.addEventListener('click', (ev) => {
-        this.emojiPicker.style.display = 'none';
-      });
-
-      // Initialize the Emoji picker control
-      this.emojiPicker = document.querySelector('emoji-picker')!;
-      this.emojiPicker.addEventListener('emoji-click', (event: Event) => {
-        const emojiEvent = (event as CustomEvent);
-        this.onEmojiPicked(emojiEvent.detail);
-      });
-      fetch('./media/emoji/custom.json').then(async (result) => {
-        // @ts-ignore
-        this.emojiPicker.customEmoji = await result.json();
-      });
-
-      this.viewButton.addEventListener('click', () => {
-        this.#switchMode(InputMode.View);
-      });
-
-      this.emojiButton.addEventListener('click', () => {
-        this.#switchMode(InputMode.Paint);
-      });
-
-      this.shootButton.addEventListener('click', () => {
-        this.#switchMode(InputMode.Shoot);
-      });
-
-      this.eraseButton.addEventListener('click', () => {
-        this.#switchMode(InputMode.Erase);
-      });
-
-      this.clearButton.addEventListener('click', () => {
-        this.appState.clearDecals();
-      });
-
-      this.gpu.canvas.addEventListener('mousemove', async (ev: MouseEvent) => {
-        if (this.appState.mode == InputMode.Erase) {
-          this.getSelectedDecal(gpu,
-            Math.floor(ev.clientX * devicePixelRatio),
-            Math.floor(ev.clientY * devicePixelRatio));
-        }
-      });
     }
 
     async #switchMode(mode: InputMode) {
