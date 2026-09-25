@@ -6,6 +6,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { StagePhysics } from '../physics/stage-physics.ts';
 import { StaticCollider } from '../physics/static-collider.ts';
 import { RigidBody } from '../physics/rigid-body.ts';
+import { Collection } from 'nipplejs/Collection';
 
 const tmpDir = new Vec3();
 const tmpQuat = new Quat();
@@ -31,8 +32,11 @@ export class PhysicsFPSController extends ControllerInput {
   #crouching: boolean = false;
   #crouchPressed: boolean = false;
 
-  #virtualWalk = new Vec2();
-  #virtualLook = new Vec2();
+  #virtualWalkJoystick?: Collection;
+  #virtualLookJoystick?: Collection;
+
+  #stickWalk = new Vec2();
+  #stickLook = new Vec2();
 
   constructor(element: HTMLElement) {
     super(element);
@@ -49,14 +53,44 @@ export class PhysicsFPSController extends ControllerInput {
     Quat.rotateX(q, q, -this.angles[0]);
   }
 
-  setVirtualWalk(x: number, y: number) {
-    this.#virtualWalk[0] = x;
-    this.#virtualWalk[1] = y;
+  setVirtualWalkJoystick(vjs?: Collection) {
+    if (this.#virtualWalkJoystick) {
+      this.#virtualWalkJoystick.off('move');
+      this.#virtualWalkJoystick.off('end');
+    }
+
+    this.#virtualWalkJoystick = vjs;
+
+    if (this.#virtualWalkJoystick) {
+      this.#virtualWalkJoystick.on('move', (evt: any) => {
+        this.#stickWalk[0] = evt.data.vector.x;
+        this.#stickWalk[1] = evt.data.vector.y;
+      });
+      this.#virtualWalkJoystick.on('end', () => {
+        this.#stickWalk[0] = 0;
+        this.#stickWalk[1] = 0;
+      });
+    }
   }
 
-  setVirtualLook(x: number, y: number) {
-    this.#virtualLook[0] = x;
-    this.#virtualLook[1] = -y;
+  setVirtualLookJoystick(vjs?: Collection) {
+    if (this.#virtualLookJoystick) {
+      this.#virtualLookJoystick.off('move');
+      this.#virtualLookJoystick.off('end');
+    }
+
+    this.#virtualLookJoystick = vjs;
+
+    if (this.#virtualLookJoystick) {
+      this.#virtualLookJoystick.on('move', (evt: any) => {
+        this.#stickLook[0] = evt.data.vector.x;
+        this.#stickLook[1] = -evt.data.vector.y;
+      });
+      this.#virtualLookJoystick.on('end', () => {
+        this.#stickLook[0] = 0;
+        this.#stickLook[1] = 0;
+      });
+    }
   }
 
   protected onMouseMove(xDelta: number, yDelta: number): void {
@@ -137,8 +171,19 @@ export class PhysicsFPSController extends ControllerInput {
       return;
     }
 
-    if (this.#virtualLook.sqrMag > 0.025) {
-      this.#rotateView(this.#virtualLook[0], this.#virtualLook[1]);
+    // Gamepad support
+    for (const gamepad of navigator.getGamepads()) {
+      if (gamepad) {
+        this.#stickWalk[0] += gamepad.axes[0];
+        this.#stickWalk[1] += gamepad.axes[1];
+
+        this.#stickLook[0] += gamepad.axes[2];
+        this.#stickLook[1] -= gamepad.axes[3];
+      }
+    }
+
+    if (this.#stickLook.sqrMag > 0.025) {
+      this.#rotateView(this.#stickLook[0], this.#stickLook[1]);
     }
 
     if (!this.flying) {
@@ -191,8 +236,8 @@ export class PhysicsFPSController extends ControllerInput {
       tmpDir.normalize();
     }
 
-    tmpDir[0] += this.#virtualWalk[0];
-    tmpDir[2] -= this.#virtualWalk[1];
+    tmpDir[0] += this.#stickWalk[0];
+    tmpDir[2] -= this.#stickWalk[1];
 
     if (tmpDir.sqrMag > 1) {
       tmpDir.normalize();
