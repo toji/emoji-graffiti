@@ -27513,10 +27513,12 @@ var AppState = class {
   config;
   gpu;
   mode = 0 /* View */;
+  touchscreen;
   constructor(stage, gpu) {
     this.stage = stage;
     this.gpu = gpu;
     this.config = Config.Create(AppConfig);
+    this.touchscreen = window.matchMedia("(pointer: coarse)").matches || QueryArgs.getBool("forceTouch", false);
     this.stage.add(this);
   }
   clearDecals() {
@@ -28144,16 +28146,17 @@ var PaintballColors = [
       this.controller = new PhysicsFPSController(gpu.canvas);
       this.controller.speed = 4e-3;
       this.controller.flying = this.appState.config.flying;
-      if (window.matchMedia("(pointer: coarse)").matches) {
+      if (this.appState.touchscreen) {
+        document.querySelector(".touch-inputs")?.classList.add("touchscreen");
         this.walkJoystick = J2.create({
           zone: document.querySelector(".left-input-zone"),
           mode: "static",
-          position: { left: "30%", bottom: "20%" }
+          position: { left: "30%", bottom: "30%" }
         });
         this.lookJoystick = J2.create({
           zone: document.querySelector(".right-input-zone"),
           mode: "static",
-          position: { left: "70%", bottom: "20%" }
+          position: { left: "70%", bottom: "30%" }
         });
         this.walkJoystick.on("move", (evt) => {
           this.controller.setVirtualWalk(evt.data.vector.x, evt.data.vector.y);
@@ -28227,57 +28230,24 @@ var PaintballColors = [
         this.decalFlip = this.decalFlipInput.checked;
         this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
       });
-      gpu.canvas.addEventListener("contextmenu", (ev) => {
-        ev.preventDefault();
-        if (this.appState.mode == 1 /* Paint */) {
-          const curDecal = this.decal.get(Decal);
-          if (curDecal) {
-            this.audioPlayer.play(this.sprayClips.random());
-            this.decal.remove(Tag("placing-decal"));
-            this.decal.transform = this.decal.worldTransform;
-            this.stage.attachChild(this.decal);
+      if (this.appState.touchscreen) {
+        const clickZone = document.querySelector(".touch-click-zone");
+        clickZone.addEventListener("pointerdown", async (ev) => {
+          if (this.appState.mode == 2 /* Erase */) {
+            await this.getSelectedDecal(
+              gpu,
+              Math.floor(ev.clientX * devicePixelRatio),
+              Math.floor(ev.clientY * devicePixelRatio)
+            );
           }
-          this.decal = new Actor(curDecal, Tag("placing-decal"));
-          this.decal.transform.rotationRef.rotateZ(this.decalRotation);
-          this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
-          setTimeout(() => {
-            if (this.appState.mode == 1 /* Paint */) {
-              this.camera.attachChild(this.decal);
-            }
-          }, this.appState.config.sprayCooldown);
-        } else if (this.appState.mode == 2 /* Erase */) {
-          let decalIndex = 1;
-          this.stage.query(Decal).forEach((actor) => {
-            if (decalIndex == this.lastSelectedDecal) {
-              this.audioPlayer.play(this.eraseClips.random());
-              actor.parent?.removeChild(actor);
-              this.lastSelectedDecal = 0;
-              this.gpu.decalManager.selectedDecal = 0;
-              return false;
-            }
-            decalIndex++;
-          });
-        } else if (this.appState.mode == 3 /* Shoot */) {
-          this.audioPlayer.play(this.paintballClips.random());
-          const forward = new Vec4(0, 0, -1, 0);
-          Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
-          const ray = new zg.Ray(this.camera.worldTransform.translation, forward);
-          let maxToi = 32;
-          let solid = false;
-          let hit = this.physics.world.castRay(ray, maxToi, solid, zg.QueryFilterFlags.EXCLUDE_KINEMATIC);
-          if (hit != null) {
-            let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
-            const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
-            decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
-            const actor = new Actor(decal);
-            actor.transform = this.camera.worldTransform;
-            actor.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
-            actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
-            this.stage.attachChild(actor);
-          }
-        }
-        return false;
-      });
+          this.#onAction();
+        });
+      } else {
+        gpu.canvas.addEventListener("contextmenu", (ev) => {
+          ev.preventDefault();
+          this.#onAction();
+        });
+      }
       gpu.canvas.addEventListener("click", (ev) => {
         this.emojiPicker.style.display = "none";
       });
@@ -28313,6 +28283,56 @@ var PaintballColors = [
           );
         }
       });
+    }
+    #onAction() {
+      if (this.appState.mode == 1 /* Paint */) {
+        const curDecal = this.decal.get(Decal);
+        if (curDecal) {
+          this.audioPlayer.play(this.sprayClips.random());
+          this.decal.remove(Tag("placing-decal"));
+          this.decal.transform = this.decal.worldTransform;
+          this.stage.attachChild(this.decal);
+        }
+        this.decal = new Actor(curDecal, Tag("placing-decal"));
+        this.decal.transform.rotationRef.rotateZ(this.decalRotation);
+        this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
+        setTimeout(() => {
+          if (this.appState.mode == 1 /* Paint */) {
+            this.camera.attachChild(this.decal);
+          }
+        }, this.appState.config.sprayCooldown);
+      } else if (this.appState.mode == 2 /* Erase */) {
+        let decalIndex = 1;
+        this.stage.query(Decal).forEach((actor) => {
+          if (decalIndex == this.lastSelectedDecal) {
+            this.audioPlayer.play(this.eraseClips.random());
+            actor.parent?.removeChild(actor);
+            this.lastSelectedDecal = 0;
+            this.gpu.decalManager.selectedDecal = 0;
+            return false;
+          }
+          decalIndex++;
+        });
+      } else if (this.appState.mode == 3 /* Shoot */) {
+        this.audioPlayer.play(this.paintballClips.random());
+        const forward = new Vec4(0, 0, -1, 0);
+        Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
+        const ray = new zg.Ray(this.camera.worldTransform.translation, forward);
+        let maxToi = 32;
+        let solid = false;
+        let hit = this.physics.world.castRay(ray, maxToi, solid, zg.QueryFilterFlags.EXCLUDE_KINEMATIC);
+        if (hit != null) {
+          let hitPoint = ray.pointAt(hit.timeOfImpact - 0.5);
+          const decal = this.paintballDecals[Math.floor(Math.random() * this.paintballDecals.length)].clone();
+          decal.baseColorFactor.set(PaintballColors[Math.floor(Math.random() * PaintballColors.length)]);
+          const actor = new Actor(decal);
+          actor.transform = this.camera.worldTransform;
+          actor.transform.translation = [hitPoint.x, hitPoint.y, hitPoint.z];
+          actor.transform.rotationRef.rotateZ(Math.random() * Math.PI * 2);
+          this.stage.attachChild(actor);
+        }
+      }
+      return false;
     }
     async #switchMode(mode) {
       this.appState.mode = mode;

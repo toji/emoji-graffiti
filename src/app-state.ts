@@ -5,6 +5,7 @@ import { Stage } from "./core/stage.ts";
 import { Decal } from "./materials/decal.ts";
 import { WebGPURenderer } from "./renderer/webgpu-renderer.ts";
 import { Config } from "./util/config.ts";
+import { QueryArgs } from "./util/query-args.ts";
 
 export enum InputMode {
   View,
@@ -18,11 +19,14 @@ export class AppState {
   config: AppConfig;
   gpu: WebGPURenderer;
   mode: InputMode = InputMode.View;
+  touchscreen: boolean;
 
   constructor(stage: Stage, gpu: WebGPURenderer) {
     this.stage = stage;
     this.gpu = gpu;
     this.config = Config.Create(AppConfig);
+
+    this.touchscreen = window.matchMedia("(pointer: coarse)").matches || QueryArgs.getBool('forceTouch', false);
 
     this.stage.add(this);
   }
