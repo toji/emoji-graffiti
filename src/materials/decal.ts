@@ -11,7 +11,7 @@ export class Decal {
   constructor(emoji: any, textureIndex: number) {
     this.emoji = emoji;
     this.textureIndex = textureIndex;
-    this.projection.perspectiveZO(Math.PI/4, 1, 0.1, 4);
+    this.projection.perspectiveZO(Math.PI/4, 1, 0.1, 4.5);
   }
 
   clone(): Decal {

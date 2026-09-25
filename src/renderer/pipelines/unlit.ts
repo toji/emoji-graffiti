@@ -3,7 +3,7 @@ import { RenderPipelineFactory } from "../pipeline-factory.ts";
 import { AttachmentLayout } from "../attachment-layout.ts";
 import { GeometryLayout } from "../../geometry/geometry-layout.ts";
 import { wgsl } from "../../util/wgsl-preprocessor.ts";
-import { DecalFrameBindings, SRGBConversions } from "./common.ts";
+import { DecalFrameBindings, DitherFunctions, SRGBConversions } from "./common.ts";
 import { TILE_COUNT, TileFunctions } from "./clusters.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
 
@@ -105,6 +105,8 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
 
           ${TileFunctions}
 
+          ${DitherFunctions}
+
           const projBias = mat4x4f(
             0.5, 0, 0, 0,
             0, -0.5, 0, 0,
@@ -158,7 +160,8 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
               let nDotO = dot(in.normal, originToPoint);
 
               if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
-                let decalAlpha = decalColor.a;
+                let decalRangeFade = clamp(1.0 - ((decalUv.z - 0.998) * 500), 0, 1);
+                let decalAlpha = decalColor.a * decalRangeFade;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
 
                 if (decals.decal[i].highlight == 1) {

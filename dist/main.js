@@ -15675,7 +15675,7 @@ var Decal = class _Decal {
   constructor(emoji, textureIndex) {
     this.emoji = emoji;
     this.textureIndex = textureIndex;
-    this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 4);
+    this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 4.5);
   }
   clone() {
     const out = new _Decal(this.emoji, this.textureIndex);
@@ -17577,6 +17577,27 @@ var SRGBConversions = (
   }
 `
 );
+var DitherFunctions = (
+  /* wgsl */
+  `
+  const bayer_n = 4u;
+  const bayer_matrix_4x4 = mat4x4f(
+      -0.5,       0,  -0.375,   0.125,
+      0.25,   -0.25,   0.375,  -0.125,
+    -0.3125,  0.1875, -0.4375,  0.0625,
+    0.4375, -0.0625,  0.3125, -0.1875
+  );
+
+  fn dither(value: f32, pixelCoord: vec2u) -> f32 {
+    let r = 1.0;
+    var d = value + (r * bayer_matrix_4x4[pixelCoord.y % bayer_n][pixelCoord.x % bayer_n]);
+
+    d = d * 0.99 + 0.05;
+
+    return select(0.0, 1.0, d > 0.5);
+  }
+`
+);
 
 // src/renderer/pipelines/clusters.ts
 var TILE_COUNT = [32, 18, 48];
@@ -17760,6 +17781,8 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
 
           ${TileFunctions}
 
+          ${DitherFunctions}
+
           const projBias = mat4x4f(
             0.5, 0, 0, 0,
             0, -0.5, 0, 0,
@@ -17813,7 +17836,8 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
               let nDotO = dot(in.normal, originToPoint);
 
               if (nDotO > 0 && all(decalUv >= vec3f(0)) && all(decalUv <= vec3f(1))) {
-                let decalAlpha = decalColor.a;
+                let decalRangeFade = clamp(1.0 - ((decalUv.z - 0.998) * 500), 0, 1);
+                let decalAlpha = decalColor.a * decalRangeFade;
                 decalAccumColor = vec4((decalAccumColor.rgb * (1.0 - decalAlpha)) + (decalColor.rgb * decalAlpha), decalAccumColor.a + decalAlpha);
 
                 if (decals.decal[i].highlight == 1) {
@@ -19103,8 +19127,10 @@ var PhysicsFPSController = class extends ControllerInput {
   #walking = false;
   #crouching = false;
   #crouchPressed = false;
-  #virtualWalk = new Vec2();
-  #virtualLook = new Vec2();
+  #virtualWalkJoystick;
+  #virtualLookJoystick;
+  #stickWalk = new Vec2();
+  #stickLook = new Vec2();
   constructor(element) {
     super(element);
   }
@@ -19116,13 +19142,39 @@ var PhysicsFPSController = class extends ControllerInput {
     Quat.rotateY(q2, q2, -this.angles[1]);
     Quat.rotateX(q2, q2, -this.angles[0]);
   }
-  setVirtualWalk(x3, y3) {
-    this.#virtualWalk[0] = x3;
-    this.#virtualWalk[1] = y3;
+  setVirtualWalkJoystick(vjs) {
+    if (this.#virtualWalkJoystick) {
+      this.#virtualWalkJoystick.off("move");
+      this.#virtualWalkJoystick.off("end");
+    }
+    this.#virtualWalkJoystick = vjs;
+    if (this.#virtualWalkJoystick) {
+      this.#virtualWalkJoystick.on("move", (evt) => {
+        this.#stickWalk[0] = evt.data.vector.x;
+        this.#stickWalk[1] = evt.data.vector.y;
+      });
+      this.#virtualWalkJoystick.on("end", () => {
+        this.#stickWalk[0] = 0;
+        this.#stickWalk[1] = 0;
+      });
+    }
   }
-  setVirtualLook(x3, y3) {
-    this.#virtualLook[0] = x3;
-    this.#virtualLook[1] = -y3;
+  setVirtualLookJoystick(vjs) {
+    if (this.#virtualLookJoystick) {
+      this.#virtualLookJoystick.off("move");
+      this.#virtualLookJoystick.off("end");
+    }
+    this.#virtualLookJoystick = vjs;
+    if (this.#virtualLookJoystick) {
+      this.#virtualLookJoystick.on("move", (evt) => {
+        this.#stickLook[0] = evt.data.vector.x;
+        this.#stickLook[1] = -evt.data.vector.y;
+      });
+      this.#virtualLookJoystick.on("end", () => {
+        this.#stickLook[0] = 0;
+        this.#stickLook[1] = 0;
+      });
+    }
   }
   onMouseMove(xDelta, yDelta) {
     if (this.mousePressed(0)) {
@@ -19195,8 +19247,16 @@ var PhysicsFPSController = class extends ControllerInput {
       console.warn("PhysicsFPSController has no RigidBody or Collider");
       return;
     }
-    if (this.#virtualLook.sqrMag > 0.025) {
-      this.#rotateView(this.#virtualLook[0], this.#virtualLook[1]);
+    for (const gamepad of navigator.getGamepads()) {
+      if (gamepad) {
+        this.#stickWalk[0] += gamepad.axes[0];
+        this.#stickWalk[1] += gamepad.axes[1];
+        this.#stickLook[0] += gamepad.axes[2];
+        this.#stickLook[1] -= gamepad.axes[3];
+      }
+    }
+    if (this.#stickLook.sqrMag > 0.025) {
+      this.#rotateView(this.#stickLook[0], this.#stickLook[1]);
     }
     if (!this.flying) {
       this.#yVelocity += this.#onGround ? 0 : this.gravity / 1e3 * tickData.delta;
@@ -19242,8 +19302,8 @@ var PhysicsFPSController = class extends ControllerInput {
     if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0) {
       tmpDir.normalize();
     }
-    tmpDir[0] += this.#virtualWalk[0];
-    tmpDir[2] -= this.#virtualWalk[1];
+    tmpDir[0] += this.#stickWalk[0];
+    tmpDir[2] -= this.#stickWalk[1];
     if (tmpDir.sqrMag > 1) {
       tmpDir.normalize();
     }
@@ -28153,23 +28213,13 @@ var PaintballColors = [
           mode: "static",
           position: { left: "30%", bottom: "30%" }
         });
+        this.controller.setVirtualWalkJoystick(this.walkJoystick);
         this.lookJoystick = J2.create({
           zone: document.querySelector(".right-input-zone"),
           mode: "static",
           position: { left: "70%", bottom: "30%" }
         });
-        this.walkJoystick.on("move", (evt) => {
-          this.controller.setVirtualWalk(evt.data.vector.x, evt.data.vector.y);
-        });
-        this.walkJoystick.on("end", () => {
-          this.controller.setVirtualWalk(0, 0);
-        });
-        this.lookJoystick.on("move", (evt) => {
-          this.controller.setVirtualLook(evt.data.vector.x, evt.data.vector.y);
-        });
-        this.lookJoystick.on("end", () => {
-          this.controller.setVirtualLook(0, 0);
-        });
+        this.controller.setVirtualLookJoystick(this.lookJoystick);
       }
       this.player = new Actor(
         this.controller

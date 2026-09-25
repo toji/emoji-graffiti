@@ -120,26 +120,14 @@ const PaintballColors = [
           mode: 'static',
           position: { left: '30%', bottom: '30%' },
         });
+        this.controller.setVirtualWalkJoystick(this.walkJoystick);
 
         this.lookJoystick = nipplejs.create({
           zone: document.querySelector('.right-input-zone')!,
           mode: 'static',
           position: { left: '70%', bottom: '30%' },
         });
-
-        this.walkJoystick.on('move', (evt: any) => {
-          this.controller.setVirtualWalk(evt.data.vector.x, evt.data.vector.y);
-        });
-        this.walkJoystick.on('end', () => {
-          this.controller.setVirtualWalk(0, 0);
-        });
-
-        this.lookJoystick.on('move', (evt: any) => {
-          this.controller.setVirtualLook(evt.data.vector.x, evt.data.vector.y);
-        });
-        this.lookJoystick.on('end', () => {
-          this.controller.setVirtualLook(0, 0);
-        });
+        this.controller.setVirtualLookJoystick(this.lookJoystick);
       }
 
       this.player = new Actor(
