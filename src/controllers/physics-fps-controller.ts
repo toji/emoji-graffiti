@@ -37,6 +37,7 @@ export class PhysicsFPSController extends ControllerInput {
 
   #stickWalk = new Vec2();
   #stickLook = new Vec2();
+  #gamepadActionPressed = false;
 
   constructor(element: HTMLElement) {
     super(element);
@@ -172,14 +173,34 @@ export class PhysicsFPSController extends ControllerInput {
     }
 
     // Gamepad support
+    let anyPressed = false;
     for (const gamepad of navigator.getGamepads()) {
       if (gamepad) {
-        this.#stickWalk[0] += gamepad.axes[0];
-        this.#stickWalk[1] += gamepad.axes[1];
+        if (gamepad.axes[0] != 0 || gamepad.axes[1] != 0) {
+          this.#stickWalk[0] = gamepad.axes[0];
+          this.#stickWalk[1] = -gamepad.axes[1];
+        }
 
-        this.#stickLook[0] += gamepad.axes[2];
-        this.#stickLook[1] -= gamepad.axes[3];
+        if (gamepad.axes[2] != 0 || gamepad.axes[3] != 0) {
+          this.#stickLook[0] = gamepad.axes[2];
+          this.#stickLook[1] = gamepad.axes[3];
+        }
+
+        for (const button of gamepad.buttons) {
+          if (button.pressed) {
+            anyPressed = true;
+          }
+        }
       }
+    }
+
+    if (anyPressed) {
+      if (!this.#gamepadActionPressed) {
+        this.#gamepadActionPressed = true;
+        this.dispatchEvent(new Event('action'));
+      }
+    } else {
+      this.#gamepadActionPressed = false;
     }
 
     if (this.#stickLook.sqrMag > 0.025) {

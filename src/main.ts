@@ -34,7 +34,7 @@ const PaintballColors = [
     appState: AppState;
 
     walkJoystick: any;
-    lookJoystick: any; 
+    lookJoystick: any;
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
@@ -210,6 +210,10 @@ const PaintballColors = [
       this.decalFlipInput.addEventListener('input', (ev) => {
         this.decalFlip = this.decalFlipInput.checked;
         this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
+      });
+
+      this.controller.addEventListener('action' , async () => {
+        this.#onAction();
       });
 
       if (this.appState.touchscreen) {

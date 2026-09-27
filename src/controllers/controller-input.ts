@@ -1,4 +1,4 @@
-export class ControllerInput {
+export class ControllerInput extends EventTarget {
   #element?: HTMLElement;
   #registerElement: (value?: HTMLElement) => void;
 
@@ -6,6 +6,8 @@ export class ControllerInput {
   #mousePressed: boolean[] = [];
 
   constructor(element?: HTMLElement) {
+    super();
+
     let lastX: number;
     let lastY: number;
 
