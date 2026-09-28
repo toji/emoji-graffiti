@@ -10,8 +10,8 @@ import { QueryArgs } from "./util/query-args.ts";
 export enum InputMode {
   View,
   Paint,
-  Erase,
   Shoot,
+  Erase,
 };
 
 export class AppState {
