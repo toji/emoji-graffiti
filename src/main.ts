@@ -16,6 +16,7 @@ import { DebugMenu } from './debug-menu.ts';
 import { AppState, InputMode } from './app-state.ts';
 
 import nipplejs from 'nipplejs';
+import { ActionManager } from './controllers/action-manager.ts';
 
 const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
@@ -33,8 +34,9 @@ const PaintballColors = [
   WebGPUApp.Begin(class extends WebGPUApp {
     appState: AppState;
 
+    actionManager: ActionManager;
     walkJoystick: any;
-    lookJoystick: any; 
+    lookJoystick: any;
 
     viewButton: HTMLButtonElement = document.querySelector('#view-button')!;
     emojiButton: HTMLButtonElement = document.querySelector('#emoji-button')!;
@@ -107,7 +109,10 @@ const PaintballColors = [
 
       this.gltfLoader = new GltfLoader(gpu);
 
-      this.controller = new PhysicsFPSController(gpu.canvas);
+      this.actionManager = new ActionManager(gpu.canvas);
+      this.stage.add(this.actionManager);
+
+      this.controller = new PhysicsFPSController();
       this.controller.speed = 0.004;
       this.controller.flying = this.appState.config.flying;
 
@@ -120,14 +125,14 @@ const PaintballColors = [
           mode: 'static',
           position: { left: '30%', bottom: '30%' },
         });
-        this.controller.setVirtualWalkJoystick(this.walkJoystick);
+        this.actionManager.setVirtualWalkJoystick(this.walkJoystick);
 
         this.lookJoystick = nipplejs.create({
           zone: document.querySelector('.right-input-zone')!,
           mode: 'static',
           position: { left: '70%', bottom: '30%' },
         });
-        this.controller.setVirtualLookJoystick(this.lookJoystick);
+        this.actionManager.setVirtualLookJoystick(this.lookJoystick);
       }
 
       this.player = new Actor(
@@ -212,6 +217,18 @@ const PaintballColors = [
         this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
       });
 
+      this.actionManager.playerActions.primary.addEventListener('start' , async () => {
+        this.#onAction();
+      });
+
+      this.actionManager.playerActions.nextSlot.addEventListener('start' , async () => {
+        this.#onChangeSlot(1);
+      });
+
+      this.actionManager.playerActions.prevSlot.addEventListener('start' , async () => {
+        this.#onChangeSlot(-1);
+      });
+
       if (this.appState.touchscreen) {
         const clickZone: HTMLElement = document.querySelector('.touch-click-zone')!;
         clickZone.addEventListener('pointerdown', async (ev: PointerEvent) => {
@@ -220,13 +237,13 @@ const PaintballColors = [
               Math.floor(ev.clientX * devicePixelRatio),
               Math.floor(ev.clientY * devicePixelRatio));
           }
-          this.#onAction();
+          this.actionManager.playerActions.primary.pressed = true;
         });
       } else {
         // Detach from the camera on right click
         gpu.canvas.addEventListener('contextmenu', (ev) => {
           ev.preventDefault();
-          this.#onAction();
+          this.actionManager.playerActions.primary.pressed = true;
         });
       }
 
@@ -335,6 +352,12 @@ const PaintballColors = [
         }
 
         return false;
+    }
+
+    #onChangeSlot(direction: number) {
+      let newMode = this.appState.mode;
+      newMode = (((newMode + direction) % 4) + 4) % 4;
+      this.#switchMode(newMode);
     }
 
     async #switchMode(mode: InputMode) {

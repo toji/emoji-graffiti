@@ -19025,18 +19025,56 @@ var WebGPUApp = class {
   }
 };
 
-// src/controllers/controller-input.ts
-var ControllerInput = class {
+// src/controllers/action-manager.ts
+var ActionBoolean = class extends EventTarget {
   static {
-    __name(this, "ControllerInput");
+    __name(this, "ActionBoolean");
   }
-  #element;
-  #registerElement;
+  #pressed = false;
+  #lastPressed = false;
+  set pressed(value) {
+    this.#lastPressed = this.#pressed;
+    this.#pressed = value;
+    if (this.#pressed != this.#lastPressed) {
+      this.dispatchEvent(new Event(this.#pressed ? "start" : "end"));
+    }
+  }
+  get pressed() {
+    return this.#pressed;
+  }
+  get changed() {
+    return this.#pressed == this.#lastPressed;
+  }
+};
+var PlayerActions = class {
+  static {
+    __name(this, "PlayerActions");
+  }
+  walk = new Vec2();
+  look = new Vec2();
+  primary = new ActionBoolean();
+  jump = new ActionBoolean();
+  crouch = new ActionBoolean();
+  nextSlot = new ActionBoolean();
+  prevSlot = new ActionBoolean();
+};
+var GAMEPAD_DEADZONE = 0.1;
+var ActionManager = class {
+  static {
+    __name(this, "ActionManager");
+  }
+  #mouseElement;
+  #playerActions = new PlayerActions();
   #keyPressed = {};
-  #mousePressed = [];
-  constructor(element) {
-    let lastX;
-    let lastY;
+  #mouseDelta = new Vec2();
+  #mouseButtons = 0;
+  #mouseWheel = 0;
+  #virtualWalkJoystick;
+  #virtualLookJoystick;
+  #stickWalk = new Vec2();
+  #stickLook = new Vec2();
+  constructor(mouseElement) {
+    this.#mouseElement = mouseElement ?? document.body;
     window.addEventListener("keydown", (event) => {
       if (event.defaultPrevented) {
         return;
@@ -19049,98 +19087,38 @@ var ControllerInput = class {
     window.addEventListener("blur", (event) => {
       this.#keyPressed = {};
     });
-    const downCallback = /* @__PURE__ */ __name((event) => {
+    let lastX;
+    let lastY;
+    const enterCallback = /* @__PURE__ */ __name((event) => {
       lastX = event.pageX;
       lastY = event.pageY;
-    }, "downCallback");
+    }, "enterCallback");
+    const buttonCallback = /* @__PURE__ */ __name((event) => {
+      this.#mouseButtons = event.buttons;
+    }, "buttonCallback");
     const moveCallback = /* @__PURE__ */ __name((event) => {
-      this.#mousePressed[0] = (event.buttons & 1) != 0 || event.pointerType == "touch";
-      this.#mousePressed[1] = (event.buttons & 2) != 0;
-      this.#mousePressed[3] = (event.buttons & 4) != 0;
-      this.#mousePressed[4] = (event.buttons & 8) != 0;
-      this.#mousePressed[5] = (event.buttons & 16) != 0;
       if (document.pointerLockElement !== null) {
-        this.onMouseMove(event.movementX, event.movementY);
+        this.#mouseDelta[0] = event.movementX;
+        this.#mouseDelta[1] = event.movementY;
       } else {
-        this.onMouseMove(event.pageX - lastX, event.pageY - lastY);
+        this.#mouseDelta[0] = event.pageX - lastX;
+        this.#mouseDelta[1] = event.pageY - lastY;
       }
       lastX = event.pageX;
       lastY = event.pageY;
     }, "moveCallback");
     const wheelCallback = /* @__PURE__ */ __name((event) => {
-      this.onScroll(event.deltaY);
+      this.#mouseWheel = event.deltaY;
       event.preventDefault();
     }, "wheelCallback");
-    this.#registerElement = (value) => {
-      if (this.#element && this.#element != value) {
-        this.#element.removeEventListener("pointerdown", downCallback);
-        this.#element.removeEventListener("pointermove", moveCallback);
-        this.#element.removeEventListener("wheel", wheelCallback);
-      }
-      this.#element = value;
-      if (this.#element) {
-        this.#element.addEventListener("pointerdown", downCallback);
-        this.#element.addEventListener("pointermove", moveCallback);
-        this.#element.addEventListener("wheel", wheelCallback);
-      }
-    };
-    this.#registerElement(element);
+    this.#mouseElement.addEventListener("pointerenter", enterCallback);
+    this.#mouseElement.addEventListener("pointerdown", buttonCallback);
+    this.#mouseElement.addEventListener("pointerup", buttonCallback);
+    this.#mouseElement.addEventListener("pointermove", moveCallback);
+    this.#mouseElement.addEventListener("wheel", wheelCallback);
   }
-  set element(value) {
-    this.#registerElement(value);
-  }
-  get element() {
-    return this.#element;
-  }
-  onMouseMove(xDelta, yDelta) {
-  }
-  onScroll(delta) {
-  }
-  keyPressed(keycode) {
-    return !!this.#keyPressed[keycode];
-  }
-  mousePressed(button) {
-    return !!this.#mousePressed[button];
-  }
-};
-
-// src/controllers/physics-fps-controller.ts
-var tmpDir = new Vec3();
-var tmpQuat = new Quat();
-var PlayerHalfHeight = 0.75;
-var PhysicsFPSController = class extends ControllerInput {
-  static {
-    __name(this, "PhysicsFPSController");
-  }
-  speed = 0.01;
-  angles = new Vec2();
-  rotation = new Quat();
-  flying = false;
-  #onGround = false;
-  #yVelocity = 0;
-  gravity = -1;
-  //-9.81;
-  jumpVelocity = 0.3;
-  #physicsController;
-  #collider;
-  #rigidBody;
-  #walking = false;
-  #crouching = false;
-  #crouchPressed = false;
-  #virtualWalkJoystick;
-  #virtualLookJoystick;
-  #stickWalk = new Vec2();
-  #stickLook = new Vec2();
-  constructor(element) {
-    super(element);
-  }
-  setAngles(x3, y3) {
-    this.angles[0] = x3;
-    this.angles[1] = y3;
-    const q2 = this.rotation;
-    q2.identity();
-    Quat.rotateY(q2, q2, -this.angles[1]);
-    Quat.rotateX(q2, q2, -this.angles[0]);
+  get playerActions() {
+    return this.#playerActions;
   }
   setVirtualWalkJoystick(vjs) {
     if (this.#virtualWalkJoystick) {
@@ -19151,7 +19129,7 @@ var PhysicsFPSController = class extends ControllerInput {
     if (this.#virtualWalkJoystick) {
       this.#virtualWalkJoystick.on("move", (evt) => {
         this.#stickWalk[0] = evt.data.vector.x;
-        this.#stickWalk[1] = evt.data.vector.y;
+        this.#stickWalk[1] = -evt.data.vector.y;
       });
       this.#virtualWalkJoystick.on("end", () => {
         this.#stickWalk[0] = 0;
@@ -19176,22 +19154,129 @@ var PhysicsFPSController = class extends ControllerInput {
       });
     }
   }
-  onMouseMove(xDelta, yDelta) {
-    if (this.mousePressed(0)) {
-      this.#rotateView(xDelta, yDelta);
-    }
+  addToActor(actor) {
+    actor.add(this.#playerActions);
   }
-  #rotateView(xDelta, yDelta) {
-    this.angles[1] = (this.angles[1] + xDelta * 0.025) % (Math.PI * 2);
-    this.angles[0] += yDelta * 0.025;
-    this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI * 0.5), Math.PI * 0.5);
+  removeFromActor(actor) {
+    actor.remove(PlayerActions);
+  }
+  onTick(tickData, actor) {
+    this.#playerActions.walk[0] = 0;
+    this.#playerActions.walk[1] = 0;
+    this.#playerActions.look[0] = 0;
+    this.#playerActions.look[1] = 0;
+    let primaryPressed = false;
+    let jumpPressed = false;
+    let crouchPressed = false;
+    let nextSlotPressed = false;
+    let prevSlotPressed = false;
+    for (const gamepad of navigator.getGamepads()) {
+      if (gamepad) {
+        if (Math.abs(gamepad.axes[0]) >= GAMEPAD_DEADZONE || Math.abs(gamepad.axes[1]) >= GAMEPAD_DEADZONE) {
+          this.#playerActions.walk[0] += gamepad.axes[0];
+          this.#playerActions.walk[1] += gamepad.axes[1];
+        }
+        if (Math.abs(gamepad.axes[2]) >= GAMEPAD_DEADZONE || Math.abs(gamepad.axes[3]) >= GAMEPAD_DEADZONE) {
+          this.#playerActions.look[0] += gamepad.axes[2];
+          this.#playerActions.look[1] += gamepad.axes[3];
+        }
+        primaryPressed ||= gamepad.buttons[2].pressed || gamepad.buttons[6].pressed || gamepad.buttons[7].pressed;
+        jumpPressed ||= gamepad.buttons[0].pressed;
+        crouchPressed ||= gamepad.buttons[1].pressed;
+        nextSlotPressed ||= gamepad.buttons[5].pressed || gamepad.buttons[15].pressed;
+        prevSlotPressed ||= gamepad.buttons[4].pressed || gamepad.buttons[14].pressed;
+      }
+    }
+    if (this.#keyPressed["KeyW"]) {
+      this.#playerActions.walk[1] -= 1;
+    }
+    if (this.#keyPressed["KeyS"]) {
+      this.#playerActions.walk[1] += 1;
+    }
+    if (this.#keyPressed["KeyA"]) {
+      this.#playerActions.walk[0] -= 1;
+    }
+    if (this.#keyPressed["KeyD"]) {
+      this.#playerActions.walk[0] += 1;
+    }
+    if (this.#keyPressed["ArrowLeft"]) {
+      this.#playerActions.look[0] -= 1;
+    }
+    if (this.#keyPressed["ArrowRight"]) {
+      this.#playerActions.look[0] += 1;
+    }
+    if (this.#keyPressed["ArrowUp"]) {
+      this.#playerActions.look[1] -= 1;
+    }
+    if (this.#keyPressed["ArrowDown"]) {
+      this.#playerActions.look[1] += 1;
+    }
+    primaryPressed ||= !!this.#keyPressed["Enter"];
+    jumpPressed ||= !!this.#keyPressed["Space"];
+    crouchPressed ||= !!this.#keyPressed["ShiftLeft"];
+    nextSlotPressed ||= !!this.#keyPressed["KeyE"];
+    prevSlotPressed ||= !!this.#keyPressed["KeyQ"];
+    if (!!(this.#mouseButtons & 1)) {
+      this.#playerActions.look.add(this.#mouseDelta);
+    }
+    primaryPressed ||= !!(this.#mouseButtons & 2);
+    nextSlotPressed ||= this.#mouseWheel < 0;
+    prevSlotPressed ||= this.#mouseWheel > 0;
+    this.#mouseDelta[0] = 0;
+    this.#mouseDelta[1] = 0;
+    this.#mouseWheel = 0;
+    this.#playerActions.walk.add(this.#stickWalk);
+    this.#playerActions.look.add(this.#stickLook);
+    const sqrMag = this.#playerActions.walk.sqrMag;
+    if (sqrMag > 1) {
+      this.#playerActions.walk.normalize();
+    }
+    this.#playerActions.primary.pressed = primaryPressed;
+    this.#playerActions.jump.pressed = jumpPressed;
+    this.#playerActions.crouch.pressed = crouchPressed;
+    this.#playerActions.nextSlot.pressed = nextSlotPressed;
+    this.#playerActions.prevSlot.pressed = prevSlotPressed;
+  }
+};
+
+// src/controllers/physics-fps-controller.ts
+var tmpDir = new Vec3();
+var tmpQuat = new Quat();
+var PlayerHalfHeight = 0.75;
+var PhysicsFPSController = class {
+  static {
+    __name(this, "PhysicsFPSController");
+  }
+  speed = 0.01;
+  angles = new Vec2();
+  rotation = new Quat();
+  flying = false;
+  #onGround = false;
+  #yVelocity = 0;
+  gravity = -1;
+  //-9.81;
+  jumpVelocity = 0.3;
+  #physicsController;
+  #collider;
+  #rigidBody;
+  constructor() {
+  }
+  setAngles(x3, y3) {
+    this.angles[0] = x3;
+    this.angles[1] = y3;
     const q2 = this.rotation;
     q2.identity();
     Quat.rotateY(q2, q2, -this.angles[1]);
     Quat.rotateX(q2, q2, -this.angles[0]);
   }
-  get walking() {
-    return this.#walking;
+  #rotateView(look) {
+    this.angles[1] = (this.angles[1] + look[0] * 0.025) % (Math.PI * 2);
+    this.angles[0] += look[1] * 0.025;
+    this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI * 0.5), Math.PI * 0.5);
+    const q2 = this.rotation;
+    q2.identity();
+    Quat.rotateY(q2, q2, -this.angles[1]);
+    Quat.rotateX(q2, q2, -this.angles[0]);
   }
   #ensurePhysicsController(actor) {
     if (this.#physicsController) {
@@ -19209,19 +19294,8 @@ var PhysicsFPSController = class extends ControllerInput {
     this.#rigidBody = stagePhysics.world.createRigidBody(zg.RigidBodyDesc.kinematicPositionBased());
     const capsule = zg.ColliderDesc.capsule(PlayerHalfHeight, 0.4);
     this.#collider = stagePhysics.world.createCollider(capsule, this.#rigidBody);
-    this.#setCrouch(this.#crouching, true);
+    this.#collider?.setTranslationWrtParent({ x: 0, y: -PlayerHalfHeight, z: 0 });
     this.#rigidBody.setTranslation(actor.worldTransform.translation, true);
-  }
-  #setCrouch(enabled, force = false) {
-    if (!force && this.#crouching === enabled) {
-      return;
-    }
-    this.#crouching = enabled;
-    if (this.#crouching) {
-      this.#collider?.setTranslationWrtParent({ x: 0, y: 0, z: 0 });
-    } else {
-      this.#collider?.setTranslationWrtParent({ x: 0, y: -PlayerHalfHeight, z: 0 });
-    }
   }
   addToStage(stage, actor) {
     this.#ensurePhysicsController(actor);
@@ -19247,94 +19321,54 @@ var PhysicsFPSController = class extends ControllerInput {
       console.warn("PhysicsFPSController has no RigidBody or Collider");
       return;
     }
-    for (const gamepad of navigator.getGamepads()) {
-      if (gamepad) {
-        this.#stickWalk[0] += gamepad.axes[0];
-        this.#stickWalk[1] += gamepad.axes[1];
-        this.#stickLook[0] += gamepad.axes[2];
-        this.#stickLook[1] -= gamepad.axes[3];
-      }
-    }
-    if (this.#stickLook.sqrMag > 0.025) {
-      this.#rotateView(this.#stickLook[0], this.#stickLook[1]);
-    }
-    if (!this.flying) {
-      this.#yVelocity += this.#onGround ? 0 : this.gravity / 1e3 * tickData.delta;
-    } else {
-      this.#yVelocity = 0;
-      this.#setCrouch(false);
-    }
-    Vec3.set(tmpDir, 0, 0, 0);
-    if (this.keyPressed("KeyW")) {
-      tmpDir[2] -= 1;
-    }
-    if (this.keyPressed("KeyS")) {
-      tmpDir[2] += 1;
-    }
-    if (this.keyPressed("KeyA")) {
-      tmpDir[0] -= 1;
-    }
-    if (this.keyPressed("KeyD")) {
-      tmpDir[0] += 1;
-    }
-    if (this.keyPressed("KeyC")) {
-      if (!this.#crouchPressed) {
-        this.#setCrouch(!this.#crouching);
-        tmpDir[1] += this.#crouching ? -1 : 1;
-        this.#crouchPressed = true;
-      }
-    } else {
-      this.#crouchPressed = false;
-    }
-    if (this.keyPressed("Space")) {
-      if (this.flying) {
-        tmpDir[1] += 1;
-      } else if (this.#onGround) {
-        this.#yVelocity = this.jumpVelocity;
-      }
-    }
-    if (this.keyPressed("ShiftLeft")) {
-      if (this.flying) {
-        tmpDir[1] -= 1;
-      } else {
-      }
-    }
-    if (tmpDir[0] !== 0 || tmpDir[1] !== 0 || tmpDir[2] !== 0) {
-      tmpDir.normalize();
-    }
-    tmpDir[0] += this.#stickWalk[0];
-    tmpDir[2] -= this.#stickWalk[1];
-    if (tmpDir.sqrMag > 1) {
-      tmpDir.normalize();
-    }
-    if (tmpDir.sqrMag > 0.025 || this.#yVelocity !== 0) {
-      if (this.flying) {
-        Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
-      } else {
-        tmpQuat.identity();
-        tmpQuat.rotateY(-this.angles[1]);
-        Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
-      }
-      tmpDir.scale(this.speed * tickData.delta);
+    tickData.stage.query(PlayerActions).forEach((_3, actions) => {
+      this.#rotateView(actions.look);
       if (!this.flying) {
-        tmpDir[1] += this.#yVelocity;
-      }
-      controller.computeColliderMovement(this.#collider, tmpDir);
-      const correctedMovement = controller.computedMovement();
-      tmpDir[0] = correctedMovement.x;
-      tmpDir[1] = correctedMovement.y;
-      tmpDir[2] = correctedMovement.z;
-      this.#onGround = controller.computedGrounded();
-      if (this.#onGround) {
-        this.#walking = correctedMovement.x !== 0 || correctedMovement.z !== 0;
+        this.#yVelocity += this.#onGround ? 0 : this.gravity / 1e3 * tickData.delta;
+      } else {
         this.#yVelocity = 0;
       }
-      actor.transform.translationRef.add(tmpDir);
-      this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
-    } else {
-      this.#walking = false;
-    }
-    actor.transform.rotation = this.rotation;
+      Vec3.set(tmpDir, actions.walk[0], 0, actions.walk[1]);
+      if (actions.jump.pressed) {
+        if (this.flying) {
+          tmpDir[1] += 1;
+        } else if (this.#onGround) {
+          this.#yVelocity = this.jumpVelocity;
+        }
+      }
+      if (actions.crouch.pressed) {
+        if (this.flying) {
+          tmpDir[1] -= 1;
+        } else {
+        }
+      }
+      if (tmpDir.sqrMag > 0 || this.#yVelocity !== 0) {
+        if (this.flying) {
+          Vec3.transformQuat(tmpDir, tmpDir, this.rotation);
+        } else {
+          tmpQuat.identity();
+          tmpQuat.rotateY(-this.angles[1]);
+          Vec3.transformQuat(tmpDir, tmpDir, tmpQuat);
+        }
+        tmpDir.scale(this.speed * tickData.delta);
+        if (!this.flying) {
+          tmpDir[1] += this.#yVelocity;
+        }
+        controller.computeColliderMovement(this.#collider, tmpDir);
+        const correctedMovement = controller.computedMovement();
+        tmpDir[0] = correctedMovement.x;
+        tmpDir[1] = correctedMovement.y;
+        tmpDir[2] = correctedMovement.z;
+        this.#onGround = controller.computedGrounded();
+        if (this.#onGround) {
+          this.#yVelocity = 0;
+        }
+        actor.transform.translationRef.add(tmpDir);
+        this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
+      }
+      actor.transform.rotation = this.rotation;
+      return false;
+    });
   }
 };
 
@@ -28140,6 +28174,7 @@ var PaintballColors = [
 (/* @__PURE__ */ __name((function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     appState;
+    actionManager;
     walkJoystick;
     lookJoystick;
     viewButton = document.querySelector("#view-button");
@@ -28203,7 +28238,9 @@ var PaintballColors = [
         this.stage.add(new DebugMenu(this.appState));
       }
       this.gltfLoader = new GltfLoader(gpu);
-      this.controller = new PhysicsFPSController(gpu.canvas);
+      this.actionManager = new ActionManager(gpu.canvas);
+      this.stage.add(this.actionManager);
+      this.controller = new PhysicsFPSController();
       this.controller.speed = 4e-3;
       this.controller.flying = this.appState.config.flying;
       if (this.appState.touchscreen) {
@@ -28213,13 +28250,13 @@ var PaintballColors = [
           mode: "static",
           position: { left: "30%", bottom: "30%" }
         });
-        this.controller.setVirtualWalkJoystick(this.walkJoystick);
+        this.actionManager.setVirtualWalkJoystick(this.walkJoystick);
         this.lookJoystick = J2.create({
           zone: document.querySelector(".right-input-zone"),
           mode: "static",
           position: { left: "70%", bottom: "30%" }
         });
-        this.controller.setVirtualLookJoystick(this.lookJoystick);
+        this.actionManager.setVirtualLookJoystick(this.lookJoystick);
       }
       this.player = new Actor(
         this.controller
@@ -28280,22 +28317,31 @@ var PaintballColors = [
         this.decalFlip = this.decalFlipInput.checked;
         this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
       });
+      this.actionManager.playerActions.primary.addEventListener("start", async () => {
+        this.#onAction();
+      });
+      this.actionManager.playerActions.nextSlot.addEventListener("start", async () => {
+        this.#onChangeSlot(1);
+      });
+      this.actionManager.playerActions.prevSlot.addEventListener("start", async () => {
+        this.#onChangeSlot(-1);
+      });
       if (this.appState.touchscreen) {
         const clickZone = document.querySelector(".touch-click-zone");
         clickZone.addEventListener("pointerdown", async (ev) => {
-          if (this.appState.mode == 2 /* Erase */) {
+          if (this.appState.mode == 3 /* Erase */) {
             await this.getSelectedDecal(
               gpu,
               Math.floor(ev.clientX * devicePixelRatio),
               Math.floor(ev.clientY * devicePixelRatio)
             );
           }
-          this.#onAction();
+          this.actionManager.playerActions.primary.pressed = true;
         });
       } else {
         gpu.canvas.addEventListener("contextmenu", (ev) => {
           ev.preventDefault();
-          this.#onAction();
+          this.actionManager.playerActions.primary.pressed = true;
         });
       }
       gpu.canvas.addEventListener("click", (ev) => {
@@ -28316,16 +28362,16 @@ var PaintballColors = [
         this.#switchMode(1 /* Paint */);
       });
       this.shootButton.addEventListener("click", () => {
-        this.#switchMode(3 /* Shoot */);
+        this.#switchMode(2 /* Shoot */);
       });
       this.eraseButton.addEventListener("click", () => {
-        this.#switchMode(2 /* Erase */);
+        this.#switchMode(3 /* Erase */);
       });
       this.clearButton.addEventListener("click", () => {
         this.appState.clearDecals();
       });
       this.gpu.canvas.addEventListener("mousemove", async (ev) => {
-        if (this.appState.mode == 2 /* Erase */) {
+        if (this.appState.mode == 3 /* Erase */) {
           this.getSelectedDecal(
             gpu,
             Math.floor(ev.clientX * devicePixelRatio),
@@ -28351,7 +28397,7 @@ var PaintballColors = [
             this.camera.attachChild(this.decal);
           }
         }, this.appState.config.sprayCooldown);
-      } else if (this.appState.mode == 2 /* Erase */) {
+      } else if (this.appState.mode == 3 /* Erase */) {
         let decalIndex = 1;
         this.stage.query(Decal).forEach((actor) => {
           if (decalIndex == this.lastSelectedDecal) {
@@ -28363,7 +28409,7 @@ var PaintballColors = [
           }
           decalIndex++;
         });
-      } else if (this.appState.mode == 3 /* Shoot */) {
+      } else if (this.appState.mode == 2 /* Shoot */) {
         this.audioPlayer.play(this.paintballClips.random());
         const forward = new Vec4(0, 0, -1, 0);
         Vec4.transformMat4(forward, forward, this.camera.worldTransform.matrix);
@@ -28384,6 +28430,11 @@ var PaintballColors = [
       }
       return false;
     }
+    #onChangeSlot(direction) {
+      let newMode = this.appState.mode;
+      newMode = ((newMode + direction) % 4 + 4) % 4;
+      this.#switchMode(newMode);
+    }
     async #switchMode(mode) {
       this.appState.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
@@ -28403,8 +28454,8 @@ var PaintballColors = [
       __name(setSelected, "setSelected");
       setSelected(this.viewButton, this.appState.mode === 0 /* View */);
       setSelected(this.emojiButton, this.appState.mode === 1 /* Paint */);
-      setSelected(this.shootButton, this.appState.mode === 3 /* Shoot */);
-      setSelected(this.eraseButton, this.appState.mode === 2 /* Erase */);
+      setSelected(this.shootButton, this.appState.mode === 2 /* Shoot */);
+      setSelected(this.eraseButton, this.appState.mode === 3 /* Erase */);
       this.decalOptionsElement.style.display = this.appState.mode === 1 /* Paint */ ? "" : "none";
       switch (this.appState.mode) {
         case 0 /* View */:
@@ -28419,7 +28470,7 @@ var PaintballColors = [
           this.camera.removeChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
           break;
-        case 3 /* Shoot */:
+        case 2 /* Shoot */:
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.removeChild(this.sponge);
@@ -28429,7 +28480,7 @@ var PaintballColors = [
             this.paintballDecals[i4] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i4}.png`);
           }
           break;
-        case 2 /* Erase */:
+        case 3 /* Erase */:
           this.camera.removeChild(this.decal);
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
