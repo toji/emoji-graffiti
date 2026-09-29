@@ -17672,7 +17672,8 @@ var TileFunctions = (
 const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
 
 fn linearDepth(depthSample : f32) -> f32 {
-  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
+  //return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
+  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar, camera.zNear * (1 - depthSample));
 }
 
 fn getTile(fragCoord : vec4f) -> vec3u {
@@ -17857,6 +17858,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             let color = baseColor.rgb;
           #endif
             //let tileColor = vec3f(getTile(in.pos)) / vec3f(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+            //out.color = vec4(linearTosRGB(tileColor), baseColor.a);
 
             out.color = vec4(linearTosRGB(color), baseColor.a);
 
@@ -17994,6 +17996,9 @@ var DecalManager = class {
   nextTextureIndex = 0;
   decalKeyMapping = /* @__PURE__ */ new Map();
   decalCache = [];
+  decalMemory = 0;
+  decalCount = 0;
+  decalTextureCount = 0;
   constructor(gpu) {
     this.gpu = gpu;
     this.emojiRenderer = new EmojiRenderer(this.gpu.textureLoader);
@@ -18015,6 +18020,7 @@ var DecalManager = class {
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
         format: "rgba8unorm-srgb"
       });
+      this.decalMemory = 4 * emojiSize * emojiSize * MAX_DECAL_TEXTURES;
     }
   }
   #getEmojiKey(emoji) {
@@ -18026,20 +18032,32 @@ var DecalManager = class {
     if (decalIndex !== void 0) {
       return this.decalCache[decalIndex];
     }
-    let texture = this.decalTextureArray;
+    let texture;
     let layerIndex = 0;
     if (this.gpu.useBindless) {
-      const emojiSize = this.gpu.config.emojiTextureSize;
-      texture = this.gpu.device.createTexture({
-        label: "Decal",
-        size: [emojiSize, emojiSize, 1],
-        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-        format: "rgba8unorm-srgb"
-      });
+      if (emoji.emoji.url) {
+        try {
+          texture = await this.gpu.textureLoader.fromUrl(emoji.emoji.url);
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+      if (texture === void 0) {
+        const emojiSize = this.gpu.config.emojiTextureSize;
+        texture = this.gpu.device.createTexture({
+          label: "Decal",
+          size: [emojiSize, emojiSize, 1],
+          mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+          usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+          format: "rgba8unorm-srgb"
+        });
+        await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
+      }
+      this.decalMemory += 4 * texture.width * texture.height;
       decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
       this.decalTextureSet[decalIndex] = texture;
     } else {
+      texture = this.decalTextureArray;
       decalIndex = this.nextTextureIndex;
       layerIndex = decalIndex;
       this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
@@ -18047,9 +18065,11 @@ var DecalManager = class {
       if (oldDecal) {
         oldDecal.textureIndex = -1;
         this.decalKeyMapping.delete(this.#getEmojiKey(oldDecal.emoji));
+        this.decalTextureCount--;
       }
+      await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
     }
-    await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
+    this.decalTextureCount++;
     const decal = new Decal(emoji, decalIndex);
     this.decalCache[decalIndex] = decal;
     this.decalKeyMapping.set(decalKey, decalIndex);
@@ -18062,30 +18082,30 @@ var DecalManager = class {
   updateDecals(stage) {
     const textureProj = new Mat4();
     let offset = 4;
-    let decalCount = 0;
+    this.decalCount = 0;
     stage.query(Decal).forEach((actor, decal) => {
       if (decal.textureIndex == -1) {
         actor.remove(Decal);
         return;
       }
-      if (decalCount >= MAX_DECALS) {
+      if (this.decalCount >= MAX_DECALS) {
         return;
       }
       const placing = actor.has(Tag("placing-decal"));
-      const selected = decalCount + 1 == this.selectedDecal;
+      const selected = this.decalCount + 1 == this.selectedDecal;
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
-      this.decalUintArray[offset] = decalCount + 1;
+      this.decalUintArray[offset] = this.decalCount + 1;
       this.decalUintArray[offset + 1] = decal.textureIndex;
       this.decalUintArray[offset + 2] = placing || selected ? 1 : 0;
       this.decalFloatArray.set(decal.baseColorFactor, offset + 4);
       this.decalFloatArray.set(actor.worldTransform.translation, offset + 8);
       this.decalFloatArray.set(textureProj, offset + 12);
       offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
-      decalCount++;
+      this.decalCount++;
     });
-    this.decalUintArray[0] = decalCount;
-    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * decalCount + Vec4.BYTE_LENGTH);
+    this.decalUintArray[0] = this.decalCount;
+    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * this.decalCount + Vec4.BYTE_LENGTH);
   }
 };
 
@@ -27519,6 +27539,7 @@ var DebugMenu = class {
   }
   appState;
   pane;
+  stats;
   constructor(appState) {
     this.appState = appState;
     this.pane = new Pane({
@@ -27548,6 +27569,38 @@ var DebugMenu = class {
         }
       };
       input.click();
+    });
+    this.stats = this.pane.addFolder({ title: "Decal Stats", expanded: true });
+    this.stats.addBinding(this.appState.gpu.decalManager, "decalCount", {
+      readonly: true,
+      label: "Decals",
+      format: /* @__PURE__ */ __name((v3) => v3.toFixed(0), "format")
+    });
+    this.stats.addBinding(this.appState.gpu.decalManager, "decalTextureCount", {
+      readonly: true,
+      label: "Textures",
+      format: /* @__PURE__ */ __name((v3) => v3.toFixed(0), "format")
+    });
+    this.stats.addBinding(this.appState.gpu.decalManager, "decalMemory", {
+      readonly: true,
+      label: "Memory",
+      format: /* @__PURE__ */ __name((v3) => {
+        if (v3 < 1024) {
+          return `${v3}b`;
+        }
+        v3 /= 1024;
+        if (v3 < 1024) {
+          return `${parseFloat(v3.toFixed(2))}kb`;
+        }
+        v3 /= 1024;
+        if (v3 < 1024) {
+          return `${parseFloat(v3.toFixed(2))}mb`;
+        }
+        v3 /= 1024;
+        if (v3 < 1024) {
+          return `${parseFloat(v3.toFixed(2))}gb`;
+        }
+      }, "format")
     });
     this.pane.addBinding(this.appState.config, "physicsDebugRendering").on("change", (ev) => {
       this.#updatePhysicsDebugRendering();

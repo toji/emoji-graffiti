@@ -461,14 +461,6 @@ const PaintballColors = [
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
       this.stage.tick(timestamp);
-
-      /*if (this.controller.walking && !this.playingFootstep) {
-        this.playingFootstep = true;
-        this.audioPlayer.play(this.footstepClips.random()).then(() => {
-          this.playingFootstep = false;
-        });
-      }*/
-
       gpu.render(this.stage, this.camera, timestamp);
     }
   }, {
