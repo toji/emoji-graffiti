@@ -79,21 +79,34 @@ export class DecalManager {
       return this.decalCache[decalIndex];
     }
 
-    let texture = this.decalTextureArray;
+    let texture: GPUTexture | undefined;
     let layerIndex = 0;
     if (this.gpu.useBindless) {
-      const emojiSize = this.gpu.config.emojiTextureSize;
-      texture = this.gpu.device.createTexture({
-        label: 'Decal',
-        size: [emojiSize, emojiSize, 1],
-        mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-        format: 'rgba8unorm-srgb',
-      });
-      this.decalMemory += 4 * emojiSize * emojiSize;
+      if (emoji.emoji.url) {
+        try {
+          texture = await this.gpu.textureLoader.fromUrl(emoji.emoji.url);
+        } catch(err) {
+          console.warn(err);
+        }
+      }
+      
+      if (texture === undefined) {
+        const emojiSize = this.gpu.config.emojiTextureSize;
+        texture = this.gpu.device.createTexture({
+          label: 'Decal',
+          size: [emojiSize, emojiSize, 1],
+          mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
+          usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+          format: 'rgba8unorm-srgb',
+        });
+        await this.emojiRenderer.renderEmoji(emoji, texture!, layerIndex);
+      }
+      
+      this.decalMemory += 4 * texture.width * texture.height;
       decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
       this.decalTextureSet[decalIndex!] = texture;
     } else {
+      texture = this.decalTextureArray;
       decalIndex = this.nextTextureIndex;
       layerIndex = decalIndex;
       this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
@@ -105,9 +118,10 @@ export class DecalManager {
         this.decalKeyMapping.delete(this.#getEmojiKey(oldDecal.emoji));
         this.decalTextureCount--;
       }
+
+      await this.emojiRenderer.renderEmoji(emoji, texture!, layerIndex);
     }
 
-    await this.emojiRenderer.renderEmoji(emoji, texture!, layerIndex);
     this.decalTextureCount++;
 
     const decal = new Decal(emoji, decalIndex!);
