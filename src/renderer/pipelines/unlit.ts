@@ -181,6 +181,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             let color = baseColor.rgb;
           #endif
             //let tileColor = vec3f(getTile(in.pos)) / vec3f(${TILE_COUNT[0]}, ${TILE_COUNT[1]}, ${TILE_COUNT[2]});
+            //out.color = vec4(linearTosRGB(tileColor), baseColor.a);
 
             out.color = vec4(linearTosRGB(color), baseColor.a);
 

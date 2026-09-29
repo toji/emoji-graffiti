@@ -1,4 +1,4 @@
-import { Pane } from "tweakpane";
+import { FolderApi, Pane } from "tweakpane";
 import { PhysicsDebugRenderer } from "./physics/physics-debug-renderer.ts";
 import { AppState } from "./app-state.ts";
 import { PhysicsFPSController } from "./controllers/physics-fps-controller.ts";
@@ -7,6 +7,7 @@ import { PhysicsFPSController } from "./controllers/physics-fps-controller.ts";
 export class DebugMenu {
   appState: AppState;
   pane: Pane;
+  stats: FolderApi;
 
   constructor(appState: AppState) {
     this.appState = appState;
@@ -40,6 +41,34 @@ export class DebugMenu {
         }
       };
       input.click();
+    });
+
+    this.stats = this.pane.addFolder({title: 'Decal Stats', expanded: true});
+
+    this.stats.addBinding(this.appState.gpu.decalManager, 'decalCount', {
+      readonly: true,
+      label: 'Decals',
+      format: (v) => v.toFixed(0),
+    });
+
+    this.stats.addBinding(this.appState.gpu.decalManager, 'decalTextureCount', {
+      readonly: true,
+      label: 'Textures',
+      format: (v) => v.toFixed(0),
+    });
+
+    this.stats.addBinding(this.appState.gpu.decalManager, 'decalMemory', {
+      readonly: true,
+      label: 'Memory',
+      format: (v) => {
+        if (v < 1024) { return `${v}b`; }
+        v /= 1024;
+        if (v < 1024) { return `${parseFloat(v.toFixed(2))}kb`; }
+        v /= 1024;
+        if (v < 1024) { return `${parseFloat(v.toFixed(2))}mb`; }
+        v /= 1024;
+        if (v < 1024) { return `${parseFloat(v.toFixed(2))}gb`; }
+      },
     });
 
     this.pane.addBinding(this.appState.config, 'physicsDebugRendering').on('change', (ev) => {

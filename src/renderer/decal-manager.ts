@@ -34,6 +34,10 @@ export class DecalManager {
   decalKeyMapping: Map<string, number> = new Map();
   decalCache: Decal[] = [];
 
+  decalMemory: number = 0;
+  decalCount: number = 0;
+  decalTextureCount: number = 0;
+
   constructor(gpu: WebGPURenderer) {
     this.gpu = gpu;
 
@@ -59,6 +63,7 @@ export class DecalManager {
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
         format: 'rgba8unorm-srgb',
       });
+      this.decalMemory = 4 * emojiSize * emojiSize * MAX_DECAL_TEXTURES;
     }
   }
 
@@ -85,6 +90,7 @@ export class DecalManager {
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
         format: 'rgba8unorm-srgb',
       });
+      this.decalMemory += 4 * emojiSize * emojiSize;
       decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
       this.decalTextureSet[decalIndex!] = texture;
     } else {
@@ -97,10 +103,12 @@ export class DecalManager {
       if (oldDecal) {
         oldDecal.textureIndex = -1; // Flag that this decal is no longer valid.
         this.decalKeyMapping.delete(this.#getEmojiKey(oldDecal.emoji));
+        this.decalTextureCount--;
       }
     }
 
     await this.emojiRenderer.renderEmoji(emoji, texture!, layerIndex);
+    this.decalTextureCount++;
 
     const decal = new Decal(emoji, decalIndex!);
     this.decalCache[decalIndex!] = decal;
@@ -117,7 +125,7 @@ export class DecalManager {
   updateDecals(stage: Stage) {
     const textureProj = new Mat4();
     let offset = 4;
-    let decalCount = 0;
+    this.decalCount = 0;
     stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
       // Check if the decal has been invalidated.
       if (decal.textureIndex == -1) {
@@ -125,17 +133,17 @@ export class DecalManager {
         return;
       }
 
-      if (decalCount >= MAX_DECALS) {
+      if (this.decalCount >= MAX_DECALS) {
         return;
       }
 
       const placing = actor.has(Tag('placing-decal'));
-      const selected = (decalCount + 1 == this.selectedDecal);
+      const selected = (this.decalCount + 1 == this.selectedDecal);
 
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
 
-      this.decalUintArray[offset] = decalCount + 1; // Actor ID?
+      this.decalUintArray[offset] = this.decalCount + 1; // Actor ID?
       this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
       this.decalUintArray[offset+2] = placing || selected ? 1 : 0; // Highlight
       this.decalFloatArray.set(decal.baseColorFactor, offset+4); // Base Color + Opacity
@@ -143,12 +151,12 @@ export class DecalManager {
       this.decalFloatArray.set(textureProj, offset+12); // Projection
 
       offset += DECAL_BYTE_SIZE / Float32Array.BYTES_PER_ELEMENT;
-      decalCount++;
+      this.decalCount++;
     });
 
-    this.decalUintArray[0] = decalCount;
+    this.decalUintArray[0] = this.decalCount;
 
     // Update camera uniforms
-    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * decalCount + Vec4.BYTE_LENGTH);
+    this.gpu.device.queue.writeBuffer(this.decalBuffer, 0, this.decalArray, 0, DECAL_BYTE_SIZE * this.decalCount + Vec4.BYTE_LENGTH);
   }
 }

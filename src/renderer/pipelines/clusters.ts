@@ -70,7 +70,8 @@ export const TileFunctions = /*wgsl*/`
 const tileCount = vec3(${TILE_COUNT[0]}u, ${TILE_COUNT[1]}u, ${TILE_COUNT[2]}u);
 
 fn linearDepth(depthSample : f32) -> f32 {
-  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
+  //return camera.zFar * camera.zNear / fma(depthSample, camera.zFar-camera.zNear, camera.zNear);
+  return camera.zFar * camera.zNear / fma(depthSample, camera.zFar, camera.zNear * (1 - depthSample));
 }
 
 fn getTile(fragCoord : vec4f) -> vec3u {
