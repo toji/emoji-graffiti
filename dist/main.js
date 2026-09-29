@@ -15663,16 +15663,19 @@ var GltfLoader = class {
 };
 
 // src/materials/decal.ts
+var NEXT_ID = 1;
 var Decal = class _Decal {
   static {
     __name(this, "Decal");
   }
   static SharedComponent = true;
+  id;
   emoji;
   textureIndex;
   baseColorFactor = new Vec4(1, 1, 1, 1);
   projection = new Mat4();
   constructor(emoji, textureIndex) {
+    this.id = NEXT_ID++;
     this.emoji = emoji;
     this.textureIndex = textureIndex;
     this.projection.perspectiveZO(Math.PI / 4, 1, 0.1, 4.5);
@@ -17973,8 +17976,8 @@ var EmojiRenderer = class {
 };
 
 // src/renderer/decal-manager.ts
-var MAX_DECALS = 1024;
-var MAX_DECAL_TEXTURES = 256;
+var MAX_DECALS = 2048;
+var MAX_DECAL_TEXTURES = 2048;
 var DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH * 3;
 var DecalManager = class {
   static {
@@ -17996,6 +17999,7 @@ var DecalManager = class {
   nextTextureIndex = 0;
   decalKeyMapping = /* @__PURE__ */ new Map();
   decalCache = [];
+  maxTextures = MAX_DECAL_TEXTURES;
   decalMemory = 0;
   decalCount = 0;
   decalTextureCount = 0;
@@ -18009,18 +18013,20 @@ var DecalManager = class {
     });
     if (gpu.useBindless) {
       this.decalResourceTable = gpu.device.createResourceTable({
-        size: MAX_DECAL_TEXTURES * 4
+        size: this.maxTextures
       });
     } else {
+      this.maxTextures = Math.min(this.maxTextures, gpu.device.limits.maxTextureArrayLayers);
       const emojiSize = this.gpu.config.emojiTextureSize;
       this.decalTextureArray = gpu.device.createTexture({
         label: "Decal",
-        size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+        size: [emojiSize, emojiSize, this.maxTextures],
         mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
         format: "rgba8unorm-srgb"
       });
-      this.decalMemory = 4 * emojiSize * emojiSize * MAX_DECAL_TEXTURES;
+      const baseLevelSize = 4 * this.decalTextureArray.width * this.decalTextureArray.height * this.decalTextureArray.depthOrArrayLayers;
+      this.decalMemory = baseLevelSize * 1.33;
     }
   }
   #getEmojiKey(emoji) {
@@ -18030,7 +18036,7 @@ var DecalManager = class {
     const decalKey = this.#getEmojiKey(emoji);
     let decalIndex = this.decalKeyMapping.get(decalKey);
     if (decalIndex !== void 0) {
-      return this.decalCache[decalIndex];
+      return this.decalCache[decalIndex].clone();
     }
     let texture;
     let layerIndex = 0;
@@ -18053,14 +18059,15 @@ var DecalManager = class {
         });
         await this.emojiRenderer.renderEmoji(emoji, texture, layerIndex);
       }
-      this.decalMemory += 4 * texture.width * texture.height;
+      const baseLevelSize = 4 * texture.width * texture.height;
+      this.decalMemory += baseLevelSize * 1.33;
       decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
       this.decalTextureSet[decalIndex] = texture;
     } else {
       texture = this.decalTextureArray;
       decalIndex = this.nextTextureIndex;
       layerIndex = decalIndex;
-      this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
+      this.nextTextureIndex = (this.nextTextureIndex + 1) % this.maxTextures;
       const oldDecal = this.decalCache[decalIndex];
       if (oldDecal) {
         oldDecal.textureIndex = -1;
@@ -18073,7 +18080,7 @@ var DecalManager = class {
     const decal = new Decal(emoji, decalIndex);
     this.decalCache[decalIndex] = decal;
     this.decalKeyMapping.set(decalKey, decalIndex);
-    return decal;
+    return decal.clone();
   }
   getTextureDecal(url) {
     const emoji = { emoji: { url } };
@@ -18092,10 +18099,10 @@ var DecalManager = class {
         return;
       }
       const placing = actor.has(Tag("placing-decal"));
-      const selected = this.decalCount + 1 == this.selectedDecal;
+      const selected = decal.id == this.selectedDecal;
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
-      this.decalUintArray[offset] = this.decalCount + 1;
+      this.decalUintArray[offset] = decal.id;
       this.decalUintArray[offset + 1] = decal.textureIndex;
       this.decalUintArray[offset + 2] = placing || selected ? 1 : 0;
       this.decalFloatArray.set(decal.baseColorFactor, offset + 4);
@@ -19012,7 +19019,10 @@ var WebGPUApp = class {
         requiredFeatures.push(feature);
       }
     }
-    const device = await adapter?.requestDevice({ requiredFeatures });
+    const requiredLimits = {
+      maxTextureArrayLayers: adapter?.limits.maxTextureArrayLayers
+    };
+    const device = await adapter?.requestDevice({ requiredFeatures, requiredLimits });
     if (!device) {
       console.error("Unable to create WebGPU device.");
       return;
@@ -28451,16 +28461,14 @@ var PaintballColors = [
           }
         }, this.appState.config.sprayCooldown);
       } else if (this.appState.mode == 3 /* Erase */) {
-        let decalIndex = 1;
-        this.stage.query(Decal).forEach((actor) => {
-          if (decalIndex == this.lastSelectedDecal) {
+        this.stage.query(Decal).forEach((actor, decal) => {
+          if (decal.id == this.lastSelectedDecal) {
             this.audioPlayer.play(this.eraseClips.random());
             actor.parent?.removeChild(actor);
             this.lastSelectedDecal = 0;
             this.gpu.decalManager.selectedDecal = 0;
             return false;
           }
-          decalIndex++;
         });
       } else if (this.appState.mode == 2 /* Shoot */) {
         this.audioPlayer.play(this.paintballClips.random());

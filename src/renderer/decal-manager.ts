@@ -6,8 +6,8 @@ import { Stage } from "../core/stage.ts";
 import { EmojiRenderer } from "./emoji-renderer.ts";
 import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
 
-const MAX_DECALS = 1024;
-const MAX_DECAL_TEXTURES = 256;
+const MAX_DECALS = 2048;
+const MAX_DECAL_TEXTURES = 2048;
 const DECAL_BYTE_SIZE = Mat4.BYTE_LENGTH + Vec4.BYTE_LENGTH * 3;
 
 export class DecalManager {
@@ -34,6 +34,8 @@ export class DecalManager {
   decalKeyMapping: Map<string, number> = new Map();
   decalCache: Decal[] = [];
 
+  maxTextures: number = MAX_DECAL_TEXTURES;
+
   decalMemory: number = 0;
   decalCount: number = 0;
   decalTextureCount: number = 0;
@@ -52,18 +54,23 @@ export class DecalManager {
     if (gpu.useBindless) {
       // @ts-expect-error
       this.decalResourceTable = gpu.device.createResourceTable({
-        size: MAX_DECAL_TEXTURES * 4
+        size: this.maxTextures
       });
     } else {
+      this.maxTextures = Math.min(this.maxTextures, gpu.device.limits.maxTextureArrayLayers);
+
       const emojiSize = this.gpu.config.emojiTextureSize;
       this.decalTextureArray = gpu.device.createTexture({
         label: 'Decal',
-        size: [emojiSize, emojiSize, MAX_DECAL_TEXTURES],
+        size: [emojiSize, emojiSize, this.maxTextures],
         mipLevelCount: WebGPUMipmapGenerator.calculateMipLevels(emojiSize, emojiSize),
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
         format: 'rgba8unorm-srgb',
       });
-      this.decalMemory = 4 * emojiSize * emojiSize * MAX_DECAL_TEXTURES;
+      const baseLevelSize = 4 * this.decalTextureArray.width
+                              * this.decalTextureArray.height
+                              * this.decalTextureArray.depthOrArrayLayers;
+      this.decalMemory = baseLevelSize * 1.33; // Base layer + mipmaps
     }
   }
 
@@ -76,7 +83,7 @@ export class DecalManager {
 
     let decalIndex = this.decalKeyMapping.get(decalKey);
     if (decalIndex !== undefined) {
-      return this.decalCache[decalIndex];
+      return this.decalCache[decalIndex].clone();
     }
 
     let texture: GPUTexture | undefined;
@@ -101,15 +108,15 @@ export class DecalManager {
         });
         await this.emojiRenderer.renderEmoji(emoji, texture!, layerIndex);
       }
-      
-      this.decalMemory += 4 * texture.width * texture.height;
+      const baseLevelSize = 4 * texture.width * texture.height;
+      this.decalMemory += baseLevelSize * 1.33; // Base level + mips
       decalIndex = this.decalResourceTable.insert(texture.createView({ usage: GPUTextureUsage.TEXTURE_BINDING }));
       this.decalTextureSet[decalIndex!] = texture;
     } else {
       texture = this.decalTextureArray;
       decalIndex = this.nextTextureIndex;
       layerIndex = decalIndex;
-      this.nextTextureIndex = (this.nextTextureIndex + 1) % MAX_DECAL_TEXTURES;
+      this.nextTextureIndex = (this.nextTextureIndex + 1) % this.maxTextures;
 
       // Remove any pre-existing Decals at that index
       const oldDecal = this.decalCache[decalIndex];
@@ -128,7 +135,7 @@ export class DecalManager {
     this.decalCache[decalIndex!] = decal;
     this.decalKeyMapping.set(decalKey, decalIndex!);
 
-    return decal;
+    return decal.clone();
   }
 
   getTextureDecal(url: any) {
@@ -152,12 +159,12 @@ export class DecalManager {
       }
 
       const placing = actor.has(Tag('placing-decal'));
-      const selected = (this.decalCount + 1 == this.selectedDecal);
+      const selected = (decal.id == this.selectedDecal);
 
       Mat4.invert(textureProj, actor.worldTransform.matrix);
       Mat4.multiply(textureProj, decal.projection, textureProj);
 
-      this.decalUintArray[offset] = this.decalCount + 1; // Actor ID?
+      this.decalUintArray[offset] = decal.id; // Decal ID
       this.decalUintArray[offset+1] = decal.textureIndex; // Texture index
       this.decalUintArray[offset+2] = placing || selected ? 1 : 0; // Highlight
       this.decalFloatArray.set(decal.baseColorFactor, offset+4); // Base Color + Opacity

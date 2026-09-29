@@ -86,7 +86,11 @@ export class WebGPUApp implements WebGPUAppCallbacks {
       }
     }
 
-    const device = await adapter?.requestDevice({ requiredFeatures });
+    const requiredLimits = {
+      maxTextureArrayLayers: adapter?.limits.maxTextureArrayLayers,
+    };
+
+    const device = await adapter?.requestDevice({ requiredFeatures, requiredLimits });
     if (!device) {
       console.error("Unable to create WebGPU device.");
       return;

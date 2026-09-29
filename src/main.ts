@@ -316,9 +316,8 @@ const PaintballColors = [
           }, this.appState.config.sprayCooldown);
         } else if (this.appState.mode == InputMode.Erase) {
           // Erase the selected decal
-          let decalIndex = 1;
-          this.stage.query(Decal).forEach((actor: Actor) => {
-            if (decalIndex == this.lastSelectedDecal) {
+          this.stage.query(Decal).forEach((actor: Actor, decal: Decal) => {
+            if (decal.id == this.lastSelectedDecal) {
               this.audioPlayer.play(this.eraseClips.random());
 
               actor.parent?.removeChild(actor);
@@ -326,7 +325,6 @@ const PaintballColors = [
               this.gpu.decalManager.selectedDecal = 0;
               return false;
             }
-            decalIndex++;
           });
         } else if (this.appState.mode == InputMode.Shoot) {
           this.audioPlayer.play(this.paintballClips.random());
