@@ -28433,15 +28433,6 @@ var PaintballColors = [
       this.clearButton.addEventListener("click", () => {
         this.appState.clearDecals();
       });
-      this.gpu.canvas.addEventListener("mousemove", async (ev) => {
-        if (this.appState.mode == 3 /* Erase */) {
-          this.getSelectedDecal(
-            gpu,
-            Math.floor(ev.clientX * devicePixelRatio),
-            Math.floor(ev.clientY * devicePixelRatio)
-          );
-        }
-      });
     }
     #onAction() {
       if (this.appState.mode == 1 /* Paint */) {
@@ -28537,6 +28528,8 @@ var PaintballColors = [
           this.camera.removeChild(this.sponge);
           this.camera.attachChild(this.paintballGun);
           this.crosshairs.style.display = "";
+          this.crosshairs.classList.add("shoot");
+          this.crosshairs.classList.remove("erase");
           for (let i4 = 0; i4 < 3; ++i4) {
             this.paintballDecals[i4] = await this.gpu.decalManager.getTextureDecal(`./media/textures/paintball-splat-${i4}.png`);
           }
@@ -28546,6 +28539,9 @@ var PaintballColors = [
           this.camera.removeChild(this.spraycan);
           this.camera.attachChild(this.sponge);
           this.camera.removeChild(this.paintballGun);
+          this.crosshairs.style.display = "";
+          this.crosshairs.classList.add("erase");
+          this.crosshairs.classList.remove("shoot");
           break;
       }
     }
@@ -28581,6 +28577,13 @@ var PaintballColors = [
     onFrame(gpu, timestamp, delta) {
       this.stage.tick(timestamp);
       gpu.render(this.stage, this.camera, timestamp);
+      if (this.appState.mode == 3 /* Erase */) {
+        this.getSelectedDecal(
+          gpu,
+          Math.floor(gpu.canvas.width / 2),
+          Math.floor(gpu.canvas.height / 2)
+        );
+      }
     }
   }, {
     canvas: document.querySelector("#webgpu-canvas")
