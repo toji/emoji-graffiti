@@ -17801,9 +17801,13 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
 
           #if ${args.useBindless}
             fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
+          #if ${QueryArgs.getBool("debug")}
+              // Checking to see if a resource exists before using it is only needed as a debug
+              // mechanism. Omit it otherwise for performance reasons.
               if (!hasResource<texture_2d<f32>>(decalIndex)) {
                 return vec4f(1, 0, 1, 1); // Hard to miss. :)
               }
+          #endif
               let tex = getResource<texture_2d<f32>>(decalIndex);
               return textureSample(tex, defaultSampler, texCoord);
             }
@@ -19128,11 +19132,11 @@ var ActionManager = class {
     }, "buttonCallback");
     const moveCallback = /* @__PURE__ */ __name((event) => {
       if (document.pointerLockElement !== null) {
-        this.#mouseDelta[0] = event.movementX;
-        this.#mouseDelta[1] = event.movementY;
+        this.#mouseDelta[0] += event.movementX;
+        this.#mouseDelta[1] += event.movementY;
       } else {
-        this.#mouseDelta[0] = event.pageX - lastX;
-        this.#mouseDelta[1] = event.pageY - lastY;
+        this.#mouseDelta[0] += event.pageX - lastX;
+        this.#mouseDelta[1] += event.pageY - lastY;
       }
       lastX = event.pageX;
       lastY = event.pageY;
@@ -28488,9 +28492,10 @@ var PaintballColors = [
       this.#switchMode(newMode);
     }
     async #switchMode(mode) {
+      const prevMode = this.appState.mode;
       this.appState.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
-      if (this.emojiPicker.style.display === "none" && mode == 1 /* Paint */) {
+      if (this.emojiPicker.style.display === "none" && mode == 1 /* Paint */ && prevMode == 1 /* Paint */) {
         this.emojiPicker.style.display = "";
       } else {
         this.emojiPicker.style.display = "none";

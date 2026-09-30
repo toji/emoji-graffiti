@@ -351,11 +351,14 @@ const PaintballColors = [
     }
 
     async #switchMode(mode: InputMode) {
+      const prevMode = this.appState.mode;
       this.appState.mode = mode;
       this.gpu.decalManager.selectedDecal = 0;
 
       // Toggle the emoji picker.
-      if (this.emojiPicker.style.display === 'none' && mode == InputMode.Paint) {
+      if (this.emojiPicker.style.display === 'none' &&
+          mode == InputMode.Paint &&
+          prevMode == InputMode.Paint) {
         this.emojiPicker.style.display = '';
       } else {
         this.emojiPicker.style.display = 'none';
