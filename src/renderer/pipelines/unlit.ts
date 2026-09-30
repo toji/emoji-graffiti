@@ -6,6 +6,7 @@ import { wgsl } from "../../util/wgsl-preprocessor.ts";
 import { DecalFrameBindings, DitherFunctions, SRGBConversions } from "./common.ts";
 import { TILE_COUNT, TileFunctions } from "./clusters.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
+import { QueryArgs } from "../../util/query-args.ts";
 
 export interface UnlitPipelineArgs {
   transparent: boolean,
@@ -121,9 +122,13 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
 
           #if ${args.useBindless}
             fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
+          #if ${QueryArgs.getBool('debug')}
+              // Checking to see if a resource exists before using it is only needed as a debug
+              // mechanism. Omit it otherwise for performance reasons.
               if (!hasResource<texture_2d<f32>>(decalIndex)) {
                 return vec4f(1, 0, 1, 1); // Hard to miss. :)
               }
+          #endif
               let tex = getResource<texture_2d<f32>>(decalIndex);
               return textureSample(tex, defaultSampler, texCoord);
             }

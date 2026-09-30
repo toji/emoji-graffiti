@@ -80,11 +80,11 @@ export class ActionManager {
     };
     const moveCallback = (event: PointerEvent) => {
       if(document.pointerLockElement !== null) {
-        this.#mouseDelta[0] = event.movementX;
-        this.#mouseDelta[1] = event.movementY;
+        this.#mouseDelta[0] += event.movementX;
+        this.#mouseDelta[1] += event.movementY;
       } else {
-        this.#mouseDelta[0] = event.pageX - lastX;
-        this.#mouseDelta[1] = event.pageY - lastY;
+        this.#mouseDelta[0] += event.pageX - lastX;
+        this.#mouseDelta[1] += event.pageY - lastY;
       }
       lastX = event.pageX;
       lastY = event.pageY;
