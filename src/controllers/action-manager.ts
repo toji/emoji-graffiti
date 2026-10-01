@@ -232,8 +232,8 @@ export class ActionManager {
       this.#playerActions.look.add(this.#mouseDelta);
     }
     primaryPressed ||= !!(this.#mouseButtons & 0x02);
-    nextSlotPressed ||= this.#mouseWheel < 0;
-    prevSlotPressed ||= this.#mouseWheel > 0;
+    nextSlotPressed ||= this.#mouseWheel > 0;
+    prevSlotPressed ||= this.#mouseWheel < 0;
 
     this.#mouseDelta[0] = 0;
     this.#mouseDelta[1] = 0;

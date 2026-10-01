@@ -424,11 +424,11 @@ const PaintballColors = [
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
 
       if (emoji.unicode) {
-        this.emojiButton.innerHTML = emoji.unicode;
-        this.emojiButton.style = '';
+        //this.emojiButton.innerHTML = emoji.unicode;
+        //this.emojiButton.style = '';
       } else {
-        this.emojiButton.innerHTML = '&nbsp;';
-        this.emojiButton.style = `background-image: url("${emoji.emoji.url}")`;
+        //this.emojiButton.innerHTML = '&nbsp;';
+        //this.emojiButton.style = `background-image: url("${emoji.emoji.url}")`;
       }
 
       this.emojiPicker.style.display = 'none';

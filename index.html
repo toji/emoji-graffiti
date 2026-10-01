@@ -30,14 +30,37 @@
       #emoji-picker-container>button {
         font-family: "Noto Color Emoji", sans-serif;
         font-size: 2em;
-        width: 2em;
-        height: 2em;
-        padding: 0.25em 0.3em;
-        border-radius: 0.25em;
+        width: 2.25em;
+        height: 2.25em;
+        padding: 0.5em;
+        margin: 0.2em;
+        border-radius: 0.5em;
+        border: 0px;
         background-position: center;
         background-repeat: no-repeat;
-        background-size: 50%;
+        background-size: contain;
         transition: transform 0.25s ease-in-out;
+      }
+      #view-button {
+        background-color: hsl(191, 44%, 60%);
+        background-image: url(media/images/walk.svg);
+      }
+      #emoji-button {
+        background-color: hsl(39, 90%, 60%);
+        background-image: url(media/images/spray.svg);
+      }
+      #shoot-button {
+        background-color: hsl(161, 40%, 57%);
+        background-image: url(media/images/paintball.svg);
+      }
+      #erase-button {
+        background-color: hsl(21, 78%, 59%);
+        background-image: url(media/images/sponge.svg);
+      }
+      #clear-button {
+        background-color:hsl(21, 78%, 59%);
+        background-image: url(media/images/bomb.svg);
+        display: none;
       }
 
       #emoji-picker-container>button:hover {
@@ -168,11 +191,12 @@
     </div>
 
     <div id='emoji-picker-container'>
-      <button id='view-button'>👀</button>
-      <button id='emoji-button'>😀</button>
-      <button id='shoot-button'>🔫</button>
-      <button id='erase-button'>🧽</button>
-      <button id='clear-button'>💣</button>
+      <button id='view-button'></button>
+      <button id='emoji-button'></button>
+      <button id='shoot-button'></button>
+      <button id='erase-button'></button>
+      <button id='clear-button'></button>
+
       <emoji-picker emoji-version='18.0' style='display: none'></emoji-picker>
       <div id='decalOptions'>
         <input type="range" id="decalRotation" name="decalRotation" min="-180" max="180" step="15" value="0"/>
