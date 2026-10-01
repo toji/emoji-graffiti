@@ -16050,7 +16050,7 @@ var MobileRenderConfig = class extends RenderConfig {
   static {
     __name(this, "MobileRenderConfig");
   }
-  depthStencilFormat = "depth16unorm";
+  //depthStencilFormat: GPUTextureFormat = 'depth16unorm';
   sampleCount = 1;
   outputScale = 0.6;
   emojiTextureSize = 256;
@@ -28396,13 +28396,6 @@ var PaintballColors = [
       if (this.appState.touchscreen) {
         const clickZone = document.querySelector(".touch-click-zone");
         clickZone.addEventListener("pointerdown", async (ev) => {
-          if (this.appState.mode == 3 /* Erase */) {
-            await this.getSelectedDecal(
-              gpu,
-              Math.floor(ev.clientX * devicePixelRatio),
-              Math.floor(ev.clientY * devicePixelRatio)
-            );
-          }
           this.actionManager.playerActions.primary.pressed = true;
         });
       } else {

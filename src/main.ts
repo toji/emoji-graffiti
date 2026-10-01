@@ -232,11 +232,6 @@ const PaintballColors = [
       if (this.appState.touchscreen) {
         const clickZone: HTMLElement = document.querySelector('.touch-click-zone')!;
         clickZone.addEventListener('pointerdown', async (ev: PointerEvent) => {
-          if(this.appState.mode == InputMode.Erase) {
-            await this.getSelectedDecal(gpu,
-              Math.floor(ev.clientX * devicePixelRatio),
-              Math.floor(ev.clientY * devicePixelRatio));
-          }
           this.actionManager.playerActions.primary.pressed = true;
         });
       } else {

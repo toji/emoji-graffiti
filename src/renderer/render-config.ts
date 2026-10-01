@@ -24,7 +24,7 @@ export class RenderConfig extends Config {
 
 // Default settings which have been adjusted for mobile.
 class MobileRenderConfig extends RenderConfig {
-  depthStencilFormat: GPUTextureFormat = 'depth16unorm';
+  //depthStencilFormat: GPUTextureFormat = 'depth16unorm';
   sampleCount = 1;
   outputScale = 0.6;
 
