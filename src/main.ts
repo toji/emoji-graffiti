@@ -114,7 +114,13 @@ const PaintballColors = [
 
       this.controller = new PhysicsFPSController();
       this.controller.speed = 0.004;
+
       this.controller.flying = this.appState.config.flying;
+      this.controller.noclip = this.appState.config.noclip;
+      this.appState.config.watch('flying', 'noclip').addEventListener('changed', () => {
+        this.controller.flying = this.appState.config.flying;
+        this.controller.noclip = this.appState.config.noclip;
+      });
 
       // Has a touchscreen?
       if(this.appState.touchscreen) {
@@ -291,7 +297,7 @@ const PaintballColors = [
           }
 
           // Create a new one decal
-          this.decal = new Actor(curDecal, Tag('placing-decal'));
+          this.decal = new Actor(curDecal?.clone(), Tag('placing-decal'));
           this.decal.transform.rotationRef.rotateZ(this.decalRotation);
           this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
 

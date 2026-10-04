@@ -5,6 +5,7 @@ export class AppConfig extends Config {
   sprayCooldown = 500;
   physicsDebugRendering = false;
   flying = false;
+  noclip = false;
 
   static SetDefaults(isMobile: boolean): AppConfig {
     const defaults: AppConfig = isMobile ? new MobileAppConfig() : new AppConfig();
