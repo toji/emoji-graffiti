@@ -20,6 +20,7 @@ export class AppState {
   gpu: WebGPURenderer;
   mode: InputMode = InputMode.View;
   touchscreen: boolean;
+  debug: boolean;
 
   constructor(stage: Stage, gpu: WebGPURenderer) {
     this.stage = stage;
@@ -27,6 +28,7 @@ export class AppState {
     this.config = Config.Create(AppConfig);
 
     this.touchscreen = window.matchMedia("(pointer: coarse)").matches || QueryArgs.getBool('forceTouch', false);
+    this.debug = QueryArgs.getBool('debug');
 
     this.stage.add(this);
   }

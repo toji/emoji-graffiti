@@ -72,21 +72,21 @@ export class ActionManager {
     // Mouse handling
     let lastX: number;
     let lastY: number;
-    const pointerLockCallback = (event: PointerEvent) => {
+    this.#mouseElement.addEventListener('click', (event: PointerEvent) => {
       if (!this.isPointerLocked) {
         this.#mouseElement.requestPointerLock({
           unadjustedMovement: true,
         });
       }
-    };
-    const enterCallback = (event: PointerEvent) => {
+    });
+    document.addEventListener("pointerlockchange", () => {
+      this.#keyPressed = {};
+    });
+    this.#mouseElement.addEventListener('pointerenter', (event: PointerEvent) => {
       lastX = event.pageX;
       lastY = event.pageY;
-    };
-    const buttonCallback = (event: PointerEvent) => {
-      this.#mouseButtons = event.buttons;
-    };
-    const moveCallback = (event: PointerEvent) => {
+    });
+    this.#mouseElement.addEventListener('pointermove', (event: PointerEvent) => {
       if(document.pointerLockElement !== null) {
         this.#mouseDelta[0] += event.movementX;
         this.#mouseDelta[1] += event.movementY;
@@ -96,18 +96,16 @@ export class ActionManager {
       }
       lastX = event.pageX;
       lastY = event.pageY;
-    };
-    const wheelCallback = (event: WheelEvent) => {
+    });
+    this.#mouseElement.addEventListener('wheel', (event: WheelEvent) => {
       this.#mouseWheel = event.deltaY;
       event.preventDefault();
+    });
+    const buttonCallback = (event: PointerEvent) => {
+      this.#mouseButtons = event.buttons;
     };
-
-    this.#mouseElement.addEventListener('click', pointerLockCallback);
-    this.#mouseElement.addEventListener('pointerenter', enterCallback);
     this.#mouseElement.addEventListener('pointerdown', buttonCallback);
     this.#mouseElement.addEventListener('pointerup', buttonCallback);
-    this.#mouseElement.addEventListener('pointermove', moveCallback);
-    this.#mouseElement.addEventListener('wheel', wheelCallback);
   }
 
   get isPointerLocked() {

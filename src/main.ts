@@ -12,7 +12,7 @@ import { Vec4 } from 'gl-matrix';
 import { QueryArgs } from './util/query-args.ts';
 import { WebGPUApp } from './renderer/webgpu-app.ts';
 import { PhysicsFPSController } from './controllers/physics-fps-controller.ts';
-import { DebugMenu } from './debug-menu.ts';
+import { SettingsMenu } from './settings-menu.ts';
 import { AppState, InputMode } from './app-state.ts';
 
 import nipplejs from 'nipplejs';
@@ -33,6 +33,7 @@ const PaintballColors = [
 (function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     appState: AppState;
+    settingsMenu: SettingsMenu;
 
     actionManager: ActionManager;
     walkJoystick: any;
@@ -43,6 +44,9 @@ const PaintballColors = [
     shootButton: HTMLButtonElement = document.querySelector('#shoot-button')!;
     eraseButton: HTMLButtonElement = document.querySelector('#erase-button')!;
     clearButton: HTMLButtonElement = document.querySelector('#clear-button')!;
+    settingsButton: HTMLButtonElement = document.querySelector('#settings-button')!;
+
+    selectedEmojiDiv: HTMLElement = document.querySelector('#selected-emoji')!;
 
     emojiPicker: HTMLElement = document.querySelector('emoji-picker')!;
     decalOptionsElement: HTMLElement = document.querySelector('#decalOptions')!;
@@ -105,7 +109,8 @@ const PaintballColors = [
       super(gpu);
       this.appState = new AppState(this.stage, gpu);
 
-      if (QueryArgs.getBool('debug')) { this.stage.add(new DebugMenu(this.appState)); }
+      this.settingsMenu = new SettingsMenu(this.appState);
+      this.stage.add(this.settingsMenu);
 
       this.gltfLoader = new GltfLoader(gpu);
 
@@ -282,6 +287,15 @@ const PaintballColors = [
       this.clearButton.addEventListener('click', () => {
         this.appState.clearDecals();
       });
+
+      this.settingsButton.addEventListener('click', () => {
+        this.settingsMenu.hidden = !this.settingsMenu.hidden;
+        if (this.settingsMenu.hidden) {
+          this.settingsButton.classList.remove('open');
+        } else {
+          this.settingsButton.classList.add('open');
+        }
+      });
     }
 
     #onAction() {
@@ -430,11 +444,11 @@ const PaintballColors = [
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
 
       if (emoji.unicode) {
-        //this.emojiButton.innerHTML = emoji.unicode;
-        //this.emojiButton.style = '';
+        this.selectedEmojiDiv.innerHTML = emoji.unicode;
+        this.selectedEmojiDiv.style = '';
       } else {
-        //this.emojiButton.innerHTML = '&nbsp;';
-        //this.emojiButton.style = `background-image: url("${emoji.emoji.url}")`;
+        this.selectedEmojiDiv.innerHTML = '&nbsp;';
+        this.selectedEmojiDiv.style = `background-image: url("${emoji.emoji.url}")`;
       }
 
       this.emojiPicker.style.display = 'none';

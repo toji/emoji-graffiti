@@ -6,7 +6,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
     <meta name='mobile-web-app-capable' content='yes'>
 
-    <title>Grafitti - WebGPU test</title>
+    <title>Emoji Grafitti</title>
 
     <style>
       html, body, #webgpu-canvas {
@@ -28,6 +28,8 @@
         text-align: center;
       }
       #emoji-picker-container>button {
+        position: relative;
+        cursor: pointer;
         font-family: "Noto Color Emoji", sans-serif;
         font-size: 2em;
         width: 2.25em;
@@ -63,8 +65,21 @@
         display: none;
       }
 
-      #settings-button {
+      #selected-emoji {
         position: absolute;
+        bottom: -0.1em;
+        right: -0.1em;
+        width: 1em;
+        height: 1em;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+
+      #settings-button {
+        cursor: pointer;
+        position: absolute;
+        z-index: 3;
         top: 0.5em;
         right: 0.5em;
         width: 2.25em;
@@ -77,6 +92,10 @@
         background-size: contain;
         background-image: url(media/images/gear-white.svg);
         background-color: transparent;
+        transition: transform 0.5s ease-in-out;
+      }
+      #settings-button.open {
+        transform: rotate(-150deg);
       }
 
       #emoji-picker-container>button:hover {
@@ -92,6 +111,7 @@
 
       .tp-dfwv {
         z-index: 10;
+        margin-top: 2em;
       }
 
       .touch-inputs {
@@ -129,13 +149,6 @@
         top: 66%;
         bottom: 0;
       }
-
-      /* Non-touchscreens */
-      /*@media (pointer: fine) {
-        .left-input-zone, .right-input-zone {
-          display: none;
-        }
-      }*/
 
       .crosshairs {
         position: absolute;
@@ -208,7 +221,9 @@
 
     <div id='emoji-picker-container'>
       <button id='view-button'></button>
-      <button id='emoji-button'></button>
+      <button id='emoji-button'>
+        <div id='selected-emoji'>😄</div>
+      </button>
       <button id='shoot-button'></button>
       <button id='erase-button'></button>
       <button id='clear-button'></button>
