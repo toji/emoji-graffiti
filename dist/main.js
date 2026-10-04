@@ -19285,6 +19285,7 @@ var PhysicsFPSController = class {
   angles = new Vec2();
   rotation = new Quat();
   flying = false;
+  noclip = false;
   #onGround = false;
   #yVelocity = 0;
   gravity = -1;
@@ -19388,17 +19389,19 @@ var PhysicsFPSController = class {
         if (!this.flying) {
           tmpDir[1] += this.#yVelocity;
         }
-        controller.computeColliderMovement(this.#collider, tmpDir);
-        const correctedMovement = controller.computedMovement();
-        tmpDir[0] = correctedMovement.x;
-        tmpDir[1] = correctedMovement.y;
-        tmpDir[2] = correctedMovement.z;
-        this.#onGround = controller.computedGrounded();
-        if (this.#onGround) {
-          this.#yVelocity = 0;
+        if (!this.noclip) {
+          controller.computeColliderMovement(this.#collider, tmpDir);
+          const correctedMovement = controller.computedMovement();
+          tmpDir[0] = correctedMovement.x;
+          tmpDir[1] = correctedMovement.y;
+          tmpDir[2] = correctedMovement.z;
+          this.#onGround = controller.computedGrounded();
+          if (this.#onGround) {
+            this.#yVelocity = 0;
+          }
+          this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
         }
         actor.transform.translationRef.add(tmpDir);
-        this.#rigidBody.setNextKinematicTranslation(actor.transform.translation);
       }
       actor.transform.rotation = this.rotation;
       return false;
@@ -27585,6 +27588,10 @@ var DebugMenu = class {
       input.click();
     });
     this.stats = this.pane.addFolder({ title: "Decal Stats", expanded: true });
+    this.stats.addBinding(this.appState.gpu, "useBindless", {
+      readonly: true,
+      label: "Bindless"
+    });
     this.stats.addBinding(this.appState.gpu.decalManager, "decalCount", {
       readonly: true,
       label: "Decals",
@@ -27616,14 +27623,14 @@ var DebugMenu = class {
         }
       }, "format")
     });
-    this.pane.addBinding(this.appState.config, "physicsDebugRendering").on("change", (ev) => {
+    this.pane.addBinding(this.appState.config, "physicsDebugRendering", {
+      label: "Physics Debug"
+    }).on("change", (ev) => {
       this.#updatePhysicsDebugRendering();
     });
-    this.pane.addBinding(this.appState.config, "flying").on("change", (ev) => {
-      this.#updateFlying();
-    });
+    this.pane.addBinding(this.appState.config, "flying");
+    this.pane.addBinding(this.appState.config, "noclip");
     this.#updatePhysicsDebugRendering();
-    this.#updateFlying();
   }
   #updatePhysicsDebugRendering() {
     if (this.appState.config.physicsDebugRendering) {
@@ -27631,11 +27638,6 @@ var DebugMenu = class {
     } else {
       this.appState.stage.remove(PhysicsDebugRenderer);
     }
-  }
-  #updateFlying() {
-    this.appState.stage.query(PhysicsFPSController).forEach((actor, controller) => {
-      controller.flying = this.appState.config.flying;
-    });
   }
 };
 
@@ -27648,6 +27650,7 @@ var AppConfig = class _AppConfig extends Config {
   sprayCooldown = 500;
   physicsDebugRendering = false;
   flying = false;
+  noclip = false;
   static SetDefaults(isMobile) {
     const defaults = isMobile ? new MobileAppConfig() : new _AppConfig();
     defaults.emoji = {
@@ -28310,6 +28313,11 @@ var PaintballColors = [
       this.controller = new PhysicsFPSController();
       this.controller.speed = 4e-3;
       this.controller.flying = this.appState.config.flying;
+      this.controller.noclip = this.appState.config.noclip;
+      this.appState.config.watch("flying", "noclip").addEventListener("changed", () => {
+        this.controller.flying = this.appState.config.flying;
+        this.controller.noclip = this.appState.config.noclip;
+      });
       if (this.appState.touchscreen) {
         document.querySelector(".touch-inputs")?.classList.add("touchscreen");
         this.walkJoystick = J2.create({
@@ -28440,7 +28448,7 @@ var PaintballColors = [
           this.decal.transform = this.decal.worldTransform;
           this.stage.attachChild(this.decal);
         }
-        this.decal = new Actor(curDecal, Tag("placing-decal"));
+        this.decal = new Actor(curDecal?.clone(), Tag("placing-decal"));
         this.decal.transform.rotationRef.rotateZ(this.decalRotation);
         this.decal.transform.scale = [this.decalFlip ? -1 : 1, 1, 1];
         setTimeout(() => {

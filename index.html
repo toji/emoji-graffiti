@@ -63,6 +63,22 @@
         display: none;
       }
 
+      #settings-button {
+        position: absolute;
+        top: 0.5em;
+        right: 0.5em;
+        width: 2.25em;
+        height: 2.25em;
+        padding: 0px;
+        margin: 0px;
+        border: 0px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-image: url(media/images/gear-white.svg);
+        background-color: transparent;
+      }
+
       #emoji-picker-container>button:hover {
         transform: scale(1.3);
       }
@@ -205,6 +221,8 @@
         <label for="decalFlip">Flip Horizontal</label>
       </div>
     </div>
+
+    <button id='settings-button'></button>
 
     <div class='loading-splash'>
       <h1>😄 Emoji Graffiti 🎨</h1>

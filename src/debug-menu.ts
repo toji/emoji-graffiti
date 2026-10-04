@@ -45,6 +45,11 @@ export class DebugMenu {
 
     this.stats = this.pane.addFolder({title: 'Decal Stats', expanded: true});
 
+    this.stats.addBinding(this.appState.gpu, 'useBindless', {
+      readonly: true,
+      label: 'Bindless',
+    });
+
     this.stats.addBinding(this.appState.gpu.decalManager, 'decalCount', {
       readonly: true,
       label: 'Decals',
@@ -71,16 +76,16 @@ export class DebugMenu {
       },
     });
 
-    this.pane.addBinding(this.appState.config, 'physicsDebugRendering').on('change', (ev) => {
+    this.pane.addBinding(this.appState.config, 'physicsDebugRendering', {
+      label: 'Physics Debug',
+    }).on('change', (ev) => {
       this.#updatePhysicsDebugRendering();
     });
 
-    this.pane.addBinding(this.appState.config, 'flying').on('change', (ev) => {
-      this.#updateFlying();
-    });
+    this.pane.addBinding(this.appState.config, 'flying');
+    this.pane.addBinding(this.appState.config, 'noclip');
 
     this.#updatePhysicsDebugRendering();
-    this.#updateFlying();
   }
 
   #updatePhysicsDebugRendering() {
@@ -89,11 +94,5 @@ export class DebugMenu {
     } else {
       this.appState.stage.remove(PhysicsDebugRenderer);
     }
-  }
-
-  #updateFlying() {
-    this.appState.stage.query(PhysicsFPSController).forEach((actor, controller) => {
-      controller.flying = this.appState.config.flying;
-    });
   }
 }

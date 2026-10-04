@@ -19,6 +19,7 @@ export class PhysicsFPSController {
   angles = new Vec2();
   rotation = new Quat();
   flying = false;
+  noclip = false;
   #onGround = false;
   #yVelocity = 0;
 
@@ -144,20 +145,22 @@ export class PhysicsFPSController {
           tmpDir[1] += this.#yVelocity;
         }
 
-        controller.computeColliderMovement(this.#collider!, tmpDir);
-        const correctedMovement = controller.computedMovement();
-        tmpDir[0] = correctedMovement.x;
-        tmpDir[1] = correctedMovement.y;
-        tmpDir[2] = correctedMovement.z;
+        if (!this.noclip) {
+          controller.computeColliderMovement(this.#collider!, tmpDir);
+          const correctedMovement = controller.computedMovement();
+          tmpDir[0] = correctedMovement.x;
+          tmpDir[1] = correctedMovement.y;
+          tmpDir[2] = correctedMovement.z;
 
-        this.#onGround = controller.computedGrounded();
-        if (this.#onGround) {
-          this.#yVelocity = 0;
+          this.#onGround = controller.computedGrounded();
+          if (this.#onGround) {
+            this.#yVelocity = 0;
+          }
+
+           this.#rigidBody!.setNextKinematicTranslation(actor.transform.translation);
         }
 
         actor.transform.translationRef.add(tmpDir);
-
-        this.#rigidBody!.setNextKinematicTranslation(actor.transform.translation);
       }
 
       actor.transform.rotation = this.rotation;
