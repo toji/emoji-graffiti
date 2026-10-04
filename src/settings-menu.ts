@@ -1,13 +1,12 @@
 import { FolderApi, Pane } from "tweakpane";
 import { PhysicsDebugRenderer } from "./physics/physics-debug-renderer.ts";
 import { AppState } from "./app-state.ts";
-import { PhysicsFPSController } from "./controllers/physics-fps-controller.ts";
 
-
-export class DebugMenu {
+export class SettingsMenu {
   appState: AppState;
   pane: Pane;
   stats: FolderApi;
+  debug?: FolderApi;
 
   constructor(appState: AppState) {
     this.appState = appState;
@@ -15,6 +14,7 @@ export class DebugMenu {
     this.pane = new Pane({
       title: document.title.split('-')[0],
     });
+    this.pane.hidden = true;
 
     this.pane.addButton({
       title: 'Save',
@@ -43,7 +43,7 @@ export class DebugMenu {
       input.click();
     });
 
-    this.stats = this.pane.addFolder({title: 'Decal Stats', expanded: true});
+    this.stats = this.pane.addFolder({title: 'Decal Stats', expanded: false});
 
     this.stats.addBinding(this.appState.gpu, 'useBindless', {
       readonly: true,
@@ -76,16 +76,28 @@ export class DebugMenu {
       },
     });
 
-    this.pane.addBinding(this.appState.config, 'physicsDebugRendering', {
-      label: 'Physics Debug',
-    }).on('change', (ev) => {
+    if (this.appState.debug) {
+      this.debug = this.pane.addFolder({title: 'Debug', expanded: false});
+
+      this.debug.addBinding(this.appState.config, 'physicsDebugRendering', {
+        label: 'Physics Debug',
+      }).on('change', (ev) => {
+        this.#updatePhysicsDebugRendering();
+      });
+
+      this.debug.addBinding(this.appState.config, 'flying');
+      this.debug.addBinding(this.appState.config, 'noclip');
+
       this.#updatePhysicsDebugRendering();
-    });
+    }
+  }
 
-    this.pane.addBinding(this.appState.config, 'flying');
-    this.pane.addBinding(this.appState.config, 'noclip');
+  set hidden(value: boolean) {
+    this.pane.hidden = value;
+  }
 
-    this.#updatePhysicsDebugRendering();
+  get hidden(): boolean {
+    return this.pane.hidden;
   }
 
   #updatePhysicsDebugRendering() {

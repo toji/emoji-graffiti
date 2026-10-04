@@ -15747,46 +15747,6 @@ var AudioPlayer = class {
   }
 };
 
-// src/util/query-args.ts
-var searchParams = void 0;
-function clearArgsCache() {
-  searchParams = void 0;
-}
-__name(clearArgsCache, "clearArgsCache");
-window.addEventListener("popstate", clearArgsCache);
-window.addEventListener("hashchange", clearArgsCache);
-function ensureArgsCached() {
-  if (!searchParams) {
-    searchParams = new URLSearchParams(window.location.search);
-  }
-}
-__name(ensureArgsCached, "ensureArgsCached");
-var QueryArgs = class {
-  static {
-    __name(this, "QueryArgs");
-  }
-  static hasQueryArgs() {
-    ensureArgsCached();
-    return searchParams.size != 0;
-  }
-  static getString(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.get(name) ?? (defaultValue ?? "");
-  }
-  static getInt(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
-  }
-  static getFloat(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
-  }
-  static getBool(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
-  }
-};
-
 // src/util/config.ts
 var UPDATED_CONFIGS = /* @__PURE__ */ new Set();
 var CONFIG_UPDATE_INTERVAL = 10 * 1e3;
@@ -17699,6 +17659,46 @@ fn getClusterIndex(fragCoord : vec4f) -> u32 {
 `
 );
 
+// src/util/query-args.ts
+var searchParams = void 0;
+function clearArgsCache() {
+  searchParams = void 0;
+}
+__name(clearArgsCache, "clearArgsCache");
+window.addEventListener("popstate", clearArgsCache);
+window.addEventListener("hashchange", clearArgsCache);
+function ensureArgsCached() {
+  if (!searchParams) {
+    searchParams = new URLSearchParams(window.location.search);
+  }
+}
+__name(ensureArgsCached, "ensureArgsCached");
+var QueryArgs = class {
+  static {
+    __name(this, "QueryArgs");
+  }
+  static hasQueryArgs() {
+    ensureArgsCached();
+    return searchParams.size != 0;
+  }
+  static getString(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.get(name) ?? (defaultValue ?? "");
+  }
+  static getInt(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
+  }
+  static getFloat(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
+  }
+  static getBool(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
+  }
+};
+
 // src/renderer/pipelines/unlit.ts
 var UnlitPipelineFactory = class extends RenderPipelineFactory {
   static {
@@ -19126,21 +19126,21 @@ var ActionManager = class {
     });
     let lastX;
     let lastY;
-    const pointerLockCallback = /* @__PURE__ */ __name((event) => {
+    this.#mouseElement.addEventListener("click", (event) => {
       if (!this.isPointerLocked) {
         this.#mouseElement.requestPointerLock({
           unadjustedMovement: true
         });
       }
-    }, "pointerLockCallback");
-    const enterCallback = /* @__PURE__ */ __name((event) => {
+    });
+    document.addEventListener("pointerlockchange", () => {
+      this.#keyPressed = {};
+    });
+    this.#mouseElement.addEventListener("pointerenter", (event) => {
       lastX = event.pageX;
       lastY = event.pageY;
-    }, "enterCallback");
-    const buttonCallback = /* @__PURE__ */ __name((event) => {
-      this.#mouseButtons = event.buttons;
-    }, "buttonCallback");
-    const moveCallback = /* @__PURE__ */ __name((event) => {
+    });
+    this.#mouseElement.addEventListener("pointermove", (event) => {
       if (document.pointerLockElement !== null) {
         this.#mouseDelta[0] += event.movementX;
         this.#mouseDelta[1] += event.movementY;
@@ -19150,17 +19150,16 @@ var ActionManager = class {
       }
       lastX = event.pageX;
       lastY = event.pageY;
-    }, "moveCallback");
-    const wheelCallback = /* @__PURE__ */ __name((event) => {
+    });
+    this.#mouseElement.addEventListener("wheel", (event) => {
       this.#mouseWheel = event.deltaY;
       event.preventDefault();
-    }, "wheelCallback");
-    this.#mouseElement.addEventListener("click", pointerLockCallback);
-    this.#mouseElement.addEventListener("pointerenter", enterCallback);
+    });
+    const buttonCallback = /* @__PURE__ */ __name((event) => {
+      this.#mouseButtons = event.buttons;
+    }, "buttonCallback");
     this.#mouseElement.addEventListener("pointerdown", buttonCallback);
     this.#mouseElement.addEventListener("pointerup", buttonCallback);
-    this.#mouseElement.addEventListener("pointermove", moveCallback);
-    this.#mouseElement.addEventListener("wheel", wheelCallback);
   }
   get isPointerLocked() {
     return this.#mouseElement === document.pointerLockElement;
@@ -27563,19 +27562,21 @@ var PhysicsDebugRenderer = class {
   }
 };
 
-// src/debug-menu.ts
-var DebugMenu = class {
+// src/settings-menu.ts
+var SettingsMenu = class {
   static {
-    __name(this, "DebugMenu");
+    __name(this, "SettingsMenu");
   }
   appState;
   pane;
   stats;
+  debug;
   constructor(appState) {
     this.appState = appState;
     this.pane = new Pane({
       title: document.title.split("-")[0]
     });
+    this.pane.hidden = true;
     this.pane.addButton({
       title: "Save"
     }).on("click", () => {
@@ -27601,7 +27602,7 @@ var DebugMenu = class {
       };
       input.click();
     });
-    this.stats = this.pane.addFolder({ title: "Decal Stats", expanded: true });
+    this.stats = this.pane.addFolder({ title: "Decal Stats", expanded: false });
     this.stats.addBinding(this.appState.gpu, "useBindless", {
       readonly: true,
       label: "Bindless"
@@ -27637,14 +27638,23 @@ var DebugMenu = class {
         }
       }, "format")
     });
-    this.pane.addBinding(this.appState.config, "physicsDebugRendering", {
-      label: "Physics Debug"
-    }).on("change", (ev) => {
+    if (this.appState.debug) {
+      this.debug = this.pane.addFolder({ title: "Debug", expanded: false });
+      this.debug.addBinding(this.appState.config, "physicsDebugRendering", {
+        label: "Physics Debug"
+      }).on("change", (ev) => {
+        this.#updatePhysicsDebugRendering();
+      });
+      this.debug.addBinding(this.appState.config, "flying");
+      this.debug.addBinding(this.appState.config, "noclip");
       this.#updatePhysicsDebugRendering();
-    });
-    this.pane.addBinding(this.appState.config, "flying");
-    this.pane.addBinding(this.appState.config, "noclip");
-    this.#updatePhysicsDebugRendering();
+    }
+  }
+  set hidden(value) {
+    this.pane.hidden = value;
+  }
+  get hidden() {
+    return this.pane.hidden;
   }
   #updatePhysicsDebugRendering() {
     if (this.appState.config.physicsDebugRendering) {
@@ -27692,11 +27702,13 @@ var AppState = class {
   gpu;
   mode = 0 /* View */;
   touchscreen;
+  debug;
   constructor(stage, gpu) {
     this.stage = stage;
     this.gpu = gpu;
     this.config = Config.Create(AppConfig);
     this.touchscreen = window.matchMedia("(pointer: coarse)").matches || QueryArgs.getBool("forceTouch", false);
+    this.debug = QueryArgs.getBool("debug");
     this.stage.add(this);
   }
   clearDecals() {
@@ -28258,6 +28270,7 @@ var PaintballColors = [
 (/* @__PURE__ */ __name((function main() {
   WebGPUApp.Begin(class extends WebGPUApp {
     appState;
+    settingsMenu;
     actionManager;
     walkJoystick;
     lookJoystick;
@@ -28266,6 +28279,8 @@ var PaintballColors = [
     shootButton = document.querySelector("#shoot-button");
     eraseButton = document.querySelector("#erase-button");
     clearButton = document.querySelector("#clear-button");
+    settingsButton = document.querySelector("#settings-button");
+    selectedEmojiDiv = document.querySelector("#selected-emoji");
     emojiPicker = document.querySelector("emoji-picker");
     decalOptionsElement = document.querySelector("#decalOptions");
     decalRotationInput = document.querySelector("#decalRotation");
@@ -28318,9 +28333,8 @@ var PaintballColors = [
     constructor(gpu) {
       super(gpu);
       this.appState = new AppState(this.stage, gpu);
-      if (QueryArgs.getBool("debug")) {
-        this.stage.add(new DebugMenu(this.appState));
-      }
+      this.settingsMenu = new SettingsMenu(this.appState);
+      this.stage.add(this.settingsMenu);
       this.gltfLoader = new GltfLoader(gpu);
       this.actionManager = new ActionManager(gpu.canvas);
       this.stage.add(this.actionManager);
@@ -28452,6 +28466,14 @@ var PaintballColors = [
       this.clearButton.addEventListener("click", () => {
         this.appState.clearDecals();
       });
+      this.settingsButton.addEventListener("click", () => {
+        this.settingsMenu.hidden = !this.settingsMenu.hidden;
+        if (this.settingsMenu.hidden) {
+          this.settingsButton.classList.remove("open");
+        } else {
+          this.settingsButton.classList.add("open");
+        }
+      });
     }
     #onAction() {
       if (this.appState.mode == 1 /* Paint */) {
@@ -28570,7 +28592,11 @@ var PaintballColors = [
       this.appState.config.emoji = emoji;
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
       if (emoji.unicode) {
+        this.selectedEmojiDiv.innerHTML = emoji.unicode;
+        this.selectedEmojiDiv.style = "";
       } else {
+        this.selectedEmojiDiv.innerHTML = "&nbsp;";
+        this.selectedEmojiDiv.style = `background-image: url("${emoji.emoji.url}")`;
       }
       this.emojiPicker.style.display = "none";
     }
