@@ -19110,12 +19110,15 @@ var ActionManager = class {
   constructor(mouseElement) {
     this.#mouseElement = mouseElement ?? document.body;
     window.addEventListener("keydown", (event) => {
-      if (event.defaultPrevented) {
+      if (event.defaultPrevented || !this.isPointerLocked) {
         return;
       }
       this.#keyPressed[event.code] = true;
     });
     window.addEventListener("keyup", (event) => {
+      if (!this.isPointerLocked) {
+        return;
+      }
       this.#keyPressed[event.code] = false;
     });
     window.addEventListener("blur", (event) => {
@@ -19123,6 +19126,13 @@ var ActionManager = class {
     });
     let lastX;
     let lastY;
+    const pointerLockCallback = /* @__PURE__ */ __name((event) => {
+      if (!this.isPointerLocked) {
+        this.#mouseElement.requestPointerLock({
+          unadjustedMovement: true
+        });
+      }
+    }, "pointerLockCallback");
     const enterCallback = /* @__PURE__ */ __name((event) => {
       lastX = event.pageX;
       lastY = event.pageY;
@@ -19145,11 +19155,15 @@ var ActionManager = class {
       this.#mouseWheel = event.deltaY;
       event.preventDefault();
     }, "wheelCallback");
+    this.#mouseElement.addEventListener("click", pointerLockCallback);
     this.#mouseElement.addEventListener("pointerenter", enterCallback);
     this.#mouseElement.addEventListener("pointerdown", buttonCallback);
     this.#mouseElement.addEventListener("pointerup", buttonCallback);
     this.#mouseElement.addEventListener("pointermove", moveCallback);
     this.#mouseElement.addEventListener("wheel", wheelCallback);
+  }
+  get isPointerLocked() {
+    return this.#mouseElement === document.pointerLockElement;
   }
   get playerActions() {
     return this.#playerActions;
@@ -19250,10 +19264,10 @@ var ActionManager = class {
     crouchPressed ||= !!this.#keyPressed["ShiftLeft"];
     nextSlotPressed ||= !!this.#keyPressed["KeyE"];
     prevSlotPressed ||= !!this.#keyPressed["KeyQ"];
-    if (!!(this.#mouseButtons & 1)) {
-      this.#playerActions.look.add(this.#mouseDelta);
+    if (this.isPointerLocked || !!(this.#mouseButtons & 1)) {
+      this.#playerActions.look.scaleAndAdd(this.#mouseDelta, 0.25);
     }
-    primaryPressed ||= !!(this.#mouseButtons & 2);
+    primaryPressed ||= !!(this.#mouseButtons & (this.isPointerLocked ? 1 : 2));
     nextSlotPressed ||= this.#mouseWheel > 0;
     prevSlotPressed ||= this.#mouseWheel < 0;
     this.#mouseDelta[0] = 0;
