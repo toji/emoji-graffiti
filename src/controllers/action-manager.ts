@@ -56,10 +56,11 @@ export class ActionManager {
     // Keyboard handling
     window.addEventListener('keydown', (event: KeyboardEvent) => {
       // Do nothing if event already handled
-      if (event.defaultPrevented) { return; }
+      if (event.defaultPrevented || !this.isPointerLocked) { return; }
       this.#keyPressed[event.code] = true;
     });
     window.addEventListener('keyup', (event: KeyboardEvent) => {
+      if (!this.isPointerLocked) { return; }
       this.#keyPressed[event.code] = false;
     });
     window.addEventListener('blur', (event: Event) => {
@@ -71,6 +72,13 @@ export class ActionManager {
     // Mouse handling
     let lastX: number;
     let lastY: number;
+    const pointerLockCallback = (event: PointerEvent) => {
+      if (!this.isPointerLocked) {
+        this.#mouseElement.requestPointerLock({
+          unadjustedMovement: true,
+        });
+      }
+    };
     const enterCallback = (event: PointerEvent) => {
       lastX = event.pageX;
       lastY = event.pageY;
@@ -94,11 +102,16 @@ export class ActionManager {
       event.preventDefault();
     };
 
+    this.#mouseElement.addEventListener('click', pointerLockCallback);
     this.#mouseElement.addEventListener('pointerenter', enterCallback);
     this.#mouseElement.addEventListener('pointerdown', buttonCallback);
     this.#mouseElement.addEventListener('pointerup', buttonCallback);
     this.#mouseElement.addEventListener('pointermove', moveCallback);
     this.#mouseElement.addEventListener('wheel', wheelCallback);
+  }
+
+  get isPointerLocked() {
+    return this.#mouseElement === document.pointerLockElement;
   }
 
   get playerActions(): PlayerActions {
@@ -228,10 +241,10 @@ export class ActionManager {
     prevSlotPressed ||= !!this.#keyPressed['KeyQ'];
 
     // Mouse Input
-    if (!!(this.#mouseButtons & 0x01)) {
-      this.#playerActions.look.add(this.#mouseDelta);
+    if (this.isPointerLocked || !!(this.#mouseButtons & 0x01)) {
+      this.#playerActions.look.scaleAndAdd(this.#mouseDelta, 0.25);
     }
-    primaryPressed ||= !!(this.#mouseButtons & 0x02);
+    primaryPressed ||= !!(this.#mouseButtons & (this.isPointerLocked ? 0x01 : 0x02));
     nextSlotPressed ||= this.#mouseWheel > 0;
     prevSlotPressed ||= this.#mouseWheel < 0;
 
