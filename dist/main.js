@@ -17959,8 +17959,8 @@ var EmojiRenderer = class {
       this.ctx.textBaseline = "middle";
       this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
       this.ctx.fillText(emoji.unicode, width * 0.5, height * 0.55, width);
-    } else if (emoji.emoji.url) {
-      const img = await this.loadCustomEmojiImage(emoji.emoji.url);
+    } else if (emoji.url) {
+      const img = await this.loadCustomEmojiImage(emoji.url);
       const aspect = img.naturalWidth / img.naturalHeight;
       const imgWidth = aspect > 1 ? width : width * aspect;
       const imgHeight = aspect > 1 ? height / aspect : height;
@@ -18034,7 +18034,7 @@ var DecalManager = class {
     }
   }
   #getEmojiKey(emoji) {
-    return emoji.unicode ?? emoji.emoji?.url;
+    return emoji.unicode ?? emoji.url;
   }
   async getDecal(emoji) {
     const decalKey = this.#getEmojiKey(emoji);
@@ -18045,9 +18045,9 @@ var DecalManager = class {
     let texture;
     let layerIndex = 0;
     if (this.gpu.useBindless) {
-      if (emoji.emoji.url) {
+      if (emoji.url) {
         try {
-          texture = await this.gpu.textureLoader.fromUrl(emoji.emoji.url);
+          texture = await this.gpu.textureLoader.fromUrl(emoji.url);
         } catch (err) {
           console.warn(err);
         }
@@ -18087,8 +18087,7 @@ var DecalManager = class {
     return decal.clone();
   }
   getTextureDecal(url) {
-    const emoji = { emoji: { url } };
-    return this.getDecal(emoji);
+    return this.getDecal({ url });
   }
   updateDecals(stage) {
     const textureProj = new Mat4();
@@ -27666,30 +27665,15 @@ var SettingsMenu = class {
 };
 
 // src/app-config.ts
-var AppConfig = class _AppConfig extends Config {
+var AppConfig = class extends Config {
   static {
     __name(this, "AppConfig");
   }
-  emoji;
+  emoji = { unicode: "\u{1F600}" };
   sprayCooldown = 500;
   physicsDebugRendering = false;
   flying = false;
   noclip = false;
-  static SetDefaults(isMobile) {
-    const defaults = isMobile ? new MobileAppConfig() : new _AppConfig();
-    defaults.emoji = {
-      emoji: { name: "Firefox Logo", shortcodes: Array(1), url: "./media/emoji/firefox.svg" },
-      name: "Firefox Logo",
-      skinTone: 0
-    };
-    return defaults;
-  }
-};
-var MobileAppConfig = class extends AppConfig {
-  static {
-    __name(this, "MobileAppConfig");
-  }
-  emojiTextureSize = 128;
 };
 
 // src/app-state.ts
@@ -27755,7 +27739,10 @@ var AppState = class {
         return;
       }
       if (!decalLayout.emoji[decal.textureIndex]) {
-        decalLayout.emoji[decal.textureIndex] = decal.emoji;
+        decalLayout.emoji[decal.textureIndex] = {
+          unicode: decal.emoji.unicode,
+          url: decal.emoji.url
+        };
       }
       const out = {
         emojiIndex: decal.textureIndex,
@@ -28446,7 +28433,10 @@ var PaintballColors = [
       this.emojiPicker = document.querySelector("emoji-picker");
       this.emojiPicker.addEventListener("emoji-click", (event) => {
         const emojiEvent = event;
-        this.onEmojiPicked(emojiEvent.detail);
+        this.onEmojiPicked({
+          unicode: emojiEvent.detail.unicode,
+          url: emojiEvent.detail.emoji?.url
+        });
       });
       fetch("./media/emoji/custom.json").then(async (result) => {
         this.emojiPicker.customEmoji = await result.json();
@@ -28596,7 +28586,7 @@ var PaintballColors = [
         this.selectedEmojiDiv.style = "";
       } else {
         this.selectedEmojiDiv.innerHTML = "&nbsp;";
-        this.selectedEmojiDiv.style = `background-image: url("${emoji.emoji.url}")`;
+        this.selectedEmojiDiv.style = `background-image: url("${emoji.url}")`;
       }
       this.emojiPicker.style.display = "none";
     }

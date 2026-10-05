@@ -88,7 +88,10 @@ export class AppState {
       }
 
       if (!decalLayout.emoji[decal.textureIndex]) {
-        decalLayout.emoji[decal.textureIndex] = decal.emoji;
+        decalLayout.emoji[decal.textureIndex] = {
+          unicode: decal.emoji.unicode,
+          url: decal.emoji.url
+        };
       }
 
       const out: any = {

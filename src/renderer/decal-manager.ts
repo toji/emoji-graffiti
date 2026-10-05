@@ -1,7 +1,7 @@
 import { Mat4, Vec4 } from "gl-matrix";
 import { Actor, Tag } from "../core/actor.ts";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
-import { Decal } from "../materials/decal.ts";
+import { Decal, DecalEmoji } from "../materials/decal.ts";
 import { Stage } from "../core/stage.ts";
 import { EmojiRenderer } from "./emoji-renderer.ts";
 import { WebGPUMipmapGenerator } from "../loaders/texture/mipmap-generator.ts";
@@ -74,11 +74,11 @@ export class DecalManager {
     }
   }
 
-  #getEmojiKey(emoji: any) {
-    return emoji.unicode ?? emoji.emoji?.url;
+  #getEmojiKey(emoji: DecalEmoji): string {
+    return (emoji.unicode ?? emoji.url) as string;
   }
 
-  async getDecal(emoji: any) {
+  async getDecal(emoji: DecalEmoji) {
     const decalKey = this.#getEmojiKey(emoji);
 
     let decalIndex = this.decalKeyMapping.get(decalKey);
@@ -89,14 +89,14 @@ export class DecalManager {
     let texture: GPUTexture | undefined;
     let layerIndex = 0;
     if (this.gpu.useBindless) {
-      if (emoji.emoji.url) {
+      if (emoji.url) {
         try {
-          texture = await this.gpu.textureLoader.fromUrl(emoji.emoji.url);
+          texture = await this.gpu.textureLoader.fromUrl(emoji.url);
         } catch(err) {
           console.warn(err);
         }
       }
-      
+
       if (texture === undefined) {
         const emojiSize = this.gpu.config.emojiTextureSize;
         texture = this.gpu.device.createTexture({
@@ -138,9 +138,8 @@ export class DecalManager {
     return decal.clone();
   }
 
-  getTextureDecal(url: any) {
-    const emoji = { emoji: { url } }
-    return this.getDecal(emoji);
+  getTextureDecal(url: string) {
+    return this.getDecal({ url });
   }
 
   updateDecals(stage: Stage) {
