@@ -27,7 +27,7 @@
         padding: 0.25em;
         text-align: center;
       }
-      #emoji-picker-container>button {
+      #emoji-picker-container button, .dock-button {
         position: relative;
         cursor: pointer;
         font-family: "Noto Color Emoji", sans-serif;
@@ -60,9 +60,19 @@
         background-image: url(media/images/sponge.svg);
       }
       #clear-button {
+        position: absolute;
+        bottom: -100%;
+        left: -0.13em;
+        width: 0em;
+        height: 0em;
+        border-radius: 0.2em;
         background-color:hsl(21, 78%, 59%);
         background-image: url(media/images/bomb.svg);
         display: none;
+      }
+      #erase-button:hover #clear-button {
+        
+        display: inline-block;
       }
 
       #selected-emoji {
@@ -98,7 +108,7 @@
         transform: rotate(-150deg);
       }
 
-      #emoji-picker-container>button:hover {
+      #emoji-picker-container>button:hover, .dock-button:hover {
         transform: scale(1.3);
       }
       #emoji-picker-container>button.selected {
@@ -225,8 +235,9 @@
         <div id='selected-emoji'>😄</div>
       </button>
       <button id='shoot-button'></button>
-      <button id='erase-button'></button>
-      <button id='clear-button'></button>
+      <button id='erase-button'>
+        <div class='dock-button' id='clear-button'></div>
+      </button>
 
       <emoji-picker emoji-version='18.0' style='display: none'></emoji-picker>
       <div id='decalOptions'>
