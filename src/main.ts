@@ -3,7 +3,7 @@ import { Actor, Tag } from './core/actor.ts';
 import { WebGPURenderer } from './renderer/webgpu-renderer.ts';
 import { PerspectiveCamera } from './core/camera.ts';
 import { GltfLoader } from './loaders/gltf/gltf-loader.ts';
-import { Decal } from './materials/decal.ts';
+import { Decal, DecalEmoji } from './materials/decal.ts';
 import { AudioPlayer } from './audio/audio-player.ts';
 
 import RAPIER from '@dimforge/rapier3d-compat';
@@ -261,7 +261,10 @@ const PaintballColors = [
       this.emojiPicker = document.querySelector('emoji-picker')!;
       this.emojiPicker.addEventListener('emoji-click', (event: Event) => {
         const emojiEvent = (event as CustomEvent);
-        this.onEmojiPicked(emojiEvent.detail);
+        this.onEmojiPicked({
+          unicode: emojiEvent.detail.unicode,
+          url: emojiEvent.detail.emoji?.url
+        });
       });
       fetch('./media/emoji/custom.json').then(async (result) => {
         // @ts-ignore
@@ -438,7 +441,7 @@ const PaintballColors = [
       }
     }
 
-    async onEmojiPicked(emoji: any) {
+    async onEmojiPicked(emoji: DecalEmoji) {
       console.log(emoji);
       this.appState.config.emoji = emoji;
       this.decal.add(await this.gpu.decalManager.getDecal(emoji));
@@ -448,7 +451,7 @@ const PaintballColors = [
         this.selectedEmojiDiv.style = '';
       } else {
         this.selectedEmojiDiv.innerHTML = '&nbsp;';
-        this.selectedEmojiDiv.style = `background-image: url("${emoji.emoji.url}")`;
+        this.selectedEmojiDiv.style = `background-image: url("${emoji.url}")`;
       }
 
       this.emojiPicker.style.display = 'none';

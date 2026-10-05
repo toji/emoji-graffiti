@@ -2,898 +2,164 @@
   "version": 1,
   "emoji": [
     {
-      "emoji": {
-        "name": "Firefox Logo",
-        "shortcodes": [
-          null
-        ],
-        "url": "./media/emoji/firefox.svg"
-      },
-      "name": "Firefox Logo",
-      "skinTone": 0
+      "unicode": "🎯"
     },
     {
-      "emoji": {
-        "name": "Chrome Logo",
-        "shortcodes": [
-          "chrome"
-        ],
-        "url": "./media/emoji/chrome.svg"
-      },
-      "skinTone": 2,
-      "name": "Chrome Logo"
+      "url": "./media/emoji/chrome.svg"
     },
     {
-      "emoji": {
-        "name": "Safari Logo",
-        "shortcodes": [
-          "safari"
-        ],
-        "url": "./media/emoji/safari.svg"
-      },
-      "skinTone": 2,
-      "name": "Safari Logo"
+      "url": "./media/emoji/safari.svg"
     },
     {
-      "emoji": {
-        "annotation": "grinning face",
-        "group": 0,
-        "order": 1,
-        "tags": [
-          "cheerful",
-          "cheery",
-          "face",
-          "grin",
-          "grinning",
-          "happy",
-          "laugh",
-          "nice",
-          "smile",
-          "smiling",
-          "teeth"
-        ],
-        "unicode": "😀",
-        "version": 1,
-        "shortcodes": [
-          "grinning",
-          "grinning_face"
-        ]
-      },
-      "skinTone": 2,
+      "url": "./media/emoji/firefox.svg"
+    },
+    {
       "unicode": "😀"
     },
     {
-      "emoji": {
-        "annotation": "beaming face with smiling eyes",
-        "group": 0,
-        "order": 4,
-        "tags": [
-          "beaming",
-          "eye",
-          "eyes",
-          "face",
-          "grin",
-          "grinning",
-          "happy",
-          "nice",
-          "smile",
-          "smiling",
-          "teeth"
-        ],
-        "unicode": "😁",
-        "version": 0.6,
-        "shortcodes": [
-          "beaming_face",
-          "grin"
-        ]
-      },
-      "skinTone": 2,
       "unicode": "😁"
     },
     {
-      "emoji": {
-        "annotation": "grinning squinting face",
-        "group": 0,
-        "order": 5,
-        "tags": [
-          "closed",
-          "eyes",
-          "face",
-          "grinning",
-          "haha",
-          "hahaha",
-          "happy",
-          "laugh",
-          "lol",
-          "mouth",
-          "open",
-          "rofl",
-          "smile",
-          "smiling",
-          "squinting"
-        ],
-        "unicode": "😆",
-        "version": 0.6,
-        "emoticon": "XD",
-        "shortcodes": [
-          "laughing",
-          "lol",
-          "satisfied",
-          "squinting_face"
-        ]
-      },
-      "skinTone": 2,
       "unicode": "😆"
     },
     {
-      "emoji": {
-        "annotation": "rolling on the floor laughing",
-        "group": 0,
-        "order": 7,
-        "tags": [
-          "crying",
-          "face",
-          "floor",
-          "funny",
-          "haha",
-          "happy",
-          "hehe",
-          "hilarious",
-          "joy",
-          "laugh",
-          "lmao",
-          "lol",
-          "rofl",
-          "roflmao",
-          "rolling",
-          "tear"
-        ],
-        "unicode": "🤣",
-        "version": 3,
-        "emoticon": ":'D",
-        "shortcodes": [
-          "rofl"
-        ]
-      },
-      "skinTone": 2,
       "unicode": "🤣"
     },
     {
-      "emoji": {
-        "annotation": "clown face",
-        "group": 0,
-        "order": 119,
-        "tags": [
-          "clown",
-          "face"
-        ],
-        "unicode": "🤡",
-        "version": 3,
-        "shortcodes": [
-          "clown",
-          "clown_face"
-        ]
-      },
-      "skinTone": 0,
-      "unicode": "🤡"
-    },
-    {
-      "emoji": {
-        "annotation": "balloon",
-        "group": 6,
-        "order": 4239,
-        "tags": [
-          "birthday",
-          "celebrate",
-          "celebration"
-        ],
-        "unicode": "🎈",
-        "version": 0.6,
-        "shortcodes": [
-          "balloon"
-        ]
-      },
-      "skinTone": 0,
-      "unicode": "🎈"
-    },
-    {
-      "emoji": {
-        "annotation": "mouse",
-        "group": 3,
-        "order": 3712,
-        "tags": [
-          "animal",
-          "animals"
-        ],
-        "unicode": "🐁",
-        "version": 1,
-        "shortcodes": [
-          "mouse"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🐁"
     },
     {
-      "emoji": {
-        "annotation": "twelve o’clock",
-        "group": 5,
-        "order": 4144,
-        "tags": [
-          "12",
-          "12:00",
-          "clock",
-          "o’clock",
-          "time",
-          "twelve"
-        ],
-        "unicode": "🕛️",
-        "version": 0.6,
-        "shortcodes": [
-          "clock12"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕛️"
     },
     {
-      "emoji": {
-        "annotation": "twelve-thirty",
-        "group": 5,
-        "order": 4145,
-        "tags": [
-          "12",
-          "12:30",
-          "30",
-          "clock",
-          "thirty",
-          "time",
-          "twelve"
-        ],
-        "unicode": "🕧️",
-        "version": 0.7,
-        "shortcodes": [
-          "clock1230"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕧️"
     },
     {
-      "emoji": {
-        "annotation": "one o’clock",
-        "group": 5,
-        "order": 4146,
-        "tags": [
-          "1",
-          "1:00",
-          "clock",
-          "one",
-          "o’clock",
-          "time"
-        ],
-        "unicode": "🕐️",
-        "version": 0.6,
-        "shortcodes": [
-          "clock1"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕐️"
     },
     {
-      "emoji": {
-        "annotation": "one-thirty",
-        "group": 5,
-        "order": 4147,
-        "tags": [
-          "1",
-          "1:30",
-          "30",
-          "clock",
-          "one",
-          "thirty",
-          "time"
-        ],
-        "unicode": "🕜️",
-        "version": 0.7,
-        "shortcodes": [
-          "clock130"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕜️"
     },
     {
-      "emoji": {
-        "annotation": "two o’clock",
-        "group": 5,
-        "order": 4148,
-        "tags": [
-          "2",
-          "2:00",
-          "clock",
-          "o’clock",
-          "time",
-          "two"
-        ],
-        "unicode": "🕑️",
-        "version": 0.6,
-        "shortcodes": [
-          "clock2"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕑️"
     },
     {
-      "emoji": {
-        "annotation": "two-thirty",
-        "group": 5,
-        "order": 4149,
-        "tags": [
-          "2",
-          "2:30",
-          "30",
-          "clock",
-          "thirty",
-          "time",
-          "two"
-        ],
-        "unicode": "🕝️",
-        "version": 0.7,
-        "shortcodes": [
-          "clock230"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕝️"
     },
     {
-      "emoji": {
-        "annotation": "three o’clock",
-        "group": 5,
-        "order": 4150,
-        "tags": [
-          "3",
-          "3:00",
-          "clock",
-          "o’clock",
-          "three",
-          "time"
-        ],
-        "unicode": "🕒️",
-        "version": 0.6,
-        "shortcodes": [
-          "clock3"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕒️"
     },
     {
-      "emoji": {
-        "annotation": "three-thirty",
-        "group": 5,
-        "order": 4151,
-        "tags": [
-          "3",
-          "30",
-          "3:30",
-          "clock",
-          "thirty",
-          "three",
-          "time"
-        ],
-        "unicode": "🕞️",
-        "version": 0.7,
-        "shortcodes": [
-          "clock330"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🕞️"
     },
     {
-      "emoji": {
-        "annotation": "no smoking",
-        "group": 8,
-        "order": 4664,
-        "tags": [
-          "forbidden",
-          "no",
-          "not",
-          "prohibited",
-          "smoke",
-          "smoking"
-        ],
-        "unicode": "🚭️",
-        "version": 0.6,
-        "shortcodes": [
-          "no_smoking"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🚭️"
     },
     {
-      "emoji": {
-        "annotation": "no littering",
-        "group": 8,
-        "order": 4665,
-        "tags": [
-          "forbidden",
-          "litter",
-          "littering",
-          "no",
-          "not",
-          "prohibited"
-        ],
-        "unicode": "🚯",
-        "version": 1,
-        "shortcodes": [
-          "do_not_litter",
-          "no_littering"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🚯"
     },
     {
-      "emoji": {
-        "annotation": "cat",
-        "group": 3,
-        "order": 3678,
-        "tags": [
-          "animal",
-          "animals",
-          "cats",
-          "kitten",
-          "pet"
-        ],
-        "unicode": "🐈️",
-        "version": 0.7,
-        "shortcodes": [
-          "cat"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🐈️"
     },
     {
-      "emoji": {
-        "annotation": "Christmas tree",
-        "group": 6,
-        "order": 4234,
-        "tags": [
-          "celebration",
-          "christmas",
-          "tree"
-        ],
-        "unicode": "🎄",
-        "version": 0.6,
-        "shortcodes": [
-          "christmas_tree"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🎄"
     },
     {
-      "emoji": {
-        "annotation": "wrapped gift",
-        "group": 6,
-        "order": 4250,
-        "tags": [
-          "birthday",
-          "bow",
-          "box",
-          "celebration",
-          "christmas",
-          "gift",
-          "present",
-          "surprise",
-          "wrapped"
-        ],
-        "unicode": "🎁",
-        "version": 0.6,
-        "shortcodes": [
-          "gift"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🎁"
     },
     {
-      "emoji": {
-        "annotation": "package",
-        "group": 7,
-        "order": 4495,
-        "tags": [
-          "box",
-          "communication",
-          "delivery",
-          "parcel",
-          "shipping"
-        ],
-        "unicode": "📦️",
-        "version": 0.6,
-        "shortcodes": [
-          "package"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "📦️"
     },
     {
-      "emoji": {
-        "annotation": "ghost",
-        "group": 0,
-        "order": 122,
-        "tags": [
-          "boo",
-          "creature",
-          "excited",
-          "face",
-          "fairy",
-          "fairytale",
-          "fantasy",
-          "halloween",
-          "haunting",
-          "monster",
-          "scary",
-          "silly",
-          "tale"
-        ],
-        "unicode": "👻",
-        "version": 0.6,
-        "shortcodes": [
-          "ghost"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "👻"
     },
     {
-      "emoji": {
-        "annotation": "skull",
-        "group": 0,
-        "order": 115,
-        "tags": [
-          "body",
-          "dead",
-          "death",
-          "face",
-          "fairy",
-          "fairytale",
-          "i’m",
-          "lmao",
-          "monster",
-          "tale",
-          "yolo"
-        ],
-        "unicode": "💀",
-        "version": 0.6,
-        "shortcodes": [
-          "skull"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "💀"
     },
     {
-      "emoji": {
-        "annotation": "jack-o-lantern",
-        "group": 6,
-        "order": 4233,
-        "tags": [
-          "celebration",
-          "halloween",
-          "jack",
-          "lantern",
-          "pumpkin"
-        ],
-        "unicode": "🎃",
-        "version": 0.6,
-        "shortcodes": [
-          "jack_o_lantern"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🎃"
     },
     {
-      "emoji": {
-        "annotation": "firecracker",
-        "group": 6,
-        "order": 4237,
-        "tags": [
-          "dynamite",
-          "explosive",
-          "fire",
-          "fireworks",
-          "light",
-          "pop",
-          "popping",
-          "spark"
-        ],
-        "unicode": "🧨",
-        "version": 11,
-        "shortcodes": [
-          "firecracker"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🧨"
     },
     {
-      "emoji": {
-        "annotation": "fireworks",
-        "group": 6,
-        "order": 4235,
-        "tags": [
-          "boom",
-          "celebration",
-          "entertainment",
-          "yolo"
-        ],
-        "unicode": "🎆",
-        "version": 0.6,
-        "shortcodes": [
-          "fireworks"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🎆"
     },
     {
-      "emoji": {
-        "annotation": "sparkler",
-        "group": 6,
-        "order": 4236,
-        "tags": [
-          "boom",
-          "celebration",
-          "fireworks",
-          "sparkle"
-        ],
-        "unicode": "🎇",
-        "version": 0.6,
-        "shortcodes": [
-          "sparkler"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🎇"
     },
     {
-      "emoji": {
-        "annotation": "monkey face",
-        "group": 3,
-        "order": 3665,
-        "tags": [
-          "animal",
-          "banana",
-          "face",
-          "monkey"
-        ],
-        "unicode": "🐵",
-        "version": 0.6,
-        "shortcodes": [
-          "monkey_face"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🐵"
     },
     {
-      "emoji": {
-        "annotation": "cat face",
-        "group": 3,
-        "order": 3677,
-        "tags": [
-          "animal",
-          "cat",
-          "face",
-          "kitten",
-          "kitty",
-          "pet"
-        ],
-        "unicode": "🐱",
-        "version": 0.6,
-        "shortcodes": [
-          "cat_face"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🐱"
     },
     {
-      "emoji": {
-        "annotation": "dog face",
-        "group": 3,
-        "order": 3669,
-        "tags": [
-          "adorbs",
-          "animal",
-          "dog",
-          "face",
-          "pet",
-          "puppies",
-          "puppy"
-        ],
-        "unicode": "🐶",
-        "version": 0.6,
-        "shortcodes": [
-          "dog_face"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🐶"
     },
     {
-      "emoji": {
-        "annotation": "pig face",
-        "group": 3,
-        "order": 3696,
-        "tags": [
-          "animal",
-          "bacon",
-          "face",
-          "farm",
-          "pig",
-          "pork"
-        ],
-        "unicode": "🐷",
-        "version": 0.6,
-        "shortcodes": [
-          "pig_face"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🐷"
     },
     {
-      "emoji": {
-        "annotation": "deer",
-        "group": 3,
-        "order": 3690,
-        "tags": [
-          "animal"
-        ],
-        "unicode": "🦌",
-        "version": 3,
-        "shortcodes": [
-          "deer"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🦌"
     },
     {
-      "emoji": {
-        "annotation": "sled",
-        "group": 6,
-        "order": 4289,
-        "tags": [
-          "luge",
-          "sledge",
-          "sleigh",
-          "snow",
-          "toboggan"
-        ],
-        "unicode": "🛷",
-        "version": 5,
-        "shortcodes": [
-          "sled"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🛷"
     },
     {
-      "emoji": {
-        "annotation": "moose",
-        "group": 3,
-        "order": 3685,
-        "tags": [
-          "alces",
-          "animal",
-          "antlers",
-          "elk",
-          "mammal"
-        ],
-        "unicode": "🫎",
-        "version": 15,
-        "shortcodes": [
-          "moose"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🫎"
     },
     {
-      "emoji": {
-        "annotation": "desktop computer",
-        "group": 7,
-        "order": 4425,
-        "tags": [
-          "computer",
-          "desktop",
-          "monitor"
-        ],
-        "unicode": "🖥️",
-        "version": 0.7,
-        "shortcodes": [
-          "computer",
-          "desktop_computer"
-        ]
-      },
-      "skinTone": 0,
       "unicode": "🖥️"
     },
     {
-      "emoji": {
-        "name": "WebGPU Logo",
-        "shortcodes": [
-          "webgpu"
-        ],
-        "url": "./media/emoji/webgpu.svg"
-      },
-      "skinTone": 0,
-      "name": "WebGPU Logo"
+      "unicode": "🤡"
     },
     {
-      "emoji": {
-        "annotation": "red heart",
-        "group": 0,
-        "order": 155,
-        "tags": [
-          "emotion",
-          "heart",
-          "love",
-          "red"
-        ],
-        "unicode": "❤️",
-        "version": 0.6,
-        "emoticon": "<3",
-        "shortcodes": [
-          "heart",
-          "red_heart"
-        ]
-      },
-      "skinTone": 0,
+      "unicode": "🎈"
+    },
+    {
+      "url": "./media/emoji/webgpu.svg"
+    },
+    {
+      "url": "./media/emoji/javascript.svg"
+    },
+    {
       "unicode": "❤️"
     },
     {
-      "emoji": {
-        "name": "JavaScript Logo",
-        "shortcodes": [
-          "javascript"
-        ],
-        "url": "./media/emoji/javascript.svg"
-      },
-      "skinTone": 0,
-      "name": "JavaScript Logo"
+      "unicode": "🐢"
     },
     {
-      "emoji": {
-        "annotation": "turtle",
-        "group": 3,
-        "order": 3758,
-        "tags": [
-          "animal",
-          "terrapin",
-          "tortoise"
-        ],
-        "unicode": "🐢",
-        "version": 0.6,
-        "shortcodes": [
-          "turtle"
-        ]
-      },
-      "skinTone": 0,
-      "unicode": "🐢"
+      "unicode": "🧀"
+    },
+    {
+      "unicode": "🕳️"
+    },
+    {
+      "unicode": "🐭"
+    },
+    {
+      "url": "./media/textures/paintball-splat-2.png"
+    },
+    {
+      "url": "./media/textures/paintball-splat-0.png"
+    },
+    {
+      "url": "./media/textures/paintball-splat-1.png"
+    },
+    null,
+    {
+      "unicode": "🖼️"
+    },
+    {
+      "unicode": "🧑‍🌾"
+    },
+    {
+      "unicode": "👩‍🦳"
+    },
+    {
+      "unicode": "🏠️"
     }
   ],
   "decals": [
@@ -905,10 +171,10 @@
         2.6597869396209717
       ],
       "rotation": [
-        -0.023809274658560753,
-        0.6993273496627808,
+        -0.0238092802464962,
+        0.6993274092674255,
         0.023319188505411148,
-        0.7140243053436279
+        0.7140241861343384
       ]
     },
     {
@@ -919,84 +185,84 @@
         -2.6054739952087402
       ],
       "rotation": [
-        -0.023809274658560753,
-        0.6993273496627808,
+        -0.0238092802464962,
+        0.6993274092674255,
         0.023319188505411148,
-        0.7140243053436279
+        0.7140241861343384
       ]
     },
     {
-      "emojiIndex": 0,
+      "emojiIndex": 3,
       "translation": [
         2.153977155685425,
         3.515164852142334,
         -0.07282140851020813
       ],
       "rotation": [
-        -0.023809274658560753,
-        0.6993273496627808,
+        -0.0238092802464962,
+        0.6993274092674255,
         0.023319188505411148,
-        0.7140243053436279
+        0.7140241861343384
       ]
     },
     {
-      "emojiIndex": 3,
+      "emojiIndex": 4,
       "translation": [
         11.121553421020508,
         2.416282892227173,
         2.5492217540740967
       ],
       "rotation": [
-        0.00041961955139413476,
+        0.0004196194058749825,
         0.9949954748153687,
         0.09983175992965698,
-        -0.004182231612503529
+        -0.004182230215519667
       ]
     },
     {
-      "emojiIndex": 4,
+      "emojiIndex": 5,
       "translation": [
         7.519684314727783,
         2.416282892227173,
         2.579500198364258
       ],
       "rotation": [
-        0.00041961955139413476,
+        0.0004196194058749825,
         0.9949954748153687,
         0.09983175992965698,
-        -0.004182231612503529
+        -0.004182230215519667
       ]
     },
     {
-      "emojiIndex": 5,
+      "emojiIndex": 6,
       "translation": [
         3.853813409805298,
         2.416282892227173,
         2.6103172302246094
       ],
       "rotation": [
-        0.00041961955139413476,
+        0.0004196194058749825,
         0.9949954748153687,
         0.09983175992965698,
-        -0.004182231612503529
+        -0.004182230215519667
       ]
     },
     {
-      "emojiIndex": 6,
+      "emojiIndex": 7,
       "translation": [
         0.1883423924446106,
         2.416282892227173,
         2.6411314010620117
       ],
       "rotation": [
-        0.00041961955139413476,
+        0.0004196194058749825,
         0.9949954748153687,
         0.09983175992965698,
-        -0.004182231612503529
+        -0.004182230215519667
       ]
     },
     {
-      "emojiIndex": 9,
+      "emojiIndex": 8,
       "translation": [
         12.498835563659668,
         3.4543991088867188,
@@ -1010,7 +276,7 @@
       ]
     },
     {
-      "emojiIndex": 10,
+      "emojiIndex": 9,
       "translation": [
         0.2149849385023117,
         5.15452241897583,
@@ -1024,7 +290,7 @@
       ]
     },
     {
-      "emojiIndex": 11,
+      "emojiIndex": 10,
       "translation": [
         1.546651840209961,
         5.15452241897583,
@@ -1038,7 +304,7 @@
       ]
     },
     {
-      "emojiIndex": 12,
+      "emojiIndex": 11,
       "translation": [
         2.946681022644043,
         5.15452241897583,
@@ -1052,7 +318,7 @@
       ]
     },
     {
-      "emojiIndex": 13,
+      "emojiIndex": 12,
       "translation": [
         4.347110748291016,
         5.15452241897583,
@@ -1066,7 +332,7 @@
       ]
     },
     {
-      "emojiIndex": 14,
+      "emojiIndex": 13,
       "translation": [
         5.8127031326293945,
         5.15452241897583,
@@ -1080,7 +346,7 @@
       ]
     },
     {
-      "emojiIndex": 15,
+      "emojiIndex": 14,
       "translation": [
         7.2830915451049805,
         5.15452241897583,
@@ -1094,7 +360,7 @@
       ]
     },
     {
-      "emojiIndex": 16,
+      "emojiIndex": 15,
       "translation": [
         8.751883506774902,
         5.15452241897583,
@@ -1108,7 +374,7 @@
       ]
     },
     {
-      "emojiIndex": 17,
+      "emojiIndex": 16,
       "translation": [
         10.349008560180664,
         5.15452241897583,
@@ -1122,7 +388,7 @@
       ]
     },
     {
-      "emojiIndex": 18,
+      "emojiIndex": 17,
       "translation": [
         1.9867494106292725,
         2.8831801414489746,
@@ -1136,35 +402,35 @@
       ]
     },
     {
-      "emojiIndex": 19,
+      "emojiIndex": 18,
       "translation": [
         1.9860419034957886,
         2.2823572158813477,
         -4.907731056213379
       ],
       "rotation": [
-        0.022930843755602837,
+        0.02293083816766739,
         -0.01658351719379425,
         0.0003804264997597784,
         0.9995993971824646
       ]
     },
     {
-      "emojiIndex": 20,
+      "emojiIndex": 19,
       "translation": [
         11.916205406188965,
         0.632729709148407,
         0.8847149610519409
       ],
       "rotation": [
-        -0.05698850005865097,
-        -0.726338267326355,
-        -0.060668643563985825,
-        0.6822788715362549
+        -0.056988514959812164,
+        -0.7263383269309998,
+        -0.06066864728927612,
+        0.6822787523269653
       ]
     },
     {
-      "emojiIndex": 21,
+      "emojiIndex": 20,
       "translation": [
         17.42790412902832,
         1.4682167768478394,
@@ -1178,21 +444,21 @@
       ]
     },
     {
-      "emojiIndex": 22,
+      "emojiIndex": 21,
       "translation": [
         17.030290603637695,
         0.40226539969444275,
         -4.951475620269775
       ],
       "rotation": [
-        -0.1658736914396286,
+        -0.16587373614311218,
         -0.016434192657470703,
         -0.002764688339084387,
         0.9860062003135681
       ]
     },
     {
-      "emojiIndex": 22,
+      "emojiIndex": 21,
       "translation": [
         16.516347885131836,
         0.463853120803833,
@@ -1206,7 +472,7 @@
       ]
     },
     {
-      "emojiIndex": 22,
+      "emojiIndex": 21,
       "translation": [
         18.179920196533203,
         0.481678307056427,
@@ -1220,7 +486,7 @@
       ]
     },
     {
-      "emojiIndex": 22,
+      "emojiIndex": 21,
       "translation": [
         17.76968002319336,
         0.45982661843299866,
@@ -1234,7 +500,7 @@
       ]
     },
     {
-      "emojiIndex": 23,
+      "emojiIndex": 22,
       "translation": [
         18.679393768310547,
         0.39130449295043945,
@@ -1248,7 +514,7 @@
       ]
     },
     {
-      "emojiIndex": 24,
+      "emojiIndex": 23,
       "translation": [
         16.631996154785156,
         1.9552332162857056,
@@ -1262,7 +528,7 @@
       ]
     },
     {
-      "emojiIndex": 25,
+      "emojiIndex": 24,
       "translation": [
         15.585564613342285,
         0.35070931911468506,
@@ -1276,7 +542,7 @@
       ]
     },
     {
-      "emojiIndex": 26,
+      "emojiIndex": 25,
       "translation": [
         16.118385314941406,
         1.0626599788665771,
@@ -1290,7 +556,7 @@
       ]
     },
     {
-      "emojiIndex": 27,
+      "emojiIndex": 26,
       "translation": [
         27.46892738342285,
         1.938424825668335,
@@ -1304,7 +570,7 @@
       ]
     },
     {
-      "emojiIndex": 28,
+      "emojiIndex": 27,
       "translation": [
         25.24791145324707,
         3.68125581741333,
@@ -1318,7 +584,7 @@
       ]
     },
     {
-      "emojiIndex": 28,
+      "emojiIndex": 27,
       "translation": [
         26.864181518554688,
         2.640514850616455,
@@ -1332,7 +598,7 @@
       ]
     },
     {
-      "emojiIndex": 29,
+      "emojiIndex": 28,
       "translation": [
         26.671295166015625,
         3.279106616973877,
@@ -1346,7 +612,7 @@
       ]
     },
     {
-      "emojiIndex": 29,
+      "emojiIndex": 28,
       "translation": [
         27.65753173828125,
         2.3198297023773193,
@@ -1360,7 +626,7 @@
       ]
     },
     {
-      "emojiIndex": 29,
+      "emojiIndex": 28,
       "translation": [
         26.868911743164062,
         2.461477756500244,
@@ -1374,7 +640,7 @@
       ]
     },
     {
-      "emojiIndex": 30,
+      "emojiIndex": 29,
       "translation": [
         27.073976516723633,
         2.1692283153533936,
@@ -1388,7 +654,7 @@
       ]
     },
     {
-      "emojiIndex": 31,
+      "emojiIndex": 30,
       "translation": [
         23.47411346435547,
         2.1692283153533936,
@@ -1402,7 +668,7 @@
       ]
     },
     {
-      "emojiIndex": 32,
+      "emojiIndex": 31,
       "translation": [
         19.79973030090332,
         2.2239856719970703,
@@ -1416,21 +682,21 @@
       ]
     },
     {
-      "emojiIndex": 33,
+      "emojiIndex": 32,
       "translation": [
         16.25,
         2.0270185470581055,
         3.005955934524536
       ],
       "rotation": [
-        -0.0010822947369888425,
+        -0.0010822949698194861,
         0.9984289407730103,
         0.05202988162636757,
-        0.020768724381923676
+        0.020768729969859123
       ]
     },
     {
-      "emojiIndex": 34,
+      "emojiIndex": 33,
       "translation": [
         20.719623565673828,
         1.7553743124008179,
@@ -1444,21 +710,21 @@
       ]
     },
     {
-      "emojiIndex": 35,
+      "emojiIndex": 34,
       "translation": [
         14.169906616210938,
         0.680687665939331,
         -3.873938798904419
       ],
       "rotation": [
-        0.09133949875831604,
+        0.09133950620889664,
         -0.14933457970619202,
         -0.6019454598426819,
-        0.7791135907173157
+        0.7791135311126709
       ]
     },
     {
-      "emojiIndex": 36,
+      "emojiIndex": 35,
       "translation": [
         21.671018600463867,
         5.04487943649292,
@@ -1472,7 +738,7 @@
       ]
     },
     {
-      "emojiIndex": 37,
+      "emojiIndex": 36,
       "translation": [
         9.873262405395508,
         0.4141364097595215,
@@ -1486,7 +752,7 @@
       ]
     },
     {
-      "emojiIndex": 7,
+      "emojiIndex": 37,
       "translation": [
         11.470993995666504,
         0.4132874608039856,
@@ -1500,7 +766,7 @@
       ]
     },
     {
-      "emojiIndex": 8,
+      "emojiIndex": 38,
       "translation": [
         11.83873462677002,
         1.2923917770385742,
@@ -1514,7 +780,7 @@
       ]
     },
     {
-      "emojiIndex": 38,
+      "emojiIndex": 39,
       "translation": [
         6.81768798828125,
         4.925660610198975,
@@ -1542,7 +808,7 @@
       ]
     },
     {
-      "emojiIndex": 39,
+      "emojiIndex": 41,
       "translation": [
         5.191268444061279,
         4.907552719116211,
@@ -1556,7 +822,7 @@
       ]
     },
     {
-      "emojiIndex": 41,
+      "emojiIndex": 42,
       "translation": [
         11.384686470031738,
         1.320246934890747,
@@ -1567,6 +833,278 @@
         -0.6857152581214905,
         -0.13900139927864075,
         0.7002321481704712
+      ]
+    },
+    {
+      "emojiIndex": 43,
+      "translation": [
+        12.62005615234375,
+        3.3394992351531982,
+        -0.6053948402404785
+      ],
+      "rotation": [
+        0.07820549607276917,
+        -0.6368760466575623,
+        -0.10474895685911179,
+        0.7598029375076294
+      ]
+    },
+    {
+      "emojiIndex": 44,
+      "translation": [
+        -0.8710455298423767,
+        0.506454348564148,
+        -7.513132095336914
+      ],
+      "rotation": [
+        -0.11668003350496292,
+        0.6926145553588867,
+        0.1150464117527008,
+        0.7024494409561157
+      ]
+    },
+    {
+      "emojiIndex": 45,
+      "translation": [
+        -1.241819143295288,
+        0.34842997789382935,
+        -7.513907432556152
+      ],
+      "rotation": [
+        -0.16415154933929443,
+        0.6852368116378784,
+        0.16286811232566833,
+        0.6906365156173706
+      ]
+    },
+    {
+      "emojiIndex": 0,
+      "translation": [
+        16.477378845214844,
+        1.9375137090682983,
+        -8.67851734161377
+      ],
+      "rotation": [
+        -0.007993887178599834,
+        0.7174631953239441,
+        0.00823446549475193,
+        0.6965018510818481
+      ]
+    },
+    {
+      "emojiIndex": 46,
+      "translation": [
+        14.751007080078125,
+        2.8454678058624268,
+        -8.87716007232666
+      ],
+      "rotation": [
+        0.5910202264785767,
+        -0.21262620389461517,
+        0.7759677171707153,
+        -0.05795954167842865
+      ],
+      "baseColorFactor": [
+        0,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 47,
+      "translation": [
+        14.748003959655762,
+        0.9420276284217834,
+        -9.016331672668457
+      ],
+      "rotation": [
+        0.5866680145263672,
+        0.18004253506660461,
+        0.7890694737434387,
+        0.027833126485347748
+      ],
+      "baseColorFactor": [
+        0,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 47,
+      "translation": [
+        14.77076244354248,
+        1.5555217266082764,
+        -8.692769050598145
+      ],
+      "rotation": [
+        0.6196544170379639,
+        0.17781825363636017,
+        0.7512226104736328,
+        0.1416815221309662
+      ],
+      "baseColorFactor": [
+        1,
+        0.5,
+        0,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 47,
+      "translation": [
+        14.769454956054688,
+        2.173128366470337,
+        -8.76009464263916
+      ],
+      "rotation": [
+        0.4956698417663574,
+        0.4008093476295471,
+        0.5559406280517578,
+        0.5334728360176086
+      ],
+      "baseColorFactor": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 46,
+      "translation": [
+        14.76574420928955,
+        2.531909704208374,
+        -7.965214729309082
+      ],
+      "rotation": [
+        -0.36034440994262695,
+        0.5174197554588318,
+        -0.5186108350753784,
+        0.5774699449539185
+      ],
+      "baseColorFactor": [
+        1,
+        0.5,
+        0,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 48,
+      "translation": [
+        14.759743690490723,
+        1.1830732822418213,
+        -7.7999749183654785
+      ],
+      "rotation": [
+        0.608482301235199,
+        -0.22431811690330505,
+        0.6317795515060425,
+        -0.4246000647544861
+      ],
+      "baseColorFactor": [
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 48,
+      "translation": [
+        14.774930000305176,
+        1.9456605911254883,
+        -7.703823566436768
+      ],
+      "rotation": [
+        0.6519213318824768,
+        0.07559014856815338,
+        0.7521184086799622,
+        0.06002206727862358
+      ],
+      "baseColorFactor": [
+        0,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 46,
+      "translation": [
+        14.708524703979492,
+        1.8411471843719482,
+        -9.420517921447754
+      ],
+      "rotation": [
+        0.3460584580898285,
+        0.35204583406448364,
+        0.6475635766983032,
+        0.5804901123046875
+      ],
+      "baseColorFactor": [
+        1,
+        0.5,
+        0,
+        1
+      ]
+    },
+    {
+      "emojiIndex": 50,
+      "translation": [
+        0.14079755544662476,
+        1.7712559700012207,
+        -16.155874252319336
+      ],
+      "rotation": [
+        0.008333172649145126,
+        -0.005059152375906706,
+        0.000042160794691881165,
+        0.999952495098114
+      ]
+    },
+    {
+      "emojiIndex": 53,
+      "translation": [
+        0.09926020354032516,
+        1.7441091537475586,
+        -17.575199127197266
+      ],
+      "rotation": [
+        0.029460974037647247,
+        0.00000886126872501336,
+        0.0004252795479260385,
+        0.7067999243736267
+      ]
+    },
+    {
+      "emojiIndex": 52,
+      "translation": [
+        -0.07988224923610687,
+        1.7184715270996094,
+        -17.849632263183594
+      ],
+      "rotation": [
+        -0.08554454147815704,
+        0.000026180237910011783,
+        -0.0004328027134761214,
+        0.7045242190361023
+      ]
+    },
+    {
+      "emojiIndex": 51,
+      "translation": [
+        0.3868660628795624,
+        1.7184715270996094,
+        -17.856578826904297
+      ],
+      "rotation": [
+        -0.0899830088019371,
+        0.000011074871508753859,
+        -0.00017405799007974565,
+        0.704249918460846
       ]
     }
   ]

@@ -1,4 +1,5 @@
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
+import { DecalEmoji } from "../materials/decal.ts";
 
 export class EmojiRenderer {
   textureLoader: WebGpuTextureLoader;
@@ -34,7 +35,7 @@ export class EmojiRenderer {
     });
   }
 
-  async renderEmoji(emoji: any, texture: GPUTexture, layer: number = 0) {
+  async renderEmoji(emoji: DecalEmoji, texture: GPUTexture, layer: number = 0) {
     const width = this.canvas.width = texture.width;
     const height = this.canvas.height = texture.height;
 
@@ -47,8 +48,8 @@ export class EmojiRenderer {
       this.ctx.textBaseline = 'middle';
       this.ctx.font = `${width * 0.75}px "Noto Color Emoji", sans-serif`;
       this.ctx.fillText(emoji.unicode, width * 0.5, height * 0.55, width);
-    } else if (emoji.emoji.url) {
-      const img = await this.loadCustomEmojiImage(emoji.emoji.url);
+    } else if (emoji.url) {
+      const img = await this.loadCustomEmojiImage(emoji.url);
       const aspect = img.naturalWidth / img.naturalHeight;
       const imgWidth = (aspect > 1 ? width : width * aspect);
       const imgHeight = (aspect > 1 ? height / aspect : height);
