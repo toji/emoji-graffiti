@@ -9,7 +9,6 @@ import { AudioPlayer } from './audio/audio-player.ts';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { StagePhysics } from './physics/stage-physics.ts';
 import { Vec4 } from 'gl-matrix';
-import { QueryArgs } from './util/query-args.ts';
 import { WebGPUApp } from './renderer/webgpu-app.ts';
 import { PhysicsFPSController } from './controllers/physics-fps-controller.ts';
 import { SettingsMenu } from './settings-menu.ts';
@@ -17,6 +16,7 @@ import { AppState, InputMode } from './app-state.ts';
 
 import nipplejs from 'nipplejs';
 import { ActionManager } from './controllers/action-manager.ts';
+import { PerformanceTracker } from './util/performance-tracker.ts';
 
 const GRAVITY = { x: 0.0, y: -9.81, z: 0.0 };
 
@@ -34,6 +34,7 @@ const PaintballColors = [
   WebGPUApp.Begin(class extends WebGPUApp {
     appState: AppState;
     settingsMenu: SettingsMenu;
+    performanceTracker: PerformanceTracker;
 
     actionManager: ActionManager;
     walkJoystick: any;
@@ -111,6 +112,8 @@ const PaintballColors = [
 
       this.settingsMenu = new SettingsMenu(this.appState);
       this.stage.add(this.settingsMenu);
+      this.performanceTracker = new PerformanceTracker();
+      this.performanceTracker.bindToTweakpane(this.settingsMenu.pane);
 
       this.gltfLoader = new GltfLoader(gpu);
 
@@ -478,6 +481,8 @@ const PaintballColors = [
     }
 
     onFrame(gpu: WebGPURenderer, timestamp: number, delta: number) {
+      this.performanceTracker.beginFrame();
+
       this.stage.tick(timestamp);
       gpu.render(this.stage, this.camera, timestamp);
 
@@ -486,6 +491,8 @@ const PaintballColors = [
           Math.floor(gpu.canvas.width / 2),
           Math.floor(gpu.canvas.height / 2));
       }
+
+      this.performanceTracker.endFrame();
     }
   }, {
     canvas: document.querySelector('#webgpu-canvas') as HTMLCanvasElement
