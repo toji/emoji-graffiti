@@ -43,6 +43,12 @@ export class SettingsMenu {
       input.click();
     });
 
+    this.pane.addButton({
+      title: 'View Source',
+    }).on('click', () => {
+      window.open('https://github.com/toji/emoji-graffiti', '_blank').focus();
+    });
+
     this.stats = this.pane.addFolder({title: 'Decal Stats', expanded: false});
 
     this.stats.addBinding(this.appState.gpu, 'useBindless', {
