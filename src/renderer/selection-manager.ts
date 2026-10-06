@@ -42,9 +42,17 @@ export class SelectionManager {
         @group(0) @binding(0) var selectionTexture: texture_2d<u32>;
         @group(0) @binding(1) var<storage, read_write> selection: u32;
 
+        const samplePoints = array<vec2i, 5>(
+          vec2i(0, 0), vec2i(-5, -5), vec2i(5, -5), vec2i(-5, 5), vec2i(5, 5));
+
         @compute @workgroup_size(1, 1, 1)
         fn computeMain() {
-          selection = textureLoad(selectionTexture, selectCoord, 0).x;
+          for (var i = 0; i < 5; i++) {
+            selection = textureLoad(selectionTexture, vec2i(selectCoord) + samplePoints[i], 0).x;
+            if (selection != 0) {
+              break;
+            }
+          }
         }
       `
     });

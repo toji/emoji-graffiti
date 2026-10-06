@@ -6,7 +6,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
     <meta name='mobile-web-app-capable' content='yes'>
 
-    <title>Emoji Grafitti</title>
+    <title>Emoji Graffiti</title>
 
     <style>
       html, body, #webgpu-canvas {
@@ -27,7 +27,7 @@
         padding: 0.25em;
         text-align: center;
       }
-      #emoji-picker-container>button {
+      #emoji-picker-container button, .dock-button {
         position: relative;
         cursor: pointer;
         font-family: "Noto Color Emoji", sans-serif;
@@ -60,9 +60,18 @@
         background-image: url(media/images/sponge.svg);
       }
       #clear-button {
+        position: absolute;
+        bottom: -100%;
+        left: -0.13em;
+        width: 0em;
+        height: 0em;
+        border-radius: 0.2em;
         background-color:hsl(21, 78%, 59%);
         background-image: url(media/images/bomb.svg);
         display: none;
+      }
+      #erase-button:hover #clear-button {
+        display: inline-block;
       }
 
       #selected-emoji {
@@ -98,7 +107,7 @@
         transform: rotate(-150deg);
       }
 
-      #emoji-picker-container>button:hover {
+      #emoji-picker-container>button:hover, .dock-button:hover {
         transform: scale(1.3);
       }
       #emoji-picker-container>button.selected {
@@ -189,10 +198,11 @@
         z-index: 20;
         margin: auto;
         pointer-events: none;
-        background-image: url(./media/images/spinner.gif);
-        background-color: white;
+        background-color: black;
         background-position: center;
         background-repeat: no-repeat;
+        color: white;
+        font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
       }
 
       .loading .loading-splash {
@@ -225,8 +235,9 @@
         <div id='selected-emoji'>😄</div>
       </button>
       <button id='shoot-button'></button>
-      <button id='erase-button'></button>
-      <button id='clear-button'></button>
+      <button id='erase-button'>
+        <div class='dock-button' id='clear-button'></div>
+      </button>
 
       <emoji-picker emoji-version='18.0' style='display: none'></emoji-picker>
       <div id='decalOptions'>

@@ -23,8 +23,8 @@ export class PhysicsFPSController {
   #onGround = false;
   #yVelocity = 0;
 
-  gravity = -1; //-9.81;
-  jumpVelocity = 0.3;
+  gravity = -0.05; //-9.81;
+  jumpVelocity = 0.02;
 
   #physicsController?: RAPIER.KinematicCharacterController;
   #collider?: RAPIER.Collider;
@@ -36,7 +36,7 @@ export class PhysicsFPSController {
     this.angles[0] = x;
     this.angles[1] = y;
 
-    // Update the tranform rotation
+    // Update the transform rotation
     const q = this.rotation;
     q.identity();
     Quat.rotateY(q, q, -this.angles[1]);
@@ -52,7 +52,7 @@ export class PhysicsFPSController {
     // Clamp the up/down rotation to prevent us from flipping upside-down
     this.angles[0] = Math.min(Math.max(this.angles[0], -Math.PI*0.5), Math.PI*0.5);
 
-    // Update the tranform rotation
+    // Update the transform rotation
     const q = this.rotation;
     q.identity();
     Quat.rotateY(q, q, -this.angles[1]);
@@ -142,7 +142,7 @@ export class PhysicsFPSController {
 
         // Emulate gravity, since the Rapier KinematicCharacterController effectively disables it.
         if (!this.flying) {
-          tmpDir[1] += this.#yVelocity;
+          tmpDir[1] += this.#yVelocity * tickData.delta;
         }
 
         if (!this.noclip) {

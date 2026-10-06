@@ -73,8 +73,8 @@ export class WebGPURenderer {
 
     this.config = Config.Create(RenderConfig, device);
 
-    this.useBindless = QueryArgs.getBool('bindless', false) && this.device.features.has('chromium-experimental-sampling-resource-table');
-
+    this.useBindless = QueryArgs.getBool('bindless', true) && this.device.features.has('chromium-experimental-sampling-resource-table');
+  
     if(this.useBindless) {
       console.log('Using Bindless for Decals! 👍');
     } else {
