@@ -18582,11 +18582,7 @@ var ActionManager = class {
     let lastX;
     let lastY;
     this.#mouseElement.addEventListener("click", (event) => {
-      if (!this.isPointerLocked) {
-        this.#mouseElement.requestPointerLock({
-          unadjustedMovement: true
-        });
-      }
+      this.requestPointerLock();
     });
     document.addEventListener("pointerlockchange", () => {
       this.#keyPressed = {};
@@ -18615,6 +18611,13 @@ var ActionManager = class {
     }, "buttonCallback");
     this.#mouseElement.addEventListener("pointerdown", buttonCallback);
     this.#mouseElement.addEventListener("pointerup", buttonCallback);
+  }
+  requestPointerLock() {
+    if (!this.isPointerLocked) {
+      this.#mouseElement.requestPointerLock({
+        unadjustedMovement: true
+      });
+    }
   }
   get isPointerLocked() {
     return this.#mouseElement === document.pointerLockElement;
@@ -27883,6 +27886,7 @@ var PaintballColors = [
     appState;
     settingsMenu;
     performanceTracker;
+    wasPointerLocked = false;
     actionManager;
     walkJoystick;
     lookJoystick;
@@ -28054,6 +28058,13 @@ var PaintballColors = [
           this.actionManager.playerActions.primary.pressed = true;
         });
       }
+      document.addEventListener("pointerlockchange", () => {
+        if (document.pointerLockElement == this.gpu.canvas) {
+          this.wasPointerLocked = true;
+        } else if (!document.pointerLockElement && this.wasPointerLocked && this.appState.mode == 1 /* Paint */) {
+          this.emojiPicker.style.display = "";
+        }
+      });
       gpu.canvas.addEventListener("click", (ev) => {
         this.emojiPicker.style.display = "none";
       });
@@ -28064,26 +28075,36 @@ var PaintballColors = [
           unicode: emojiEvent.detail.unicode,
           url: emojiEvent.detail.emoji?.url
         });
+        if (this.wasPointerLocked) {
+          this.actionManager.requestPointerLock();
+        }
       });
       fetch("./media/emoji/custom.json").then(async (result) => {
         this.emojiPicker.customEmoji = await result.json();
       });
       this.viewButton.addEventListener("click", () => {
+        this.wasPointerLocked = false;
         this.#switchMode(0 /* View */);
       });
       this.emojiButton.addEventListener("click", () => {
+        this.wasPointerLocked = false;
         this.#switchMode(1 /* Paint */);
       });
       this.shootButton.addEventListener("click", () => {
+        this.wasPointerLocked = false;
         this.#switchMode(2 /* Shoot */);
       });
       this.eraseButton.addEventListener("click", () => {
+        this.wasPointerLocked = false;
         this.#switchMode(3 /* Erase */);
       });
       this.clearButton.addEventListener("click", () => {
+        this.wasPointerLocked = false;
         this.appState.clearDecals();
       });
       this.settingsButton.addEventListener("click", () => {
+        this.wasPointerLocked = false;
+        this.emojiPicker.style.display = "none";
         this.settingsMenu.hidden = !this.settingsMenu.hidden;
         if (this.settingsMenu.hidden) {
           this.settingsButton.classList.remove("open");
