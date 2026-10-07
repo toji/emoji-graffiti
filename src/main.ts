@@ -114,7 +114,10 @@ const PaintballColors = [
       this.settingsMenu = new SettingsMenu(this.appState);
       this.stage.add(this.settingsMenu);
       this.performanceTracker = new PerformanceTracker();
+      this.performanceTracker.setTimestampHelper(this.gpu.timestampHelper);
       this.performanceTracker.bindToTweakpane(this.settingsMenu.pane);
+
+      this.gpu.timestampHelper.paused = !this.appState.debug;
 
       this.gltfLoader = new GltfLoader(gpu);
 

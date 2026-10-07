@@ -15,6 +15,7 @@ export interface UnlitPipelineArgs {
   canDecal: boolean,
   depthTest: boolean,
   useBindless: boolean,
+  depthPrepass: boolean,
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -22,7 +23,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
   pipelineLayout: GPUPipelineLayout;
 
   constructor(gpu: WebGPURenderer) {
-    const config = gpu.config.watch();
+    const config = gpu.config.watch('useDepthPrepass');
     super(gpu.device, config);
 
     this.materialBGL = gpu.device.createBindGroupLayout({
@@ -195,20 +196,22 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
         `,
       });
 
-      return {
-        label: 'Unlit Material',
-        layout: this.pipelineLayout,
-        vertex: { module, buffers: geometryLayout.buffers },
-        primitive: {
-          topology: geometryLayout.topology,
-          cullMode: args.doubleSided ? 'none' : (args.mirrored ? 'front' : 'back'),
-        },
-        depthStencil: {
+      let depthStencil: GPUDepthStencilState;
+      let fragment: GPUFragmentState | undefined = undefined;
+
+      if (args.depthPrepass) {
+        depthStencil = {
           format: attachmentLayout.depthStencilFormat!,
           depthWriteEnabled: true,
           depthCompare: args.depthTest ? 'greater' : 'always',
-        },
-        fragment: {
+        };
+      } else {
+        depthStencil = {
+          format: attachmentLayout.depthStencilFormat!,
+          depthWriteEnabled: !this.config.useDepthPrepass,
+          depthCompare: args.depthTest ? (this.config.useDepthPrepass ? 'equal' : 'greater') : 'always',
+        };
+        fragment = {
           module,
           targets: attachmentLayout.colorFormats.map((format: GPUTextureFormat, index) => {
             const target: GPUColorTargetState = {
@@ -231,7 +234,20 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
               }
             }
             return target;
-          })}
+          })
+        };
+      }
+
+      return {
+        label: `Unlit Material${args.depthPrepass ? ' (Depth Prepass)' : ''}`,
+        layout: this.pipelineLayout,
+        vertex: { module, buffers: geometryLayout.buffers },
+        primitive: {
+          topology: geometryLayout.topology,
+          cullMode: args.doubleSided ? 'none' : (args.mirrored ? 'front' : 'back'),
+        },
+        depthStencil,
+        fragment
       };
   }
 }

@@ -4,7 +4,7 @@ import { Stage } from "../core/stage.ts";
 import { Actor } from "../core/actor.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
 import { UnlitMaterial } from "../materials/unlit.ts";
-import { InstanceManager } from "./instance-manager.ts";
+import { GeometryInstances, InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { UnlitPipelineArgs, UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
@@ -14,6 +14,8 @@ import { PBRMaterial } from "../materials/pbr.ts";
 import { CameraManager } from "./camera-manager.ts";
 import { ClusterManager } from "./cluster-manager.ts";
 import { QueryArgs } from "../util/query-args.ts";
+import { Geometry } from "../geometry/geometry.ts";
+import { TimestampHelper } from "../util/timestamp-helper.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -27,6 +29,7 @@ export class WebGPURenderer {
   static OptionalFeatures: GPUFeatureName[] = [
     // @ts-expect-error Not an official part of the spec
     'chromium-experimental-sampling-resource-table',
+    'timestamp-query',
   ];
 
   device: GPUDevice;
@@ -35,6 +38,7 @@ export class WebGPURenderer {
 
   config: RenderConfig;
   useBindless: boolean;
+  timestampHelper: TimestampHelper;
 
   textureLoader: WebGpuTextureLoader;
 
@@ -42,6 +46,7 @@ export class WebGPURenderer {
   msaaColorTexture?: GPUTexture;
 
   attachmentLayout: AttachmentLayout;
+  depthAttachmentLayout: AttachmentLayout;
 
   frameBGL: GPUBindGroupLayout;
   #frameBindGroup?: GPUBindGroup;
@@ -72,6 +77,8 @@ export class WebGPURenderer {
     this.context = this.canvas.getContext("webgpu") as GPUCanvasContext;
 
     this.config = Config.Create(RenderConfig, device);
+
+    this.timestampHelper = new TimestampHelper(device);
 
     this.useBindless = QueryArgs.getBool('bindless', true) && this.device.features.has('chromium-experimental-sampling-resource-table');
   
@@ -111,6 +118,7 @@ export class WebGPURenderer {
       this.config.depthStencilFormat,
       this.config.sampleCount
     );
+    this.depthAttachmentLayout = new AttachmentLayout([], this.config.depthStencilFormat, this.config.sampleCount);
 
     const frameBGLEntries: GPUBindGroupLayoutEntry[] = [{
       // Camera Uniforms
@@ -302,6 +310,60 @@ export class WebGPURenderer {
     // Should only need to be done when the camera properties change or the screen resizes.
     this.clusterManager.updateClusterBounds(commandEncoder);
 
+    const drawUnlitInstances = (renderPass: GPURenderPassEncoder, attachmentLayout: AttachmentLayout, material: UnlitMaterial, geometries: Map<Geometry, GeometryInstances>, depthPrepass: boolean) => {
+      renderPass.setBindGroup(1, material.materialBindGroup);
+
+      for (let geometryInstances of geometries.values()) {
+        const args: UnlitPipelineArgs = {
+          canDecal: material.canDecal,
+          depthTest: material.depthTest,
+          doubleSided: material.doubleSided,
+          transparent: material.transparent,
+          mirrored: false,
+          useBindless: this.useBindless,
+          depthPrepass: depthPrepass,
+        };
+        if (geometryInstances.instances.length) {
+          const pipeline = this.unlitPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout, attachmentLayout, args);
+          pipeline.use(renderPass);
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+        }
+        if (geometryInstances.mirroredInstances.length) {
+          args.mirrored = true;
+          const pipeline = this.unlitPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout, attachmentLayout, args);
+          pipeline.use(renderPass);
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+        }
+      }
+    }
+
+    // Perform a depth prepass if requested
+    if (this.config.useDepthPrepass) {
+      const depthPassDesc: GPURenderPassDescriptor = {
+        colorAttachments: [],
+        depthStencilAttachment: {
+          view: this.depthStencilTexture!,
+          depthLoadOp: 'clear',
+          depthClearValue: 0,
+          depthStoreOp: 'store',
+        },
+        timestampWrites: this.timestampHelper.timestampWrites('Depth Prepass')
+      };
+
+      const renderPass = commandEncoder.beginRenderPass(depthPassDesc);
+      renderPass.setBindGroup(0, this.frameBindings);
+
+      for (let materialGeometries of this.instanceManager.materials.values()) {
+        if (materialGeometries.material instanceof UnlitMaterial) {
+          drawUnlitInstances(renderPass, this.depthAttachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometries, true);
+        }
+      }
+
+      renderPass.end();
+    }
+
     const passDesc: GPURenderPassDescriptor = {
       colorAttachments: [{
         view: colorTexture,
@@ -316,10 +378,11 @@ export class WebGPURenderer {
       }],
       depthStencilAttachment: {
         view: this.depthStencilTexture!,
-        depthLoadOp: 'clear',
+        depthLoadOp: this.config.useDepthPrepass ? 'load' : 'clear',
         depthClearValue: 0,
         depthStoreOp: 'discard',
-      }
+      },
+      timestampWrites: this.timestampHelper.timestampWrites('Main Renderpass')
     };
 
     if (this.useBindless) {
@@ -328,38 +391,13 @@ export class WebGPURenderer {
     }
 
     const renderPass = commandEncoder.beginRenderPass(passDesc);
-
     renderPass.setBindGroup(0, this.frameBindings);
 
     // Loop through the gathered instances and render
     // TODO: Materials and Pipelines need to be handled way better here.
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
-        renderPass.setBindGroup(1, (materialGeometries.material as UnlitMaterial).materialBindGroup);
-
-        for (let geometryInstances of materialGeometries.geometries.values()) {
-          const args: UnlitPipelineArgs = {
-            canDecal: materialGeometries.material.canDecal,
-            depthTest: materialGeometries.material.depthTest,
-            doubleSided: materialGeometries.material.doubleSided,
-            transparent: materialGeometries.material.transparent,
-            mirrored: false,
-            useBindless: this.useBindless,
-          };
-          if (geometryInstances.instances.length) {
-            const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout, args);
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-          }
-          if (geometryInstances.mirroredInstances.length) {
-            args.mirrored = true;
-            const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout, args);
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-          }
-        }
+        drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometries, false);
       } else if (materialGeometries.material instanceof PBRMaterial) {
         renderPass.setBindGroup(1, (materialGeometries.material as PBRMaterial).materialBindGroup);
 
@@ -388,6 +426,9 @@ export class WebGPURenderer {
     }
 
     renderPass.end();
+
+    this.timestampHelper.resolve(commandEncoder);
+
     this.device.queue.submit([commandEncoder.finish()]);
   }
 }

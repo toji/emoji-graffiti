@@ -6,6 +6,7 @@ export class RenderConfig extends Config {
   selectionFormat: GPUTextureFormat = 'r32uint';
   sampleCount: number = 1;
   useBindless: boolean = true;
+  useDepthPrepass: boolean = true;
 
   // How large the render targets are compared to the screen resolution.
   // (Canvas render target size will always be 1:1 to allow for better UI)

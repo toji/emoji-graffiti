@@ -1,4 +1,4 @@
-//import { TimestampHelper } from "./webgpu/timestamp-helper";
+import { TimestampHelper } from "./webgpu/timestamp-helper";
 
 const DEFAULT_ENTRY_BUFFER_LENGTH = 20;
 
@@ -63,7 +63,7 @@ export class PerformanceTracker {
   #frameStart: number;
 
   #tweakpane: any;
-  //#timestampHelper: TimestampHelper;
+  #timestampHelper: TimestampHelper;
 
   constructor() {
     // Give this one a longer buffer
@@ -88,13 +88,13 @@ export class PerformanceTracker {
       this.#updateFps(endTime);
     }
 
-    /*if (this.#timestampHelper) {
+    if (this.#timestampHelper) {
       this.#timestampHelper.read().then((values) => {
         for (const key in values) {
           this.addSample(key, values[key]);
         }
       });
-    }*/
+    }
   }
 
   #updateFps(endTime: number) {
@@ -180,7 +180,7 @@ export class PerformanceTracker {
     return this.#tweakpane;
   }
 
-  /*setTimestampHelper(timestampHelper: TimestampHelper) {
+  setTimestampHelper(timestampHelper: TimestampHelper) {
     this.#timestampHelper = timestampHelper;
-  }*/
+  }
 }
