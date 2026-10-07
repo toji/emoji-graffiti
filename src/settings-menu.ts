@@ -91,6 +91,10 @@ export class SettingsMenu {
         this.#updatePhysicsDebugRendering();
       });
 
+      this.debug.addBinding(this.appState.gpu.config, 'useDepthPrepass', {
+        label: 'Depth Prepass',
+      });
+
       this.debug.addBinding(this.appState.config, 'flying');
       this.debug.addBinding(this.appState.config, 'noclip');
 

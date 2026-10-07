@@ -15445,6 +15445,7 @@ var RenderConfig = class _RenderConfig extends Config {
   selectionFormat = "r32uint";
   sampleCount = 1;
   useBindless = true;
+  useDepthPrepass = true;
   // How large the render targets are compared to the screen resolution.
   // (Canvas render target size will always be 1:1 to allow for better UI)
   outputScale = 1;
@@ -17155,7 +17156,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
   materialBGL;
   pipelineLayout;
   constructor(gpu) {
-    const config = gpu.config.watch();
+    const config = gpu.config.watch("useDepthPrepass");
     super(gpu.device, config);
     this.materialBGL = gpu.device.createBindGroupLayout({
       label: "Unlit Material",
@@ -17321,20 +17322,21 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
           }
         `
     });
-    return {
-      label: "Unlit Material",
-      layout: this.pipelineLayout,
-      vertex: { module, buffers: geometryLayout.buffers },
-      primitive: {
-        topology: geometryLayout.topology,
-        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
-      },
-      depthStencil: {
+    let depthStencil;
+    let fragment = void 0;
+    if (args.depthPrepass) {
+      depthStencil = {
         format: attachmentLayout.depthStencilFormat,
         depthWriteEnabled: true,
         depthCompare: args.depthTest ? "greater" : "always"
-      },
-      fragment: {
+      };
+    } else {
+      depthStencil = {
+        format: attachmentLayout.depthStencilFormat,
+        depthWriteEnabled: !this.config.useDepthPrepass,
+        depthCompare: args.depthTest ? this.config.useDepthPrepass ? "equal" : "greater" : "always"
+      };
+      fragment = {
         module,
         targets: attachmentLayout.colorFormats.map((format, index) => {
           const target = {
@@ -17358,7 +17360,18 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
           }
           return target;
         })
-      }
+      };
+    }
+    return {
+      label: `Unlit Material${args.depthPrepass ? " (Depth Prepass)" : ""}`,
+      layout: this.pipelineLayout,
+      vertex: { module, buffers: geometryLayout.buffers },
+      primitive: {
+        topology: geometryLayout.topology,
+        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
+      },
+      depthStencil,
+      fragment
     };
   }
 };
@@ -18081,6 +18094,154 @@ var ClusterManager = class {
   }
 };
 
+// src/util/timestamp-helper.ts
+var AVG_SAMPLE_COUNT = 30;
+var TimestampHelper = class {
+  static {
+    __name(this, "TimestampHelper");
+  }
+  device;
+  #timestampsSupported = false;
+  #timestampQuerySet;
+  #timestampResolveBuffer;
+  #timestampReadbackBuffers = [];
+  #readbackBufferCount = 0;
+  #currentReadbackBuffer = null;
+  #passTimings = /* @__PURE__ */ new Map();
+  #maxPassCount = 0;
+  #nextQueryIndex = 0;
+  #queriesUsed = [];
+  #averages = {};
+  paused = false;
+  constructor(device, maxPassCount = 16) {
+    this.device = device;
+    this.#maxPassCount = maxPassCount;
+    this.#timestampsSupported = this.device.features.has("timestamp-query");
+    if (this.#timestampsSupported) {
+      this.#timestampQuerySet = this.device.createQuerySet({
+        label: "Timestamp Helper",
+        type: "timestamp",
+        count: this.#maxPassCount * 2
+      });
+      this.#timestampResolveBuffer = this.device.createBuffer({
+        size: BigUint64Array.BYTES_PER_ELEMENT * this.#maxPassCount * 2,
+        usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC
+      });
+    }
+  }
+  get timestampsSupported() {
+    return this.#timestampsSupported;
+  }
+  timestampWrites(name) {
+    if (!this.#timestampsSupported || this.paused) {
+      return void 0;
+    }
+    if (this.#currentReadbackBuffer) {
+      throw new Error("Must read back the previous resolve before new timestampes can be added.");
+    }
+    if (this.#nextQueryIndex >= this.#maxPassCount * 2) {
+      throw new Error("Exceeded the number of passes that can be queried in a single resolve.");
+    }
+    const timestampWrites = {
+      querySet: this.#timestampQuerySet,
+      beginningOfPassWriteIndex: this.#nextQueryIndex++,
+      endOfPassWriteIndex: this.#nextQueryIndex++
+    };
+    this.#queriesUsed.push({
+      name,
+      begin: timestampWrites.beginningOfPassWriteIndex,
+      end: timestampWrites.endOfPassWriteIndex
+    });
+    return timestampWrites;
+  }
+  resolve(commandEncoder) {
+    if (!this.#timestampsSupported || this.paused) {
+      return;
+    }
+    if (this.#currentReadbackBuffer) {
+      throw new Error("Must read back the previous resolve before resolve can be called again.");
+    }
+    if (this.#timestampReadbackBuffers.length > 0) {
+      this.#currentReadbackBuffer = this.#timestampReadbackBuffers.pop();
+    } else {
+      this.#currentReadbackBuffer = this.device.createBuffer({
+        label: `Timestamp Readback ${this.#readbackBufferCount}`,
+        size: this.#timestampResolveBuffer.size,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
+      });
+      this.#readbackBufferCount++;
+    }
+    commandEncoder.resolveQuerySet(this.#timestampQuerySet, 0, this.#nextQueryIndex, this.#timestampResolveBuffer, 0);
+    commandEncoder.copyBufferToBuffer(this.#timestampResolveBuffer, 0, this.#currentReadbackBuffer, 0, this.#timestampResolveBuffer.size);
+  }
+  async read() {
+    if (!this.#currentReadbackBuffer) {
+      return;
+    }
+    let readbackBuffer = this.#currentReadbackBuffer;
+    let queries = [...this.#queriesUsed];
+    this.#currentReadbackBuffer = null;
+    this.#queriesUsed = [];
+    this.#nextQueryIndex = 0;
+    await readbackBuffer.mapAsync(GPUMapMode.READ);
+    const mappedArray = new BigUint64Array(readbackBuffer.getMappedRange());
+    const results = {};
+    const queryTimes = /* @__PURE__ */ new Map();
+    for (const query of queries) {
+      const passTime = Number(mappedArray[query.end] - mappedArray[query.begin]);
+      if (passTime >= 0) {
+        let passTimeMicro = passTime / 1e3;
+        let time = queryTimes.get(query.name) ?? 0;
+        queryTimes.set(query.name, time + passTimeMicro);
+      }
+    }
+    for (const [name, passTimeMicro] of queryTimes.entries()) {
+      let passTimings = this.#passTimings.get(name);
+      if (!passTimings) {
+        passTimings = {
+          values: new Array(AVG_SAMPLE_COUNT),
+          index: 0
+        };
+        this.#passTimings.set(name, passTimings);
+      }
+      passTimings.values[passTimings.index++ % AVG_SAMPLE_COUNT] = passTimeMicro;
+      if (passTimings.index % AVG_SAMPLE_COUNT == 0) {
+        let avg = 0;
+        for (const value of passTimings.values) {
+          avg += value;
+        }
+        this.#averages[name] = avg / AVG_SAMPLE_COUNT;
+      }
+      results[name] = passTimeMicro;
+    }
+    for (const name of this.#passTimings.keys()) {
+      if (!queryTimes.has(name)) {
+        let passTimings = this.#passTimings.get(name);
+        passTimings.values[passTimings.index++ % AVG_SAMPLE_COUNT] = 0;
+        if (passTimings.index % AVG_SAMPLE_COUNT == 0) {
+          let avg = 0;
+          for (const value of passTimings.values) {
+            avg += value;
+          }
+          this.#averages[name] = avg / AVG_SAMPLE_COUNT;
+        }
+      }
+    }
+    readbackBuffer.unmap();
+    if (this.paused) {
+      return;
+    }
+    this.#timestampReadbackBuffers.push(readbackBuffer);
+    return results;
+  }
+  hasPendingResults() {
+    return this.#nextQueryIndex != 0;
+  }
+  get averages() {
+    return this.#averages;
+  }
+};
+
 // src/renderer/webgpu-renderer.ts
 var WebGPURenderer = class {
   static {
@@ -18089,17 +18250,20 @@ var WebGPURenderer = class {
   static RequiredFeatures = [];
   static OptionalFeatures = [
     // @ts-expect-error Not an official part of the spec
-    "chromium-experimental-sampling-resource-table"
+    "chromium-experimental-sampling-resource-table",
+    "timestamp-query"
   ];
   device;
   canvas;
   context;
   config;
   useBindless;
+  timestampHelper;
   textureLoader;
   depthStencilTexture;
   msaaColorTexture;
   attachmentLayout;
+  depthAttachmentLayout;
   frameBGL;
   #frameBindGroup;
   cameraManager;
@@ -18121,6 +18285,7 @@ var WebGPURenderer = class {
     this.canvas = options.canvas ?? document.createElement("canvas");
     this.context = this.canvas.getContext("webgpu");
     this.config = Config.Create(RenderConfig, device);
+    this.timestampHelper = new TimestampHelper(device);
     this.useBindless = QueryArgs.getBool("bindless", true) && this.device.features.has("chromium-experimental-sampling-resource-table");
     if (this.useBindless) {
       console.log("Using Bindless for Decals! \u{1F44D}");
@@ -18150,6 +18315,7 @@ var WebGPURenderer = class {
       this.config.depthStencilFormat,
       this.config.sampleCount
     );
+    this.depthAttachmentLayout = new AttachmentLayout([], this.config.depthStencilFormat, this.config.sampleCount);
     const frameBGLEntries = [{
       // Camera Uniforms
       binding: 0,
@@ -18314,6 +18480,59 @@ var WebGPURenderer = class {
     const colorTexture = this.context.getCurrentTexture();
     const commandEncoder = this.device.createCommandEncoder();
     this.clusterManager.updateClusterBounds(commandEncoder);
+    const drawUnlitInstances = /* @__PURE__ */ __name((renderPass2, attachmentLayout, material, geometries, depthPrepass) => {
+      renderPass2.setBindGroup(1, material.materialBindGroup);
+      for (let geometryInstances of geometries.values()) {
+        const args = {
+          canDecal: material.canDecal,
+          depthTest: material.depthTest,
+          doubleSided: material.doubleSided,
+          transparent: material.transparent,
+          mirrored: false,
+          useBindless: this.useBindless,
+          depthPrepass
+        };
+        if (geometryInstances.instances.length) {
+          const pipeline = this.unlitPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout,
+            attachmentLayout,
+            args
+          );
+          pipeline.use(renderPass2);
+          geometryInstances.geometry.bindAndDraw(renderPass2, geometryInstances.instanceCount, geometryInstances.indexOffset);
+        }
+        if (geometryInstances.mirroredInstances.length) {
+          args.mirrored = true;
+          const pipeline = this.unlitPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout,
+            attachmentLayout,
+            args
+          );
+          pipeline.use(renderPass2);
+          geometryInstances.geometry.bindAndDraw(renderPass2, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
+        }
+      }
+    }, "drawUnlitInstances");
+    if (this.config.useDepthPrepass) {
+      const depthPassDesc = {
+        colorAttachments: [],
+        depthStencilAttachment: {
+          view: this.depthStencilTexture,
+          depthLoadOp: "clear",
+          depthClearValue: 0,
+          depthStoreOp: "store"
+        },
+        timestampWrites: this.timestampHelper.timestampWrites("Depth Prepass")
+      };
+      const renderPass2 = commandEncoder.beginRenderPass(depthPassDesc);
+      renderPass2.setBindGroup(0, this.frameBindings);
+      for (let materialGeometries of this.instanceManager.materials.values()) {
+        if (materialGeometries.material instanceof UnlitMaterial) {
+          drawUnlitInstances(renderPass2, this.depthAttachmentLayout, materialGeometries.material, materialGeometries.geometries, true);
+        }
+      }
+      renderPass2.end();
+    }
     const passDesc = {
       colorAttachments: [{
         view: colorTexture,
@@ -18328,10 +18547,11 @@ var WebGPURenderer = class {
       }],
       depthStencilAttachment: {
         view: this.depthStencilTexture,
-        depthLoadOp: "clear",
+        depthLoadOp: this.config.useDepthPrepass ? "load" : "clear",
         depthClearValue: 0,
         depthStoreOp: "discard"
-      }
+      },
+      timestampWrites: this.timestampHelper.timestampWrites("Main Renderpass")
     };
     if (this.useBindless) {
       passDesc.resourceTable = this.decalManager.decalResourceTable;
@@ -18340,36 +18560,7 @@ var WebGPURenderer = class {
     renderPass.setBindGroup(0, this.frameBindings);
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
-        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
-        for (let geometryInstances of materialGeometries.geometries.values()) {
-          const args = {
-            canDecal: materialGeometries.material.canDecal,
-            depthTest: materialGeometries.material.depthTest,
-            doubleSided: materialGeometries.material.doubleSided,
-            transparent: materialGeometries.material.transparent,
-            mirrored: false,
-            useBindless: this.useBindless
-          };
-          if (geometryInstances.instances.length) {
-            const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-          }
-          if (geometryInstances.mirroredInstances.length) {
-            args.mirrored = true;
-            const pipeline = this.unlitPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-          }
-        }
+        drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material, materialGeometries.geometries, false);
       } else if (materialGeometries.material instanceof PBRMaterial) {
         renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
         for (let geometryInstances of materialGeometries.geometries.values()) {
@@ -18401,6 +18592,7 @@ var WebGPURenderer = class {
       }
     }
     renderPass.end();
+    this.timestampHelper.resolve(commandEncoder);
     this.device.queue.submit([commandEncoder.finish()]);
   }
 };
@@ -27108,6 +27300,9 @@ var SettingsMenu = class {
       }).on("change", (ev) => {
         this.#updatePhysicsDebugRendering();
       });
+      this.debug.addBinding(this.appState.gpu.config, "useDepthPrepass", {
+        label: "Depth Prepass"
+      });
       this.debug.addBinding(this.appState.config, "flying");
       this.debug.addBinding(this.appState.config, "noclip");
       this.#updatePhysicsDebugRendering();
@@ -27770,7 +27965,7 @@ var PerformanceTracker = class {
   #lastFpsTime = -1;
   #frameStart;
   #tweakpane;
-  //#timestampHelper: TimestampHelper;
+  #timestampHelper;
   constructor() {
     let frameJsTime = new PerformanceEntry(0 /* cpu */, 100);
     this.entries.set("frameJs \xB5s", frameJsTime);
@@ -27788,6 +27983,13 @@ var PerformanceTracker = class {
     this.#framesRendered++;
     if (endTime - this.#lastFpsTime >= 1e3) {
       this.#updateFps(endTime);
+    }
+    if (this.#timestampHelper) {
+      this.#timestampHelper.read().then((values) => {
+        for (const key in values) {
+          this.addSample(key, values[key]);
+        }
+      });
     }
   }
   #updateFps(endTime) {
@@ -27865,9 +28067,9 @@ var PerformanceTracker = class {
     this.#addTweakpaneEntry("frameJs \xB5s", true);
     return this.#tweakpane;
   }
-  /*setTimestampHelper(timestampHelper: TimestampHelper) {
+  setTimestampHelper(timestampHelper) {
     this.#timestampHelper = timestampHelper;
-  }*/
+  }
 };
 
 // src/main.ts
@@ -27952,7 +28154,9 @@ var PaintballColors = [
       this.settingsMenu = new SettingsMenu(this.appState);
       this.stage.add(this.settingsMenu);
       this.performanceTracker = new PerformanceTracker();
+      this.performanceTracker.setTimestampHelper(this.gpu.timestampHelper);
       this.performanceTracker.bindToTweakpane(this.settingsMenu.pane);
+      this.gpu.timestampHelper.paused = !this.appState.debug;
       this.gltfLoader = new GltfLoader(gpu);
       this.actionManager = new ActionManager(gpu.canvas);
       this.stage.add(this.actionManager);
