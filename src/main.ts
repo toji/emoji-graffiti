@@ -35,6 +35,7 @@ const PaintballColors = [
     appState: AppState;
     settingsMenu: SettingsMenu;
     performanceTracker: PerformanceTracker;
+    wasPointerLocked: boolean = false;
 
     actionManager: ActionManager;
     walkJoystick: any;
@@ -256,6 +257,14 @@ const PaintballColors = [
         });
       }
 
+      document.addEventListener("pointerlockchange", () => {
+        if (document.pointerLockElement == this.gpu.canvas) {
+          this.wasPointerLocked = true;
+        } else if (!document.pointerLockElement && this.wasPointerLocked && this.appState.mode == InputMode.Paint) {
+          this.emojiPicker.style.display = '';
+        }
+      });
+
       gpu.canvas.addEventListener('click', (ev) => {
         this.emojiPicker.style.display = 'none';
       });
@@ -268,6 +277,9 @@ const PaintballColors = [
           unicode: emojiEvent.detail.unicode,
           url: emojiEvent.detail.emoji?.url
         });
+        if (this.wasPointerLocked) {
+          this.actionManager.requestPointerLock();
+        }
       });
       fetch('./media/emoji/custom.json').then(async (result) => {
         // @ts-ignore
@@ -275,26 +287,33 @@ const PaintballColors = [
       });
 
       this.viewButton.addEventListener('click', () => {
+        this.wasPointerLocked = false;
         this.#switchMode(InputMode.View);
       });
 
       this.emojiButton.addEventListener('click', () => {
+        this.wasPointerLocked = false;
         this.#switchMode(InputMode.Paint);
       });
 
       this.shootButton.addEventListener('click', () => {
+        this.wasPointerLocked = false;
         this.#switchMode(InputMode.Shoot);
       });
 
       this.eraseButton.addEventListener('click', () => {
+        this.wasPointerLocked = false;
         this.#switchMode(InputMode.Erase);
       });
 
       this.clearButton.addEventListener('click', () => {
+        this.wasPointerLocked = false;
         this.appState.clearDecals();
       });
 
       this.settingsButton.addEventListener('click', () => {
+        this.wasPointerLocked = false;
+        this.emojiPicker.style.display = 'none';
         this.settingsMenu.hidden = !this.settingsMenu.hidden;
         if (this.settingsMenu.hidden) {
           this.settingsButton.classList.remove('open');

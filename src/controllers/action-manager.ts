@@ -73,11 +73,7 @@ export class ActionManager {
     let lastX: number;
     let lastY: number;
     this.#mouseElement.addEventListener('click', (event: PointerEvent) => {
-      if (!this.isPointerLocked) {
-        this.#mouseElement.requestPointerLock({
-          unadjustedMovement: true,
-        });
-      }
+      this.requestPointerLock();
     });
     document.addEventListener("pointerlockchange", () => {
       this.#keyPressed = {};
@@ -106,6 +102,14 @@ export class ActionManager {
     };
     this.#mouseElement.addEventListener('pointerdown', buttonCallback);
     this.#mouseElement.addEventListener('pointerup', buttonCallback);
+  }
+
+  requestPointerLock() {
+    if (!this.isPointerLocked) {
+      this.#mouseElement.requestPointerLock({
+        unadjustedMovement: true,
+      });
+    }
   }
 
   get isPointerLocked() {
