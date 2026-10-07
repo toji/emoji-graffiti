@@ -18106,7 +18106,7 @@ var TimestampHelper = class {
   #timestampResolveBuffer;
   #timestampReadbackBuffers = [];
   #readbackBufferCount = 0;
-  #currentReadbackBuffer = null;
+  #currentReadbackBuffer = void 0;
   #passTimings = /* @__PURE__ */ new Map();
   #maxPassCount = 0;
   #nextQueryIndex = 0;
@@ -18137,7 +18137,7 @@ var TimestampHelper = class {
       return void 0;
     }
     if (this.#currentReadbackBuffer) {
-      throw new Error("Must read back the previous resolve before new timestampes can be added.");
+      throw new Error("Must read back the previous resolve before new timestamps can be added.");
     }
     if (this.#nextQueryIndex >= this.#maxPassCount * 2) {
       throw new Error("Exceeded the number of passes that can be queried in a single resolve.");
@@ -18176,16 +18176,16 @@ var TimestampHelper = class {
   }
   async read() {
     if (!this.#currentReadbackBuffer) {
-      return;
+      return {};
     }
+    const results = {};
     let readbackBuffer = this.#currentReadbackBuffer;
     let queries = [...this.#queriesUsed];
-    this.#currentReadbackBuffer = null;
+    this.#currentReadbackBuffer = void 0;
     this.#queriesUsed = [];
     this.#nextQueryIndex = 0;
     await readbackBuffer.mapAsync(GPUMapMode.READ);
     const mappedArray = new BigUint64Array(readbackBuffer.getMappedRange());
-    const results = {};
     const queryTimes = /* @__PURE__ */ new Map();
     for (const query of queries) {
       const passTime = Number(mappedArray[query.end] - mappedArray[query.begin]);
@@ -18229,7 +18229,7 @@ var TimestampHelper = class {
     }
     readbackBuffer.unmap();
     if (this.paused) {
-      return;
+      return {};
     }
     this.#timestampReadbackBuffers.push(readbackBuffer);
     return results;
@@ -27963,7 +27963,7 @@ var PerformanceTracker = class {
   fps = new PerformanceEntry(0 /* cpu */);
   #framesRendered = 0;
   #lastFpsTime = -1;
-  #frameStart;
+  #frameStart = -1;
   #tweakpane;
   #timestampHelper;
   constructor() {
