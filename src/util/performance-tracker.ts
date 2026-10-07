@@ -1,4 +1,5 @@
-import { TimestampHelper } from "./webgpu/timestamp-helper";
+import { FolderApi } from "tweakpane";
+import { TimestampHelper } from "./timestamp-helper.ts";
 
 const DEFAULT_ENTRY_BUFFER_LENGTH = 20;
 
@@ -60,10 +61,10 @@ export class PerformanceTracker {
 
   #framesRendered: number = 0;
   #lastFpsTime: number = -1;
-  #frameStart: number;
+  #frameStart: number = -1;
 
-  #tweakpane: any;
-  #timestampHelper: TimestampHelper;
+  #tweakpane?: FolderApi;
+  #timestampHelper?: TimestampHelper;
 
   constructor() {
     // Give this one a longer buffer
@@ -139,7 +140,7 @@ export class PerformanceTracker {
       }
     }
 
-    let frameJsTime = this.entries.get('frameJs µs');
+    let frameJsTime = this.entries.get('frameJs µs')!;
     this.entries.clear();
     this.entries.set('frameJs µs', frameJsTime);
 
@@ -150,7 +151,7 @@ export class PerformanceTracker {
 
   #addTweakpaneEntry(name: string, graph: boolean) {
     if (this.#tweakpane) {
-      let entry = this.entries.get(name);
+      let entry = this.entries.get(name)!;
       if (entry.tweakpaneBinding) {
         this.#tweakpane.add(entry.tweakpaneBinding);
       } else {

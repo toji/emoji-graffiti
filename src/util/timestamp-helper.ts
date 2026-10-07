@@ -24,11 +24,11 @@ export class TimestampHelper {
   device: GPUDevice;
 
   #timestampsSupported = false;
-  #timestampQuerySet: GPUQuerySet;
-  #timestampResolveBuffer: GPUBuffer;
+  #timestampQuerySet?: GPUQuerySet;
+  #timestampResolveBuffer?: GPUBuffer;
   #timestampReadbackBuffers: GPUBuffer[] = [];
   #readbackBufferCount = 0;
-  #currentReadbackBuffer?: GPUBuffer = null;
+  #currentReadbackBuffer?: GPUBuffer = undefined;
 
   #passTimings = new Map();
   #maxPassCount = 0;
@@ -62,19 +62,19 @@ export class TimestampHelper {
     return this.#timestampsSupported;
   }
 
-  timestampWrites(name: string): TimestampWrites {
+  timestampWrites(name: string): TimestampWrites | undefined {
     if (!this.#timestampsSupported || this.paused) { return undefined; }
 
     if (this.#currentReadbackBuffer) {
-      throw new Error('Must read back the previous resolve before new timestampes can be added.');
+      throw new Error('Must read back the previous resolve before new timestamps can be added.');
     }
 
     if (this.#nextQueryIndex >= this.#maxPassCount * 2) {
       throw new Error('Exceeded the number of passes that can be queried in a single resolve.');
     }
 
-    const timestampWrites = {
-      querySet: this.#timestampQuerySet,
+    const timestampWrites: TimestampWrites = {
+      querySet: this.#timestampQuerySet!,
       beginningOfPassWriteIndex: this.#nextQueryIndex++,
       endOfPassWriteIndex: this.#nextQueryIndex++
     };
@@ -99,30 +99,30 @@ export class TimestampHelper {
     } else {
       this.#currentReadbackBuffer = this.device.createBuffer({
         label: `Timestamp Readback ${this.#readbackBufferCount}`,
-        size: this.#timestampResolveBuffer.size,
+        size: this.#timestampResolveBuffer!.size,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
       this.#readbackBufferCount++;
     }
 
-    commandEncoder.resolveQuerySet(this.#timestampQuerySet, 0, this.#nextQueryIndex, this.#timestampResolveBuffer, 0);
-    commandEncoder.copyBufferToBuffer(this.#timestampResolveBuffer, 0, this.#currentReadbackBuffer, 0, this.#timestampResolveBuffer.size);
+    commandEncoder.resolveQuerySet(this.#timestampQuerySet!, 0, this.#nextQueryIndex, this.#timestampResolveBuffer!, 0);
+    commandEncoder.copyBufferToBuffer(this.#timestampResolveBuffer!, 0, this.#currentReadbackBuffer!, 0, this.#timestampResolveBuffer!.size);
   }
 
   async read(): Promise<TimestampResults> {
-    if (!this.#currentReadbackBuffer) { return; }
+    if (!this.#currentReadbackBuffer) { return {}; }
+
+    const results: TimestampResults = {};
 
     let readbackBuffer = this.#currentReadbackBuffer;
     let queries = [...this.#queriesUsed];
 
-    this.#currentReadbackBuffer = null;
+    this.#currentReadbackBuffer = undefined;
     this.#queriesUsed = [];
     this.#nextQueryIndex = 0;
 
     await readbackBuffer.mapAsync(GPUMapMode.READ);
     const mappedArray = new BigUint64Array(readbackBuffer.getMappedRange());
-
-    const results: TimestampResults = {};
 
     // Gather all the times for queries with the same names.
     const queryTimes = new Map<string, number>();
@@ -179,7 +179,7 @@ export class TimestampHelper {
     readbackBuffer.unmap();
 
     // We might have paused after initiating the readback.
-    if (this.paused) { return; }
+    if (this.paused) { return {}; }
 
     this.#timestampReadbackBuffers.push(readbackBuffer);
 
