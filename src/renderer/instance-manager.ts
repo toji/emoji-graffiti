@@ -12,34 +12,26 @@ function nextMultipleOf(multiple: number, value: number): number {
 export class GeometryInstances {
   geometry: Geometry;
   instances: Actor[] = [];
-  mirroredInstances: Actor[] = [];
+  mirrored: boolean = false;
   indexOffset: number = -1;
-  mirroredIndexOffset: number = -1;
 
-  constructor(geometry: Geometry) {
+  constructor(geometry: Geometry, mirrored: boolean = false) {
     this.geometry = geometry;
+    this.mirrored = mirrored;
   }
 
   addInstance(actor: Actor) {
-    if (actor.worldTransform.mirrored) {
-      this.mirroredInstances.push(actor);
-    } else {
-      this.instances.push(actor);
-    }
+    this.instances.push(actor);
   }
 
   get instanceCount() {
     return this.instances.length;
   }
-
-  get mirroredInstanceCount() {
-    return this.mirroredInstances.length;
-  }
 }
 
 export class MaterialGeometries {
   material: MaterialBase;
-  geometries: Map<Geometry, GeometryInstances> = new Map();
+  geometryInstances: Map<number, GeometryInstances> = new Map();
   instanceCount: number = 0;
 
   constructor(material: MaterialBase) {
@@ -47,10 +39,12 @@ export class MaterialGeometries {
   }
 
   addInstance(geometry: Geometry, actor: Actor) {
-    let geometryInstances = this.geometries.get(geometry);
+    const mirrored = actor.worldTransform.mirrored;
+    const id = geometry.id * (mirrored ? -1 : 1);
+    let geometryInstances = this.geometryInstances.get(id);
     if (!geometryInstances) {
-      geometryInstances = new GeometryInstances(geometry);
-      this.geometries.set(geometry, geometryInstances);
+      geometryInstances = new GeometryInstances(geometry, mirrored);
+      this.geometryInstances.set(id, geometryInstances);
     }
     geometryInstances.addInstance(actor);
     this.instanceCount++;
@@ -108,24 +102,13 @@ export class InstanceBuffers {
 
     // Build up the arrays that will populate the instance buffers
     for (let materialGeometries of materials.values()) {
-      for (let geometryInstances of materialGeometries.geometries.values()) {
-        if (geometryInstances.instances.length) {
-          geometryInstances.indexOffset = indexOffset;
-          for (let instance of geometryInstances.instances) {
-            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-            this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
-            transformOffset += 28;
-          }
-        }
-        if (geometryInstances.mirroredInstances) {
-          geometryInstances.mirroredIndexOffset = indexOffset;
-          for (let instance of geometryInstances.mirroredInstances) {
-            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-            this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
-            transformOffset += 28;
-          }
+      for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+        geometryInstances.indexOffset = indexOffset;
+        for (let instance of geometryInstances.instances) {
+          this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+          setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
+          this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
+          transformOffset += 28;
         }
       }
     }
