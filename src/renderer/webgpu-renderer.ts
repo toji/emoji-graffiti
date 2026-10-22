@@ -81,7 +81,7 @@ export class WebGPURenderer {
     this.timestampHelper = new TimestampHelper(device);
 
     this.useBindless = QueryArgs.getBool('bindless', true) && this.device.features.has('chromium-experimental-sampling-resource-table');
-  
+
     if(this.useBindless) {
       console.log('Using Bindless for Decals! 👍');
     } else {
@@ -310,32 +310,21 @@ export class WebGPURenderer {
     // Should only need to be done when the camera properties change or the screen resizes.
     this.clusterManager.updateClusterBounds(commandEncoder);
 
-    const drawUnlitInstances = (renderPass: GPURenderPassEncoder, attachmentLayout: AttachmentLayout, material: UnlitMaterial, geometries: Map<Geometry, GeometryInstances>, depthPrepass: boolean) => {
+    const drawUnlitInstances = (renderPass: GPURenderPassEncoder, attachmentLayout: AttachmentLayout, material: UnlitMaterial, geometryInstancesList: Iterable<GeometryInstances>, depthPrepass: boolean) => {
       renderPass.setBindGroup(1, material.materialBindGroup);
-
-      for (let geometryInstances of geometries.values()) {
-        const args: UnlitPipelineArgs = {
+      for (let geometryInstances of geometryInstancesList) {
+        const pipeline = this.unlitPipelineFactory.getPipeline(
+          geometryInstances.geometry.layout, attachmentLayout, {
           canDecal: material.canDecal,
           depthTest: material.depthTest,
           doubleSided: material.doubleSided,
           transparent: material.transparent,
-          mirrored: false,
+          mirrored: geometryInstances.mirrored,
           useBindless: this.useBindless,
           depthPrepass: depthPrepass,
-        };
-        if (geometryInstances.instances.length) {
-          const pipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout, attachmentLayout, args);
-          pipeline.use(renderPass);
-          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-        }
-        if (geometryInstances.mirroredInstances.length) {
-          args.mirrored = true;
-          const pipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout, attachmentLayout, args);
-          pipeline.use(renderPass);
-          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-        }
+        });
+        pipeline.use(renderPass);
+        geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
       }
     }
 
@@ -349,15 +338,20 @@ export class WebGPURenderer {
           depthClearValue: 0,
           depthStoreOp: 'store',
         },
-        timestampWrites: this.timestampHelper.timestampWrites('Depth Prepass')
+        timestampWrites: this.timestampHelper.timestampWrites('Depth Prepass'),
       };
+
+      if (this.useBindless) {
+        // @ts-expect-error
+        depthPassDesc.resourceTable = this.decalManager.decalResourceTable;
+      }
 
       const renderPass = commandEncoder.beginRenderPass(depthPassDesc);
       renderPass.setBindGroup(0, this.frameBindings);
 
       for (let materialGeometries of this.instanceManager.materials.values()) {
         if (materialGeometries.material instanceof UnlitMaterial) {
-          drawUnlitInstances(renderPass, this.depthAttachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometries, true);
+          drawUnlitInstances(renderPass, this.depthAttachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometryInstances.values(), true);
         }
       }
 
@@ -397,30 +391,20 @@ export class WebGPURenderer {
     // TODO: Materials and Pipelines need to be handled way better here.
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
-        drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometries, false);
+        drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometryInstances.values(), false);
       } else if (materialGeometries.material instanceof PBRMaterial) {
         renderPass.setBindGroup(1, (materialGeometries.material as PBRMaterial).materialBindGroup);
 
-        for (let geometryInstances of materialGeometries.geometries.values()) {
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
           const args: PBRPipelineArgs = {
             doubleSided: materialGeometries.material.doubleSided,
             transparent: materialGeometries.material.transparent,
-            mirrored: false,
+            mirrored: geometryInstances.mirrored,
           };
-
-          if (geometryInstances.instances.length) {
-            const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout, args);
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-          }
-          if (geometryInstances.mirroredInstances.length) {
-            args.mirrored = true;
-            const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout, this.attachmentLayout, args);
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-          }
+          const pipeline = this.pbrPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout, this.attachmentLayout, args);
+          pipeline.use(renderPass);
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
         }
       }
     }

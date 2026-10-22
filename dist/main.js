@@ -15672,24 +15672,17 @@ var GeometryInstances = class {
   }
   geometry;
   instances = [];
-  mirroredInstances = [];
+  mirrored = false;
   indexOffset = -1;
-  mirroredIndexOffset = -1;
-  constructor(geometry) {
+  constructor(geometry, mirrored = false) {
     this.geometry = geometry;
+    this.mirrored = mirrored;
   }
   addInstance(actor) {
-    if (actor.worldTransform.mirrored) {
-      this.mirroredInstances.push(actor);
-    } else {
-      this.instances.push(actor);
-    }
+    this.instances.push(actor);
   }
   get instanceCount() {
     return this.instances.length;
-  }
-  get mirroredInstanceCount() {
-    return this.mirroredInstances.length;
   }
 };
 var MaterialGeometries = class {
@@ -15697,16 +15690,18 @@ var MaterialGeometries = class {
     __name(this, "MaterialGeometries");
   }
   material;
-  geometries = /* @__PURE__ */ new Map();
+  geometryInstances = /* @__PURE__ */ new Map();
   instanceCount = 0;
   constructor(material) {
     this.material = material;
   }
   addInstance(geometry, actor) {
-    let geometryInstances = this.geometries.get(geometry);
+    const mirrored = actor.worldTransform.mirrored;
+    const id = geometry.id * (mirrored ? -1 : 1);
+    let geometryInstances = this.geometryInstances.get(id);
     if (!geometryInstances) {
-      geometryInstances = new GeometryInstances(geometry);
-      this.geometries.set(geometry, geometryInstances);
+      geometryInstances = new GeometryInstances(geometry, mirrored);
+      this.geometryInstances.set(id, geometryInstances);
     }
     geometryInstances.addInstance(actor);
     this.instanceCount++;
@@ -15753,24 +15748,13 @@ var InstanceBuffers = class {
       this.instanceTransformArray[offset + 10] = normal[8];
     }, "setNormalMat");
     for (let materialGeometries of materials.values()) {
-      for (let geometryInstances of materialGeometries.geometries.values()) {
-        if (geometryInstances.instances.length) {
-          geometryInstances.indexOffset = indexOffset;
-          for (let instance of geometryInstances.instances) {
-            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-            this.instanceIndexArray[indexOffset] = indexOffset++;
-            transformOffset += 28;
-          }
-        }
-        if (geometryInstances.mirroredInstances) {
-          geometryInstances.mirroredIndexOffset = indexOffset;
-          for (let instance of geometryInstances.mirroredInstances) {
-            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-            this.instanceIndexArray[indexOffset] = indexOffset++;
-            transformOffset += 28;
-          }
+      for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+        geometryInstances.indexOffset = indexOffset;
+        for (let instance of geometryInstances.instances) {
+          this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+          setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
+          this.instanceIndexArray[indexOffset] = indexOffset++;
+          transformOffset += 28;
         }
       }
     }
@@ -18480,37 +18464,24 @@ var WebGPURenderer = class {
     const colorTexture = this.context.getCurrentTexture();
     const commandEncoder = this.device.createCommandEncoder();
     this.clusterManager.updateClusterBounds(commandEncoder);
-    const drawUnlitInstances = /* @__PURE__ */ __name((renderPass2, attachmentLayout, material, geometries, depthPrepass) => {
+    const drawUnlitInstances = /* @__PURE__ */ __name((renderPass2, attachmentLayout, material, geometryInstancesList, depthPrepass) => {
       renderPass2.setBindGroup(1, material.materialBindGroup);
-      for (let geometryInstances of geometries.values()) {
-        const args = {
-          canDecal: material.canDecal,
-          depthTest: material.depthTest,
-          doubleSided: material.doubleSided,
-          transparent: material.transparent,
-          mirrored: false,
-          useBindless: this.useBindless,
-          depthPrepass
-        };
-        if (geometryInstances.instances.length) {
-          const pipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout,
-            attachmentLayout,
-            args
-          );
-          pipeline.use(renderPass2);
-          geometryInstances.geometry.bindAndDraw(renderPass2, geometryInstances.instanceCount, geometryInstances.indexOffset);
-        }
-        if (geometryInstances.mirroredInstances.length) {
-          args.mirrored = true;
-          const pipeline = this.unlitPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout,
-            attachmentLayout,
-            args
-          );
-          pipeline.use(renderPass2);
-          geometryInstances.geometry.bindAndDraw(renderPass2, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-        }
+      for (let geometryInstances of geometryInstancesList) {
+        const pipeline = this.unlitPipelineFactory.getPipeline(
+          geometryInstances.geometry.layout,
+          attachmentLayout,
+          {
+            canDecal: material.canDecal,
+            depthTest: material.depthTest,
+            doubleSided: material.doubleSided,
+            transparent: material.transparent,
+            mirrored: geometryInstances.mirrored,
+            useBindless: this.useBindless,
+            depthPrepass
+          }
+        );
+        pipeline.use(renderPass2);
+        geometryInstances.geometry.bindAndDraw(renderPass2, geometryInstances.instanceCount, geometryInstances.indexOffset);
       }
     }, "drawUnlitInstances");
     if (this.config.useDepthPrepass) {
@@ -18524,11 +18495,14 @@ var WebGPURenderer = class {
         },
         timestampWrites: this.timestampHelper.timestampWrites("Depth Prepass")
       };
+      if (this.useBindless) {
+        depthPassDesc.resourceTable = this.decalManager.decalResourceTable;
+      }
       const renderPass2 = commandEncoder.beginRenderPass(depthPassDesc);
       renderPass2.setBindGroup(0, this.frameBindings);
       for (let materialGeometries of this.instanceManager.materials.values()) {
         if (materialGeometries.material instanceof UnlitMaterial) {
-          drawUnlitInstances(renderPass2, this.depthAttachmentLayout, materialGeometries.material, materialGeometries.geometries, true);
+          drawUnlitInstances(renderPass2, this.depthAttachmentLayout, materialGeometries.material, materialGeometries.geometryInstances.values(), true);
         }
       }
       renderPass2.end();
@@ -18560,34 +18534,22 @@ var WebGPURenderer = class {
     renderPass.setBindGroup(0, this.frameBindings);
     for (let materialGeometries of this.instanceManager.materials.values()) {
       if (materialGeometries.material instanceof UnlitMaterial) {
-        drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material, materialGeometries.geometries, false);
+        drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material, materialGeometries.geometryInstances.values(), false);
       } else if (materialGeometries.material instanceof PBRMaterial) {
         renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
-        for (let geometryInstances of materialGeometries.geometries.values()) {
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
           const args = {
             doubleSided: materialGeometries.material.doubleSided,
             transparent: materialGeometries.material.transparent,
-            mirrored: false
+            mirrored: geometryInstances.mirrored
           };
-          if (geometryInstances.instances.length) {
-            const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-          }
-          if (geometryInstances.mirroredInstances.length) {
-            args.mirrored = true;
-            const pipeline = this.pbrPipelineFactory.getPipeline(
-              geometryInstances.geometry.layout,
-              this.attachmentLayout,
-              args
-            );
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.mirroredInstanceCount, geometryInstances.mirroredIndexOffset);
-          }
+          const pipeline = this.pbrPipelineFactory.getPipeline(
+            geometryInstances.geometry.layout,
+            this.attachmentLayout,
+            args
+          );
+          pipeline.use(renderPass);
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
         }
       }
     }
