@@ -314,15 +314,12 @@ export class WebGPURenderer {
       renderPass.setBindGroup(1, material.materialBindGroup);
       for (let geometryInstances of geometryInstancesList) {
         const pipeline = this.unlitPipelineFactory.getPipeline(
-          geometryInstances.geometry.layout, attachmentLayout, {
-          canDecal: material.canDecal,
-          depthTest: material.depthTest,
-          doubleSided: material.doubleSided,
-          transparent: material.transparent,
-          mirrored: geometryInstances.mirrored,
-          useBindless: this.useBindless,
-          depthPrepass: depthPrepass,
-        });
+          geometryInstances.geometry.layout, attachmentLayout, new UnlitPipelineArgs({
+            material,
+            mirrored: geometryInstances.mirrored,
+            useBindless: this.useBindless,
+            depthPrepass: depthPrepass,
+          }));
         pipeline.use(renderPass);
         geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
       }
@@ -393,16 +390,13 @@ export class WebGPURenderer {
       if (materialGeometries.material instanceof UnlitMaterial) {
         drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material as UnlitMaterial, materialGeometries.geometryInstances.values(), false);
       } else if (materialGeometries.material instanceof PBRMaterial) {
-        renderPass.setBindGroup(1, (materialGeometries.material as PBRMaterial).materialBindGroup);
+        const material = materialGeometries.material as PBRMaterial;
+        renderPass.setBindGroup(1, material.materialBindGroup);
+        const args = new PBRPipelineArgs({material});
 
         for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const args: PBRPipelineArgs = {
-            doubleSided: materialGeometries.material.doubleSided,
-            transparent: materialGeometries.material.transparent,
-            mirrored: geometryInstances.mirrored,
-          };
-          const pipeline = this.pbrPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout, this.attachmentLayout, args);
+          args.mirrored = geometryInstances.mirrored;
+          const pipeline = this.pbrPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, args);
           pipeline.use(renderPass);
           geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
         }

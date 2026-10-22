@@ -17133,6 +17133,27 @@ var QueryArgs = class {
 };
 
 // src/renderer/pipelines/unlit.ts
+var UnlitPipelineArgs = class {
+  static {
+    __name(this, "UnlitPipelineArgs");
+  }
+  transparent;
+  doubleSided;
+  canDecal;
+  depthTest;
+  mirrored;
+  useBindless;
+  depthPrepass;
+  constructor(args) {
+    this.transparent = args.material.transparent;
+    this.doubleSided = args.material.doubleSided;
+    this.canDecal = args.material.canDecal;
+    this.depthTest = args.material.depthTest;
+    this.mirrored = args.mirrored ?? false;
+    this.useBindless = args.useBindless ?? false;
+    this.depthPrepass = args.depthPrepass ?? false;
+  }
+};
 var UnlitPipelineFactory = class extends RenderPipelineFactory {
   static {
     __name(this, "UnlitPipelineFactory");
@@ -17140,8 +17161,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
   materialBGL;
   pipelineLayout;
   constructor(gpu) {
-    const config = gpu.config.watch("useDepthPrepass");
-    super(gpu.device, config);
+    super(gpu.device, gpu.config.watch("useDepthPrepass"));
     this.materialBGL = gpu.device.createBindGroupLayout({
       label: "Unlit Material",
       entries: [{
@@ -17756,6 +17776,19 @@ var PBRFunctions = (
 );
 
 // src/renderer/pipelines/pbr.ts
+var PBRPipelineArgs = class {
+  static {
+    __name(this, "PBRPipelineArgs");
+  }
+  transparent;
+  doubleSided;
+  mirrored;
+  constructor(args) {
+    this.transparent = args.material.transparent;
+    this.doubleSided = args.material.doubleSided;
+    this.mirrored = args.mirrored ?? false;
+  }
+};
 var PBRPipelineFactory = class extends RenderPipelineFactory {
   static {
     __name(this, "PBRPipelineFactory");
@@ -18470,15 +18503,12 @@ var WebGPURenderer = class {
         const pipeline = this.unlitPipelineFactory.getPipeline(
           geometryInstances.geometry.layout,
           attachmentLayout,
-          {
-            canDecal: material.canDecal,
-            depthTest: material.depthTest,
-            doubleSided: material.doubleSided,
-            transparent: material.transparent,
+          new UnlitPipelineArgs({
+            material,
             mirrored: geometryInstances.mirrored,
             useBindless: this.useBindless,
             depthPrepass
-          }
+          })
         );
         pipeline.use(renderPass2);
         geometryInstances.geometry.bindAndDraw(renderPass2, geometryInstances.instanceCount, geometryInstances.indexOffset);
@@ -18536,18 +18566,12 @@ var WebGPURenderer = class {
       if (materialGeometries.material instanceof UnlitMaterial) {
         drawUnlitInstances(renderPass, this.attachmentLayout, materialGeometries.material, materialGeometries.geometryInstances.values(), false);
       } else if (materialGeometries.material instanceof PBRMaterial) {
-        renderPass.setBindGroup(1, materialGeometries.material.materialBindGroup);
+        const material = materialGeometries.material;
+        renderPass.setBindGroup(1, material.materialBindGroup);
+        const args = new PBRPipelineArgs({ material });
         for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const args = {
-            doubleSided: materialGeometries.material.doubleSided,
-            transparent: materialGeometries.material.transparent,
-            mirrored: geometryInstances.mirrored
-          };
-          const pipeline = this.pbrPipelineFactory.getPipeline(
-            geometryInstances.geometry.layout,
-            this.attachmentLayout,
-            args
-          );
+          args.mirrored = geometryInstances.mirrored;
+          const pipeline = this.pbrPipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, args);
           pipeline.use(renderPass);
           geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
         }
