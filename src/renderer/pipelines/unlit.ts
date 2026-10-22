@@ -7,15 +7,26 @@ import { DecalFrameBindings, DitherFunctions, SRGBConversions } from "./common.t
 import { TILE_COUNT, TileFunctions } from "./clusters.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
 import { QueryArgs } from "../../util/query-args.ts";
+import { UnlitMaterial } from "../../materials/unlit.ts";
 
-export interface UnlitPipelineArgs {
-  transparent: boolean,
-  doubleSided: boolean,
-  mirrored: boolean,
-  canDecal: boolean,
-  depthTest: boolean,
-  useBindless: boolean,
-  depthPrepass: boolean,
+export class UnlitPipelineArgs {
+  transparent: boolean;
+  doubleSided: boolean;
+  canDecal: boolean;
+  depthTest: boolean;
+  mirrored: boolean;
+  useBindless: boolean;
+  depthPrepass: boolean;
+
+  constructor(args: { material: UnlitMaterial, mirrored?: boolean, useBindless?: boolean, depthPrepass?: boolean }) {
+    this.transparent = args.material.transparent;
+    this.doubleSided = args.material.doubleSided;
+    this.canDecal = args.material.canDecal;
+    this.depthTest = args.material.depthTest;
+    this.mirrored = args.mirrored ?? false;
+    this.useBindless = args.useBindless ?? false;
+    this.depthPrepass = args.depthPrepass ?? false;
+  }
 }
 
 export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArgs> {
@@ -23,8 +34,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
   pipelineLayout: GPUPipelineLayout;
 
   constructor(gpu: WebGPURenderer) {
-    const config = gpu.config.watch('useDepthPrepass');
-    super(gpu.device, config);
+    super(gpu.device, gpu.config.watch('useDepthPrepass'));
 
     this.materialBGL = gpu.device.createBindGroupLayout({
       label: 'Unlit Material',

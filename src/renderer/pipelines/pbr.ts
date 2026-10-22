@@ -6,11 +6,18 @@ import { wgsl } from "../../util/wgsl-preprocessor.ts";
 import { AttribLocation } from "../../geometry/geometry.ts";
 import { FrameBindings, SRGBConversions } from "./common.ts";
 import { PBRFunctions, SurfaceInfoStruct } from "./pbr-common.ts";
+import { PBRMaterial } from "../../materials/pbr.ts";
 
-export interface PBRPipelineArgs {
-  transparent: boolean,
-  doubleSided: boolean,
-  mirrored: boolean,
+export class PBRPipelineArgs {
+  transparent: boolean;
+  doubleSided: boolean;
+  mirrored: boolean;
+
+  constructor(args: {material: PBRMaterial, mirrored?: boolean}) {
+    this.transparent = args.material.transparent;
+    this.doubleSided = args.material.doubleSided;
+    this.mirrored = args.mirrored ?? false;
+  }
 }
 
 export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
@@ -146,8 +153,6 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
           #else
             surface.N = normalize(in.normal);
           #endif
-
-            let environment = textureSample(environmentTexture, materialSampler, surface.N);
 
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
             surface.alpha = baseColor.a;
