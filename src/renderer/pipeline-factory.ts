@@ -38,8 +38,6 @@ import { AttachmentLayout } from './attachment-layout.js';
 type GPUPipeline = GPURenderPipeline | GPUComputePipeline;
 
 class Pipeline<T extends GPUPipeline> {
-  #requestedAt: DOMHighResTimeStamp;
-  #requestCount: number = 1;
   #key: string;
   #pipeline: T;
   #promise: Promise<T>;
@@ -47,7 +45,6 @@ class Pipeline<T extends GPUPipeline> {
 
   constructor(key: string, pipelinePromise: Promise<T> | T, defaultPipeline?: T) {
     this.#key = key
-    this.#requestedAt = performance.now();
     if (pipelinePromise instanceof Promise) {
       if (!defaultPipeline) {
         throw new Error('Must provide a default pipeline when supplying a pipeline promise.');
@@ -84,18 +81,6 @@ class Pipeline<T extends GPUPipeline> {
 
   get resolved(): boolean {
     return this.#resolved;
-  }
-
-  get requestedAt(): DOMHighResTimeStamp {
-    return this.#requestedAt;
-  }
-
-  get requestCount(): number {
-    return this.#requestCount;
-  }
-
-  incrementRequestCount() {
-    this.#requestCount++;
   }
 }
 
@@ -280,7 +265,6 @@ export abstract class RenderPipelineFactory<T> {
     let pipeline = this.#pipelineCache.get(key);
 
     if (pipeline && (pipeline.resolved || !forceSync)) {
-      pipeline.incrementRequestCount();
       return pipeline;
     }
 
@@ -364,7 +348,6 @@ export abstract class ComputePipelineFactory<T> {
     let pipeline = this.#pipelineCache.get(key);
 
     if (pipeline && (pipeline.resolved || !forceSync)) {
-      pipeline.incrementRequestCount();
       return pipeline;
     }
 

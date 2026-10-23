@@ -11,7 +11,8 @@
     "esModuleInterop": true,
     "declaration": true,
     "allowJs": true,
-    "rewriteRelativeImportExtensions": true
+    "rewriteRelativeImportExtensions": true,
+    "experimentalDecorators": true,
   },
   "include": [
     "src/**/*",

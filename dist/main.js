@@ -1,5 +1,14 @@
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __decorateClass = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
+  for (var i4 = decorators.length - 1, decorator; i4 >= 0; i4--)
+    if (decorator = decorators[i4])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp(target, key, result);
+  return result;
+};
 
 // node_modules/gl-matrix/dist/esm/common.js
 var EPSILON = 1e-6;
@@ -15198,8 +15207,35 @@ var AudioPlayer = class {
 // src/util/config.ts
 var UPDATED_CONFIGS = /* @__PURE__ */ new Set();
 var CONFIG_UPDATE_INTERVAL = 10 * 1e3;
+var immutableProperties;
+function immutable(target, key) {
+  if (!immutableProperties) {
+    immutableProperties = /* @__PURE__ */ new WeakMap();
+  }
+  let immutablePropertyList = immutableProperties.get(target);
+  if (!immutablePropertyList) {
+    immutablePropertyList = [];
+    immutableProperties.set(target.constructor, immutablePropertyList);
+  }
+  immutablePropertyList.push(key);
+}
+__name(immutable, "immutable");
+function isImmutableProperty(target, propertyName) {
+  if (!immutableProperties) {
+    return false;
+  }
+  const immutablePropertyList = immutableProperties.get(target);
+  if (!immutablePropertyList) {
+    return false;
+  }
+  return immutablePropertyList.includes(propertyName);
+}
+__name(isImmutableProperty, "isImmutableProperty");
 var CONFIG_HANDLER = {
   set(obj, key, value) {
+    if (isImmutableProperty(obj.constructor, key)) {
+      throw new Error(`Cannot change @immutable config value ${key} outside of SetDefaults()`);
+    }
     const changed = obj[key] !== value;
     const ret = Reflect.set(...arguments);
     if (changed) {
@@ -15435,16 +15471,56 @@ var ConfigWatcher = class extends Config {
   }
 };
 
+// src/util/query-args.ts
+var searchParams = void 0;
+function clearArgsCache() {
+  searchParams = void 0;
+}
+__name(clearArgsCache, "clearArgsCache");
+window.addEventListener("popstate", clearArgsCache);
+window.addEventListener("hashchange", clearArgsCache);
+function ensureArgsCached() {
+  if (!searchParams) {
+    searchParams = new URLSearchParams(window.location.search);
+  }
+}
+__name(ensureArgsCached, "ensureArgsCached");
+var QueryArgs = class {
+  static {
+    __name(this, "QueryArgs");
+  }
+  static hasQueryArgs() {
+    ensureArgsCached();
+    return searchParams.size != 0;
+  }
+  static getString(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.get(name) ?? (defaultValue ?? "");
+  }
+  static getInt(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
+  }
+  static getFloat(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
+  }
+  static getBool(name, defaultValue) {
+    ensureArgsCached();
+    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
+  }
+};
+
 // src/renderer/render-config.ts
-var RenderConfig = class _RenderConfig extends Config {
+var _RenderConfig = class _RenderConfig extends Config {
   static {
     __name(this, "RenderConfig");
   }
+  useBindless = true;
   colorFormat = navigator.gpu?.getPreferredCanvasFormat() ?? "bgra8unorm";
   depthStencilFormat = "depth24plus";
   selectionFormat = "r32uint";
   sampleCount = 1;
-  useBindless = true;
   useDepthPrepass = true;
   // How large the render targets are compared to the screen resolution.
   // (Canvas render target size will always be 1:1 to allow for better UI)
@@ -15452,9 +15528,14 @@ var RenderConfig = class _RenderConfig extends Config {
   emojiTextureSize = 512;
   static SetDefaults(isMobile, device) {
     const defaults = isMobile ? new MobileRenderConfig() : new _RenderConfig();
+    defaults.useBindless = QueryArgs.getBool("bindless", true) && device.features.has("chromium-experimental-sampling-resource-table");
     return defaults;
   }
 };
+__decorateClass([
+  immutable
+], _RenderConfig.prototype, "useBindless", 2);
+var RenderConfig = _RenderConfig;
 var MobileRenderConfig = class extends RenderConfig {
   static {
     __name(this, "MobileRenderConfig");
@@ -16703,15 +16784,12 @@ var Pipeline = class {
   static {
     __name(this, "Pipeline");
   }
-  #requestedAt;
-  #requestCount = 1;
   #key;
   #pipeline;
   #promise;
   #resolved = false;
   constructor(key, pipelinePromise, defaultPipeline) {
     this.#key = key;
-    this.#requestedAt = performance.now();
     if (pipelinePromise instanceof Promise) {
       if (!defaultPipeline) {
         throw new Error("Must provide a default pipeline when supplying a pipeline promise.");
@@ -16745,15 +16823,6 @@ var Pipeline = class {
   }
   get resolved() {
     return this.#resolved;
-  }
-  get requestedAt() {
-    return this.#requestedAt;
-  }
-  get requestCount() {
-    return this.#requestCount;
-  }
-  incrementRequestCount() {
-    this.#requestCount++;
   }
 };
 var RenderPipeline = class extends Pipeline {
@@ -16875,7 +16944,6 @@ var RenderPipelineFactory = class {
   #getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync = false) {
     let pipeline = this.#pipelineCache.get(key);
     if (pipeline && (pipeline.resolved || !forceSync)) {
-      pipeline.incrementRequestCount();
       return pipeline;
     }
     const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, args);
@@ -17092,46 +17160,6 @@ fn getClusterIndex(fragCoord : vec4f) -> u32 {
 `
 );
 
-// src/util/query-args.ts
-var searchParams = void 0;
-function clearArgsCache() {
-  searchParams = void 0;
-}
-__name(clearArgsCache, "clearArgsCache");
-window.addEventListener("popstate", clearArgsCache);
-window.addEventListener("hashchange", clearArgsCache);
-function ensureArgsCached() {
-  if (!searchParams) {
-    searchParams = new URLSearchParams(window.location.search);
-  }
-}
-__name(ensureArgsCached, "ensureArgsCached");
-var QueryArgs = class {
-  static {
-    __name(this, "QueryArgs");
-  }
-  static hasQueryArgs() {
-    ensureArgsCached();
-    return searchParams.size != 0;
-  }
-  static getString(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.get(name) ?? (defaultValue ?? "");
-  }
-  static getInt(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) : defaultValue ?? 0;
-  }
-  static getFloat(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseFloat(searchParams.get(name)) : defaultValue ?? 0;
-  }
-  static getBool(name, defaultValue) {
-    ensureArgsCached();
-    return searchParams.has(name) ? parseInt(searchParams.get(name), 10) != 0 : defaultValue ?? false;
-  }
-};
-
 // src/renderer/pipelines/unlit.ts
 var UnlitPipelineArgs = class {
   static {
@@ -17142,7 +17170,6 @@ var UnlitPipelineArgs = class {
   canDecal;
   depthTest;
   mirrored;
-  useBindless;
   depthPrepass;
   constructor(args) {
     this.transparent = args.material.transparent;
@@ -17150,7 +17177,6 @@ var UnlitPipelineArgs = class {
     this.canDecal = args.material.canDecal;
     this.depthTest = args.material.depthTest;
     this.mirrored = args.mirrored ?? false;
-    this.useBindless = args.useBindless ?? false;
     this.depthPrepass = args.depthPrepass ?? false;
   }
 };
@@ -17161,7 +17187,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
   materialBGL;
   pipelineLayout;
   constructor(gpu) {
-    super(gpu.device, gpu.config.watch("useDepthPrepass"));
+    super(gpu.device, gpu.config.watch("useDepthPrepass", "useBindless"));
     this.materialBGL = gpu.device.createBindGroupLayout({
       label: "Unlit Material",
       entries: [{
@@ -17181,18 +17207,18 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
     this.pipelineLayout = gpu.device.createPipelineLayout({
       bindGroupLayouts: [gpu.frameBGL, this.materialBGL],
       // @ts-expect-error
-      usesResourceTable: gpu.useBindless
+      usesResourceTable: this.config.useBindless
     });
   }
   getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
     const module = this.device.createShaderModule({
       label: "Unlit Material",
       code: wgsl`
-          #if ${args.useBindless}
+          #if ${this.config.useBindless}
           enable chromium_experimental_resource_table;
           #endif
 
-          ${DecalFrameBindings(args.useBindless)}
+          ${DecalFrameBindings(this.config.useBindless)}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -17252,7 +17278,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
             @location(1) decalId: u32,
           }
 
-          #if ${args.useBindless}
+          #if ${this.config.useBindless}
             fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
           #if ${QueryArgs.getBool("debug")}
               // Checking to see if a resource exists before using it is only needed as a debug
@@ -17480,7 +17506,7 @@ var DecalManager = class {
       size: this.decalArray.byteLength,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
     });
-    if (gpu.useBindless) {
+    if (gpu.config.useBindless) {
       this.decalResourceTable = gpu.device.createResourceTable({
         size: this.maxTextures
       });
@@ -17509,7 +17535,7 @@ var DecalManager = class {
     }
     let texture;
     let layerIndex = 0;
-    if (this.gpu.useBindless) {
+    if (this.gpu.config.useBindless) {
       if (emoji.url) {
         try {
           texture = await this.gpu.textureLoader.fromUrl(emoji.url);
@@ -18272,7 +18298,6 @@ var WebGPURenderer = class {
   canvas;
   context;
   config;
-  useBindless;
   timestampHelper;
   textureLoader;
   depthStencilTexture;
@@ -18301,8 +18326,7 @@ var WebGPURenderer = class {
     this.context = this.canvas.getContext("webgpu");
     this.config = Config.Create(RenderConfig, device);
     this.timestampHelper = new TimestampHelper(device);
-    this.useBindless = QueryArgs.getBool("bindless", true) && this.device.features.has("chromium-experimental-sampling-resource-table");
-    if (this.useBindless) {
+    if (this.config.useBindless) {
       console.log("Using Bindless for Decals! \u{1F44D}");
     } else {
       console.log("Not using Bindless for Decals");
@@ -18372,7 +18396,7 @@ var WebGPURenderer = class {
       visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
       buffer: { type: "read-only-storage" }
     }];
-    if (!this.useBindless) {
+    if (!this.config.useBindless) {
       frameBGLEntries.push({
         // Decal Array Texture
         binding: 8,
@@ -18468,7 +18492,7 @@ var WebGPURenderer = class {
         binding: 7,
         resource: this.decalManager.decalBuffer
       }];
-      if (!this.useBindless) {
+      if (!this.config.useBindless) {
         entries.push({
           binding: 8,
           resource: this.decalManager.decalTextureArray.createView({
@@ -18522,7 +18546,7 @@ var WebGPURenderer = class {
         },
         timestampWrites: this.timestampHelper.timestampWrites("Depth Prepass")
       };
-      if (this.useBindless) {
+      if (this.config.useBindless) {
         depthPassDesc.resourceTable = this.decalManager.decalResourceTable;
       }
       const renderPass2 = commandEncoder.beginRenderPass(depthPassDesc);
@@ -18534,7 +18558,6 @@ var WebGPURenderer = class {
             return new UnlitPipelineArgs({
               material,
               mirrored,
-              useBindless: this.useBindless,
               depthPrepass: true
             });
           }, "filter") };
@@ -18562,7 +18585,7 @@ var WebGPURenderer = class {
       },
       timestampWrites: this.timestampHelper.timestampWrites("Main Renderpass")
     };
-    if (this.useBindless) {
+    if (this.config.useBindless) {
       passDesc.resourceTable = this.decalManager.decalResourceTable;
     }
     const renderPass = commandEncoder.beginRenderPass(passDesc);
@@ -18574,7 +18597,6 @@ var WebGPURenderer = class {
           return new UnlitPipelineArgs({
             material,
             mirrored,
-            useBindless: this.useBindless,
             depthPrepass: false
           });
         }, "filter") };
@@ -27252,7 +27274,7 @@ var SettingsMenu = class {
       window.open("https://github.com/toji/emoji-graffiti", "_blank").focus();
     });
     this.stats = this.pane.addFolder({ title: "Decal Stats", expanded: false });
-    this.stats.addBinding(this.appState.gpu, "useBindless", {
+    this.stats.addBinding(this.appState.gpu.config, "useBindless", {
       readonly: true,
       label: "Bindless"
     });
