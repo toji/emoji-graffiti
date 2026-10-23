@@ -51,7 +51,7 @@ export class SettingsMenu {
 
     this.stats = this.pane.addFolder({title: 'Decal Stats', expanded: false});
 
-    this.stats.addBinding(this.appState.gpu, 'useBindless', {
+    this.stats.addBinding(this.appState.gpu.config, 'useBindless', {
       readonly: true,
       label: 'Bindless',
     });

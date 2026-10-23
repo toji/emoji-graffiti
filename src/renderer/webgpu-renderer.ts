@@ -1,10 +1,10 @@
 import { Config } from "../util/config.ts";
 import { RenderConfig } from "./render-config.ts";
 import { Stage } from "../core/stage.ts";
-import { Actor, ComponentType } from "../core/actor.ts";
+import { Actor } from "../core/actor.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
 import { UnlitMaterial } from "../materials/unlit.ts";
-import { GeometryInstances, InstanceManager } from "./instance-manager.ts";
+import { InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { UnlitPipelineArgs, UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
@@ -17,7 +17,6 @@ import { QueryArgs } from "../util/query-args.ts";
 import { Geometry } from "../geometry/geometry.ts";
 import { TimestampHelper } from "../util/timestamp-helper.ts";
 import { MaterialBase } from "../materials/material-base.ts";
-import { RenderPipelineFactory } from "./pipeline-factory.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -39,7 +38,6 @@ export class WebGPURenderer {
   context: GPUCanvasContext;
 
   config: RenderConfig;
-  useBindless: boolean;
   timestampHelper: TimestampHelper;
 
   textureLoader: WebGpuTextureLoader;
@@ -82,9 +80,7 @@ export class WebGPURenderer {
 
     this.timestampHelper = new TimestampHelper(device);
 
-    this.useBindless = QueryArgs.getBool('bindless', true) && this.device.features.has('chromium-experimental-sampling-resource-table');
-
-    if(this.useBindless) {
+    if(this.config.useBindless) {
       console.log('Using Bindless for Decals! 👍');
     } else {
       console.log('Not using Bindless for Decals')
@@ -164,7 +160,7 @@ export class WebGPURenderer {
       buffer: { type: 'read-only-storage' }
     }];
 
-    if (!this.useBindless) {
+    if (!this.config.useBindless) {
       frameBGLEntries.push({
         // Decal Array Texture
         binding: 8,
@@ -279,7 +275,7 @@ export class WebGPURenderer {
         resource: this.decalManager.decalBuffer,
       }, ];
 
-      if (!this.useBindless) {
+      if (!this.config.useBindless) {
         entries.push({
           binding: 8,
           resource: this.decalManager.decalTextureArray!.createView({
@@ -348,7 +344,7 @@ export class WebGPURenderer {
         timestampWrites: this.timestampHelper.timestampWrites('Depth Prepass'),
       };
 
-      if (this.useBindless) {
+      if (this.config.useBindless) {
         // @ts-expect-error
         depthPassDesc.resourceTable = this.decalManager.decalResourceTable;
       }
@@ -365,7 +361,6 @@ export class WebGPURenderer {
             return new UnlitPipelineArgs({
               material,
               mirrored,
-              useBindless: this.useBindless,
               depthPrepass: true,
             });
           }};
@@ -400,7 +395,7 @@ export class WebGPURenderer {
       timestampWrites: this.timestampHelper.timestampWrites('Main Renderpass')
     };
 
-    if (this.useBindless) {
+    if (this.config.useBindless) {
       // @ts-expect-error
       passDesc.resourceTable = this.decalManager.decalResourceTable;
     }
@@ -416,7 +411,6 @@ export class WebGPURenderer {
           return new UnlitPipelineArgs({
             material,
             mirrored,
-            useBindless: this.useBindless,
             depthPrepass: false,
           });
         }};

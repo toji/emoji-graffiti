@@ -51,7 +51,7 @@ export class DecalManager {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
     });
 
-    if (gpu.useBindless) {
+    if (gpu.config.useBindless) {
       // @ts-expect-error
       this.decalResourceTable = gpu.device.createResourceTable({
         size: this.maxTextures
@@ -88,7 +88,7 @@ export class DecalManager {
 
     let texture: GPUTexture | undefined;
     let layerIndex = 0;
-    if (this.gpu.useBindless) {
+    if (this.gpu.config.useBindless) {
       if (emoji.url) {
         try {
           texture = await this.gpu.textureLoader.fromUrl(emoji.url);

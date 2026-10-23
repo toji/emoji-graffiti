@@ -15,16 +15,14 @@ export class UnlitPipelineArgs {
   canDecal: boolean;
   depthTest: boolean;
   mirrored: boolean;
-  useBindless: boolean;
   depthPrepass: boolean;
 
-  constructor(args: { material: UnlitMaterial, mirrored?: boolean, useBindless?: boolean, depthPrepass?: boolean }) {
+  constructor(args: { material: UnlitMaterial, mirrored?: boolean, depthPrepass?: boolean }) {
     this.transparent = args.material.transparent;
     this.doubleSided = args.material.doubleSided;
     this.canDecal = args.material.canDecal;
     this.depthTest = args.material.depthTest;
     this.mirrored = args.mirrored ?? false;
-    this.useBindless = args.useBindless ?? false;
     this.depthPrepass = args.depthPrepass ?? false;
   }
 }
@@ -34,7 +32,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
   pipelineLayout: GPUPipelineLayout;
 
   constructor(gpu: WebGPURenderer) {
-    super(gpu.device, gpu.config.watch('useDepthPrepass'));
+    super(gpu.device, gpu.config.watch('useDepthPrepass', 'useBindless'));
 
     this.materialBGL = gpu.device.createBindGroupLayout({
       label: 'Unlit Material',
@@ -56,7 +54,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
     this.pipelineLayout = gpu.device.createPipelineLayout({
       bindGroupLayouts: [gpu.frameBGL, this.materialBGL],
       // @ts-expect-error
-      usesResourceTable: gpu.useBindless,
+      usesResourceTable: this.config.useBindless,
     });
   }
 
@@ -67,11 +65,11 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
       const module = this.device.createShaderModule({
         label: 'Unlit Material',
         code: wgsl`
-          #if ${args.useBindless}
+          #if ${this.config.useBindless}
           enable chromium_experimental_resource_table;
           #endif
 
-          ${DecalFrameBindings(args.useBindless)}
+          ${DecalFrameBindings(this.config.useBindless)}
 
           struct Material {
             baseColorFactor: vec4f,
@@ -131,7 +129,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
             @location(1) decalId: u32,
           }
 
-          #if ${args.useBindless}
+          #if ${this.config.useBindless}
             fn getDecalColor(decalIndex: u32, texCoord: vec2f) -> vec4f {
           #if ${QueryArgs.getBool('debug')}
               // Checking to see if a resource exists before using it is only needed as a debug
