@@ -1,11 +1,14 @@
-import { Config } from '../util/config.ts'
+import { Config, immutable } from '../util/config.ts'
+import { QueryArgs } from '../util/query-args.ts';
 
 export class RenderConfig extends Config {
+  @immutable
+  useBindless: boolean = true;
+
   colorFormat: GPUTextureFormat = navigator.gpu?.getPreferredCanvasFormat() ?? 'bgra8unorm';
   depthStencilFormat: GPUTextureFormat = 'depth24plus';
   selectionFormat: GPUTextureFormat = 'r32uint';
   sampleCount: number = 1;
-  useBindless: boolean = true;
   useDepthPrepass: boolean = true;
 
   // How large the render targets are compared to the screen resolution.
@@ -18,6 +21,7 @@ export class RenderConfig extends Config {
     const defaults: RenderConfig = isMobile ? new MobileRenderConfig() : new RenderConfig();
 
     // Initialize any other defaults needed here based on device.
+    defaults.useBindless = QueryArgs.getBool('bindless', true) && device.features.has('chromium-experimental-sampling-resource-table');
 
     return defaults;
   }

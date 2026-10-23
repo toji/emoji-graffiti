@@ -18,10 +18,39 @@ const UPDATED_CONFIGS = new Set<Config>();
 // How frequently update configs will be cached out to storage.
 const CONFIG_UPDATE_INTERVAL = 10 * 1000;
 
+let immutableProperties: WeakMap<object, string[]>;
+
+// Decorator that indicates that the config property will never change after
+// initialization. Value must be set in SetDefaults.
+export function immutable(target: any, context: ClassFieldDecoratorContext): void {
+  if (typeof context.name !== 'string') {
+    throw new Error('Cannot apply @immutable to Symbols.');
+  }
+  if (!immutableProperties) {
+    immutableProperties = new WeakMap();
+  }
+  let immutablePropertyList = immutableProperties.get(target);
+  if (!immutablePropertyList) {
+    immutablePropertyList = [];
+    immutableProperties.set(target, immutablePropertyList);
+  }
+  immutablePropertyList.push(context.name as unknown as string);
+}
+
+function isImmutableProperty(target: any, propertyName: string): boolean {
+  if (!immutableProperties) { return false; }
+  const immutablePropertyList = immutableProperties.get(target);
+  if (!immutablePropertyList) { return false; }
+  return immutablePropertyList.includes(propertyName);
+}
+
 // Proxy handler for config objects to ensure that changing any attribute fires
 // the appropriate events and marks the config to be saved
 const CONFIG_HANDLER = {
   set(obj: Config, key: string, value: any) {
+    if (isImmutableProperty(obj.constructor, key)) {
+      throw new Error(`Cannot change @immutable config value ${key} outside of SetDefaults()`);
+    }
     // @ts-expect-error
     const changed = obj[key] !== value;
     // @ts-expect-error
