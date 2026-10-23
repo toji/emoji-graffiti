@@ -154,8 +154,6 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
             surface.N = normalize(in.normal);
           #endif
 
-            let environment = textureSample(environmentTexture, materialSampler, surface.N);
-
             let baseColor = material.baseColorFactor * textureSample(baseColorTexture, materialSampler, in.texCoord);
             surface.alpha = baseColor.a;
             let color = in.color.rgb * baseColor.rgb;
