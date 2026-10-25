@@ -4,7 +4,7 @@ import { Stage } from "../core/stage.ts";
 import { Actor } from "../core/actor.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
 import { UnlitMaterial } from "../materials/unlit.ts";
-import { InstanceManager } from "./instance-manager.ts";
+import { GeometryInstances, InstanceManager } from "./instance-manager.ts";
 import { WebGpuTextureLoader } from "../loaders/texture/webgpu-texture-loader.ts";
 import { UnlitPipelineArgs, UnlitPipelineFactory } from "./pipelines/unlit.ts";
 import { DecalManager } from "./decal-manager.ts";
@@ -17,6 +17,7 @@ import { QueryArgs } from "../util/query-args.ts";
 import { Geometry } from "../geometry/geometry.ts";
 import { TimestampHelper } from "../util/timestamp-helper.ts";
 import { MaterialBase } from "../materials/material-base.ts";
+import { GeometryInstancePass } from "./geometry-instance-pass.ts";
 
 export interface WebGPURendererOptions {
   canvas?: HTMLCanvasElement;
@@ -70,6 +71,9 @@ export class WebGPURenderer {
   #environmentTexture?: GPUTexture;
 
   causticsTexture?: GPUTexture;
+
+  depthPrepass: GeometryInstancePass;
+  forwardPass: GeometryInstancePass;
 
   constructor(device: GPUDevice, options: WebGPURendererOptions) {
     this.device = device;
@@ -191,6 +195,52 @@ export class WebGPURenderer {
 
     this.unlitPipelineFactory = new UnlitPipelineFactory(this);
     this.pbrPipelineFactory = new PBRPipelineFactory(this);
+
+    this.depthPrepass = new GeometryInstancePass(this.depthAttachmentLayout, (material: MaterialBase) => {
+      if (material instanceof UnlitMaterial) {
+        return {
+          pipelineFactory: this.unlitPipelineFactory,
+          onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
+            renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
+          },
+          filter: (geometryInstances: GeometryInstances) => {
+            return new UnlitPipelineArgs({
+              material,
+              mirrored: geometryInstances.mirrored,
+              depthPrepass: true,
+            });
+          }
+        };
+      }
+    });
+
+    this.forwardPass = new GeometryInstancePass(this.attachmentLayout, (material: MaterialBase) => {
+      if (material instanceof UnlitMaterial) {
+        return {
+          pipelineFactory: this.unlitPipelineFactory,
+          onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
+            renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
+          },
+          filter: (geometryInstances: GeometryInstances) => {
+            return new UnlitPipelineArgs({
+              material,
+              mirrored: geometryInstances.mirrored,
+              depthPrepass: false,
+            });
+          }
+        };
+      } else if (material instanceof PBRMaterial) {
+        return {
+          pipelineFactory: this.pbrPipelineFactory,
+          onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
+            renderPass.setBindGroup(1, (material as PBRMaterial).materialBindGroup);
+          },
+          filter: () => {
+            return new PBRPipelineArgs({material})
+          }
+        };
+      }
+    });
   }
 
   get environmentTexture(): GPUTexture | undefined {
@@ -308,25 +358,6 @@ export class WebGPURenderer {
     // Should only need to be done when the camera properties change or the screen resizes.
     this.clusterManager.updateClusterBounds(commandEncoder);
 
-    // TODO: This is better than what I had but should be more formalized.
-    const drawGeometryInstances = (renderPass: GPURenderPassEncoder, attachmentLayout: AttachmentLayout, materialFilter: MaterialFilter) => {
-      for (let materialGeometries of this.instanceManager.materials.values()) {
-        // Filter by material?
-        const renderMaterial = materialFilter(materialGeometries.material);
-        if (renderMaterial) {
-          const { pipelineFactory, filter } = renderMaterial;
-          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-            const pipelineArgs = filter(geometryInstances.geometry, geometryInstances.mirrored);
-            if (pipelineArgs) {
-              const pipeline = pipelineFactory.getPipeline(geometryInstances.geometry.layout, attachmentLayout, pipelineArgs);
-              pipeline.use(renderPass);
-              geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-            }
-          }
-        }
-      }
-    }
-
     //==========================
     // Depth Prepass (Optional)
     //==========================
@@ -354,18 +385,7 @@ export class WebGPURenderer {
 
       // Loop through just the unlit instances and pre-populate the depth buffer to avoid costly
       // decal fragment shaders in the forward pass.
-      drawGeometryInstances(renderPass, this.depthAttachmentLayout, (material: MaterialBase) => {
-        if (material instanceof UnlitMaterial) {
-          renderPass.setBindGroup(1, material.materialBindGroup);
-          return { pipelineFactory: this.unlitPipelineFactory, filter: (geometry: Geometry, mirrored: boolean) => {
-            return new UnlitPipelineArgs({
-              material,
-              mirrored,
-              depthPrepass: true,
-            });
-          }};
-        }
-      });
+      this.depthPrepass.drawGeometryInstances(renderPass, this.instanceManager);
 
       renderPass.end();
     }
@@ -404,23 +424,7 @@ export class WebGPURenderer {
     renderPass.setBindGroup(0, this.frameBindings);
 
     // Loop through the gathered instances and render
-    drawGeometryInstances(renderPass, this.attachmentLayout, (material: MaterialBase) => {
-      if (material instanceof UnlitMaterial) {
-        renderPass.setBindGroup(1, material.materialBindGroup);
-        return { pipelineFactory: this.unlitPipelineFactory, filter: (geometry: Geometry, mirrored: boolean) => {
-          return new UnlitPipelineArgs({
-            material,
-            mirrored,
-            depthPrepass: false,
-          });
-        }};
-      } else if (material instanceof PBRMaterial) {
-        renderPass.setBindGroup(1, material.materialBindGroup);
-        return { pipelineFactory: this.pbrPipelineFactory, filter: () => {
-          return new PBRPipelineArgs({material})
-        }};
-      }
-    });
+    this.forwardPass.drawGeometryInstances(renderPass, this.instanceManager);
 
     renderPass.end();
 
@@ -429,6 +433,3 @@ export class WebGPURenderer {
     this.device.queue.submit([commandEncoder.finish()]);
   }
 }
-
-type MaterialFilter = (material: MaterialBase) => { pipelineFactory: any, filter: GeometryFilter } | undefined;
-type GeometryFilter = (geometry: Geometry, mirrored: boolean) => any | undefined;
