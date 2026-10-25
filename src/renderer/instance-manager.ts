@@ -10,6 +10,7 @@ function nextMultipleOf(multiple: number, value: number): number {
 }
 
 export class GeometryInstances {
+  id: number;
   geometry: Geometry;
   instances: Actor[] = [];
   mirrored: boolean = false;
@@ -18,6 +19,7 @@ export class GeometryInstances {
   constructor(geometry: Geometry, mirrored: boolean = false) {
     this.geometry = geometry;
     this.mirrored = mirrored;
+    this.id = this.geometry.id * (mirrored ? -1 : 1);
   }
 
   addInstance(actor: Actor) {

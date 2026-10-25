@@ -8668,10 +8668,12 @@ var ActorMaterial = class {
     this.material = material;
   }
 };
+var NextMaterialId = 1;
 var MaterialBase = class {
   static {
     __name(this, "MaterialBase");
   }
+  id = NextMaterialId++;
   addToActor(actor) {
     let actorMaterial = actor.get(ActorMaterial);
     if (actorMaterial) {
@@ -15751,6 +15753,7 @@ var GeometryInstances = class {
   static {
     __name(this, "GeometryInstances");
   }
+  id;
   geometry;
   instances = [];
   mirrored = false;
@@ -15758,6 +15761,7 @@ var GeometryInstances = class {
   constructor(geometry, mirrored = false) {
     this.geometry = geometry;
     this.mirrored = mirrored;
+    this.id = this.geometry.id * (mirrored ? -1 : 1);
   }
   addInstance(actor) {
     this.instances.push(actor);
@@ -18284,34 +18288,74 @@ var TimestampHelper = class {
 };
 
 // src/renderer/geometry-instance-pass.ts
+var GeometryInstancePipelineCache = class {
+  static {
+    __name(this, "GeometryInstancePipelineCache");
+  }
+  #cache = /* @__PURE__ */ new Map();
+  material;
+  attachmentLayout;
+  passMaterialArgs;
+  constructor(material, passMaterialArgs, attachmentLayout) {
+    this.material = material;
+    this.passMaterialArgs = passMaterialArgs;
+    this.attachmentLayout = attachmentLayout;
+  }
+  getPipeline(geometryInstances) {
+    let pipeline = this.#cache.get(geometryInstances.id);
+    if (pipeline === void 0) {
+      const pipelineArgs = this.passMaterialArgs.filter(geometryInstances);
+      if (!pipelineArgs) {
+        this.#cache.set(geometryInstances.id, null);
+        return null;
+      }
+      pipeline = this.passMaterialArgs.pipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, pipelineArgs);
+      this.#cache.set(geometryInstances.id, pipeline);
+    }
+    return pipeline;
+  }
+  onBindMaterial(renderPass) {
+    this.passMaterialArgs.onBindMaterial?.(renderPass, this.material);
+  }
+};
 var GeometryInstancePass = class {
   static {
     __name(this, "GeometryInstancePass");
   }
-  attachmentLayout;
-  materialFilter;
+  #attachmentLayout;
+  #materialFilter;
+  #materialPipelineCache = /* @__PURE__ */ new Map();
   constructor(attachmentLayout, materialFilter) {
-    this.attachmentLayout = attachmentLayout;
-    this.materialFilter = materialFilter;
+    this.#attachmentLayout = attachmentLayout;
+    this.#materialFilter = materialFilter;
   }
   drawGeometryInstances(renderPass, instanceManager) {
     for (let materialGeometries of instanceManager.materials.values()) {
-      const renderMaterial = this.materialFilter(materialGeometries.material);
-      if (renderMaterial) {
-        const { pipelineFactory, filter, onBindMaterial } = renderMaterial;
-        if (onBindMaterial) {
-          onBindMaterial(renderPass, materialGeometries.material);
-        }
+      const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
+      if (cache) {
+        cache.onBindMaterial(renderPass);
         for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const pipelineArgs = filter(geometryInstances);
-          if (pipelineArgs) {
-            const pipeline = pipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, pipelineArgs);
+          const pipeline = cache.getPipeline(geometryInstances);
+          if (pipeline) {
             pipeline.use(renderPass);
             geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
           }
         }
       }
     }
+  }
+  #getGeometryInstancePipelineCache(material) {
+    let cache = this.#materialPipelineCache.get(material.id);
+    if (cache === void 0) {
+      const passMaterialArgs = this.#materialFilter(material);
+      if (!passMaterialArgs) {
+        this.#materialPipelineCache.set(material.id, null);
+        return null;
+      }
+      cache = new GeometryInstancePipelineCache(material, passMaterialArgs, this.#attachmentLayout);
+      this.#materialPipelineCache.set(material.id, cache);
+    }
+    return cache;
   }
 };
 
