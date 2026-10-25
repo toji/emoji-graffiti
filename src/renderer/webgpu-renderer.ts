@@ -13,8 +13,6 @@ import { PBRPipelineArgs, PBRPipelineFactory } from "./pipelines/pbr.ts";
 import { PBRMaterial } from "../materials/pbr.ts";
 import { CameraManager } from "./camera-manager.ts";
 import { ClusterManager } from "./cluster-manager.ts";
-import { QueryArgs } from "../util/query-args.ts";
-import { Geometry } from "../geometry/geometry.ts";
 import { TimestampHelper } from "../util/timestamp-helper.ts";
 import { MaterialBase } from "../materials/material-base.ts";
 import { GeometryInstancePass } from "./geometry-instance-pass.ts";
@@ -203,7 +201,7 @@ export class WebGPURenderer {
           onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
             renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
           },
-          filter: (geometryInstances: GeometryInstances) => {
+          onInstancePipelineArgs: (geometryInstances: GeometryInstances) => {
             return new UnlitPipelineArgs({
               material,
               mirrored: geometryInstances.mirrored,
@@ -221,7 +219,7 @@ export class WebGPURenderer {
           onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
             renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
           },
-          filter: (geometryInstances: GeometryInstances) => {
+          onInstancePipelineArgs: (geometryInstances: GeometryInstances) => {
             return new UnlitPipelineArgs({
               material,
               mirrored: geometryInstances.mirrored,
@@ -235,9 +233,7 @@ export class WebGPURenderer {
           onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
             renderPass.setBindGroup(1, (material as PBRMaterial).materialBindGroup);
           },
-          filter: () => {
-            return new PBRPipelineArgs({material})
-          }
+          onInstancePipelineArgs: () => new PBRPipelineArgs({material})
         };
       }
     });
