@@ -11,7 +11,11 @@ export class ActorMaterial {
   }
 }
 
+let NextMaterialId = 1;
+
 export class MaterialBase {
+  id: number = NextMaterialId++;
+
   addToActor(actor: Actor) {
     // Only one "primary" material allowed at a time.
     let actorMaterial = actor.get(ActorMaterial);
