@@ -18301,15 +18301,15 @@ var GeometryInstancePipelineCache = class {
     this.passMaterialArgs = passMaterialArgs;
     this.attachmentLayout = attachmentLayout;
   }
-  getPipeline(geometryInstances) {
+  getPipeline(geometryInstances, forceSync = false) {
     let pipeline = this.#cache.get(geometryInstances.id);
     if (pipeline === void 0) {
-      const pipelineArgs = this.passMaterialArgs.filter(geometryInstances);
+      const pipelineArgs = this.passMaterialArgs.onInstancePipelineArgs(geometryInstances);
       if (!pipelineArgs) {
         this.#cache.set(geometryInstances.id, null);
         return null;
       }
-      pipeline = this.passMaterialArgs.pipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, pipelineArgs);
+      pipeline = this.passMaterialArgs.pipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, pipelineArgs, forceSync);
       this.#cache.set(geometryInstances.id, pipeline);
     }
     return pipeline;
@@ -18323,19 +18323,38 @@ var GeometryInstancePass = class {
     __name(this, "GeometryInstancePass");
   }
   #attachmentLayout;
-  #materialFilter;
+  #materialCallback;
   #materialPipelineCache = /* @__PURE__ */ new Map();
-  constructor(attachmentLayout, materialFilter) {
+  constructor(attachmentLayout, materialCallback) {
     this.#attachmentLayout = attachmentLayout;
-    this.#materialFilter = materialFilter;
+    this.#materialCallback = materialCallback;
   }
-  drawGeometryInstances(renderPass, instanceManager) {
+  // Ensures that pipelines are generated for all of the material/geometry combinations in the
+  // instanceManager without actually drawing them. Returns a promise that resolves when all of
+  // the pipelines are ready to use.
+  precacheGeometryInstancePipelines(instanceManager) {
+    const pipelinePromises = [];
+    for (let materialGeometries of instanceManager.materials.values()) {
+      const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
+      if (cache) {
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+          const pipeline = cache.getPipeline(geometryInstances);
+          if (pipeline) {
+            pipelinePromises.push(pipeline.promise);
+          }
+        }
+      }
+    }
+    return Promise.all(pipelinePromises);
+  }
+  // Draw all of the material/geometry combintations in the instanceManager.
+  drawGeometryInstances(renderPass, instanceManager, forceSync = false) {
     for (let materialGeometries of instanceManager.materials.values()) {
       const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
       if (cache) {
         cache.onBindMaterial(renderPass);
         for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const pipeline = cache.getPipeline(geometryInstances);
+          const pipeline = cache.getPipeline(geometryInstances, forceSync);
           if (pipeline) {
             pipeline.use(renderPass);
             geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
@@ -18347,7 +18366,7 @@ var GeometryInstancePass = class {
   #getGeometryInstancePipelineCache(material) {
     let cache = this.#materialPipelineCache.get(material.id);
     if (cache === void 0) {
-      const passMaterialArgs = this.#materialFilter(material);
+      const passMaterialArgs = this.#materialCallback(material);
       if (!passMaterialArgs) {
         this.#materialPipelineCache.set(material.id, null);
         return null;
@@ -18508,13 +18527,13 @@ var WebGPURenderer = class {
           onBindMaterial(renderPass, material2) {
             renderPass.setBindGroup(1, material2.materialBindGroup);
           },
-          filter: /* @__PURE__ */ __name((geometryInstances) => {
+          onInstancePipelineArgs: /* @__PURE__ */ __name((geometryInstances) => {
             return new UnlitPipelineArgs({
               material,
               mirrored: geometryInstances.mirrored,
               depthPrepass: true
             });
-          }, "filter")
+          }, "onInstancePipelineArgs")
         };
       }
     });
@@ -18525,13 +18544,13 @@ var WebGPURenderer = class {
           onBindMaterial(renderPass, material2) {
             renderPass.setBindGroup(1, material2.materialBindGroup);
           },
-          filter: /* @__PURE__ */ __name((geometryInstances) => {
+          onInstancePipelineArgs: /* @__PURE__ */ __name((geometryInstances) => {
             return new UnlitPipelineArgs({
               material,
               mirrored: geometryInstances.mirrored,
               depthPrepass: false
             });
-          }, "filter")
+          }, "onInstancePipelineArgs")
         };
       } else if (material instanceof PBRMaterial) {
         return {
@@ -18539,9 +18558,7 @@ var WebGPURenderer = class {
           onBindMaterial(renderPass, material2) {
             renderPass.setBindGroup(1, material2.materialBindGroup);
           },
-          filter: /* @__PURE__ */ __name(() => {
-            return new PBRPipelineArgs({ material });
-          }, "filter")
+          onInstancePipelineArgs: /* @__PURE__ */ __name(() => new PBRPipelineArgs({ material }), "onInstancePipelineArgs")
         };
       }
     });
