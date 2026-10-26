@@ -35,7 +35,8 @@ export class GeometryInstances {
 export class MaterialGeometries {
   material: MaterialBase;
   geometryInstances: Map<number, GeometryInstances> = new Map();
-  instanceCount: number = 0;
+  #instanceCount: number = 0;
+  #mirroredInstanceCount: number = 0;
 
   constructor(material: MaterialBase) {
     this.material = material;
@@ -50,7 +51,23 @@ export class MaterialGeometries {
       this.geometryInstances.set(id, geometryInstances);
     }
     geometryInstances.addInstance(actor);
-    this.instanceCount++;
+    if (mirrored) {
+      this.#mirroredInstanceCount++;
+    } else {
+      this.#instanceCount++;
+    }
+  }
+
+  get hasNonMirroredInstances(): boolean {
+    return this.#instanceCount > 0;
+  }
+
+  get hasMirroredInstances(): boolean {
+    return this.#mirroredInstanceCount > 0;
+  }
+
+  get instanceCount(): number {
+    return this.#instanceCount + this.#mirroredInstanceCount;
   }
 }
 

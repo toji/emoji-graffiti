@@ -201,6 +201,14 @@ const stableStringify = (key: string, value: any) => {
     }, {}) : value;
 }
 
+export interface RenderPipelineDesc<T> {
+  geometryLayout: GeometryLayout,
+  attachmentLayout: AttachmentLayout,
+  args: T,
+  mirrored?: boolean,
+  forceSync?: boolean,
+}
+
 export abstract class RenderPipelineFactory<T> {
   #config?: Config;
   #pipelineCache: Map<string, RenderPipeline> = new Map();
@@ -256,19 +264,19 @@ export abstract class RenderPipelineFactory<T> {
     return JSON.parse(key);
   }
 
-  getPipeline(geometryLayout: GeometryLayout, attachmentLayout: AttachmentLayout, args: T, forceSync: boolean = false): RenderPipeline {
-    const key = `${geometryLayout.serializeToString()};${attachmentLayout.serializeToString()};${JSON.stringify(args, stableStringify)}`;
-    return this.#getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync);
+  getPipeline(desc: RenderPipelineDesc<T>): RenderPipeline {
+    const key = `${desc.geometryLayout.serializeToString()};${desc.attachmentLayout.serializeToString()};${desc.mirrored?1:0};${JSON.stringify(desc.args, stableStringify)}`;
+    return this.#getPipelineWithKey(desc.geometryLayout, desc.attachmentLayout, desc.mirrored ?? false, desc.args, key, desc.forceSync ?? false);
   }
 
-  #getPipelineWithKey(geometryLayout: GeometryLayout, attachmentLayout: AttachmentLayout, args: T, key: string, forceSync: boolean = false): RenderPipeline {
+  #getPipelineWithKey(geometryLayout: GeometryLayout, attachmentLayout: AttachmentLayout, mirrored: boolean, args: T, key: string, forceSync: boolean = false): RenderPipeline {
     let pipeline = this.#pipelineCache.get(key);
 
     if (pipeline && (pipeline.resolved || !forceSync)) {
       return pipeline;
     }
 
-    const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, args);
+    const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, mirrored, args);
     if (pipeline) {
       pipeline.pipeline = this.device.createRenderPipeline(descriptor);
     } else if (!pipeline) {
@@ -286,7 +294,7 @@ export abstract class RenderPipelineFactory<T> {
     return pipeline;
   }
 
-  abstract getPipelineDescriptor(geometryLayout: GeometryLayout, attachmentLayout: AttachmentLayout, args: T): GPURenderPipelineDescriptor;
+  abstract getPipelineDescriptor(geometryLayout: GeometryLayout, attachmentLayout: AttachmentLayout, mirrored: boolean, args: T): GPURenderPipelineDescriptor;
 }
 
 export abstract class ComputePipelineFactory<T> {

@@ -1,73 +1,106 @@
+import { GeometryLayout } from "../geometry/geometry-layout.ts";
 import { MaterialBase } from "../materials/material-base.ts";
 import { AttachmentLayout } from "./attachment-layout.ts";
-import { GeometryInstances, InstanceManager } from "./instance-manager.ts";
+import { GeometryInstances, InstanceManager, MaterialGeometries } from "./instance-manager.ts";
 import { RenderPipeline, RenderPipelineFactory } from "./pipeline-factory.ts";
 
-export type PassMaterialArgs = { pipelineFactory: any, onInstancePipelineArgs: PipelineArgsCallback, onBindMaterial?: MaterialBindCallback };
+//export type PassMaterialArgs = { pipelineFactory: any, onInstancePipelineArgs: PipelineArgsCallback, onBindMaterial?: MaterialBindCallback };
 export type PassMaterialCallback = (material: MaterialBase) => PassMaterialArgs | undefined;
 export type MaterialBindCallback = (renderPass: GPURenderPassEncoder, material: MaterialBase) => void;
 export type PipelineArgsCallback = (geometryInstances: GeometryInstances) => any | undefined;
 
-class GeometryInstancePipelineCache {
-  #cache: Map<number, RenderPipeline | null> = new Map();
-  material: MaterialBase;
-  attachmentLayout: AttachmentLayout;
-  passMaterialArgs: PassMaterialArgs;
+export interface PassMaterialArgs {
+  pipelineFactory: any,
+  pipelineArgs: any,
+  onBindMaterial?: MaterialBindCallback,
+}
 
-  constructor(material: MaterialBase, passMaterialArgs: PassMaterialArgs, attachmentLayout: AttachmentLayout) {
-    this.material = material;
-    this.passMaterialArgs = passMaterialArgs;
-    this.attachmentLayout = attachmentLayout;
-    this.passMaterialArgs.pipelineFactory.config.addEventListener('changed', () => {
-      this.#cache = new Map();
-    });
+interface MaterialPipeline {
+  pipeline?: RenderPipeline,
+  mirroredPipeline?: RenderPipeline,
+  onBindMaterial?: MaterialBindCallback,
+}
+
+class MaterialPipelineCache {
+  #cache: Map<number, MaterialPipeline | null> = new Map();
+  #geometryLayout: GeometryLayout;
+  #attachmentLayout: AttachmentLayout;
+  #materialCallback: PassMaterialCallback;
+  #pipelineFactories: Set<any> = new Set();
+
+  constructor(geometryLayout: GeometryLayout, attachmentLayout: AttachmentLayout, materialCallback: PassMaterialCallback) {
+    this.#geometryLayout = geometryLayout;
+    this.#attachmentLayout = attachmentLayout;
+    this.#materialCallback = materialCallback;
   }
 
-  getPipeline(geometryInstances: GeometryInstances, forceSync: boolean = false): RenderPipeline | null {
-    let pipeline = this.#cache.get(geometryInstances.id);
-    if (pipeline === undefined) {
-      const pipelineArgs = this.passMaterialArgs.onInstancePipelineArgs(geometryInstances);
-      if (!pipelineArgs) {
-        this.#cache.set(geometryInstances.id, null);
+  getPipeline(materialGeometries: MaterialGeometries, forceSync: boolean = false): MaterialPipeline | null {
+    const material = materialGeometries.material;
+    let materialPipeline = this.#cache.get(material.id);
+    if (materialPipeline === undefined) {
+      const passMaterialArgs = this.#materialCallback(material);
+      if (!passMaterialArgs) {
+        this.#cache.set(material.id, null);
         return null;
       }
-      pipeline = this.passMaterialArgs.pipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, pipelineArgs, forceSync);
-      this.#cache.set(geometryInstances.id, pipeline!);
-    }
-    return pipeline!;
-  }
+      materialPipeline = {
+        onBindMaterial: passMaterialArgs.onBindMaterial,
+      };
+      if (!this.#pipelineFactories.has(passMaterialArgs.pipelineFactory)) {
+        passMaterialArgs.pipelineFactory.config.addEventListener('changed', () => {
+          this.#cache = new Map();
+          this.#pipelineFactories = new Set();
+        });
+      }
+      if (materialGeometries.hasNonMirroredInstances) {
+        materialPipeline.pipeline = passMaterialArgs.pipelineFactory.getPipeline({
+          geometryLayout: this.#geometryLayout,
+          attachmentLayout: this.#attachmentLayout,
+          args: passMaterialArgs.pipelineArgs,
+          forceSync
+        });
+      }
+      if (materialGeometries.hasMirroredInstances) {
+        materialPipeline.mirroredPipeline = passMaterialArgs.pipelineFactory.getPipeline({
+          geometryLayout: this.#geometryLayout,
+          attachmentLayout: this.#attachmentLayout,
+          args: passMaterialArgs.pipelineArgs,
+          mirrored: true,
+          forceSync
+        });
+      }
 
-  onBindMaterial(renderPass: GPURenderPassEncoder) {
-    this.passMaterialArgs.onBindMaterial?.(renderPass, this.material);
+      this.#cache.set(material.id, materialPipeline);
+    }
+
+    return materialPipeline!;
   }
 }
 
 /**
  * Simplifies management, pipeline caching, and execution of rendering a set of GeometryInstances
- * from an InstanceManager. Uses callbacks to filter
+ * from an InstanceManager. Uses callbacks to indicate what pipelines to use per-material, or to
+ * filter out some materials from the pass entirely.
  * @example
  * const forwardPass = new GeometryInstancePass(attachmentLayout, (material: MaterialBase) => {
- *    if (material instanceof UnlitMaterial) {
+ *   if (material instanceof UnlitMaterial) {
  *     return {
  *       pipelineFactory: unlitPipelineFactory,
+ *       pipelineArgs: new UnlitPipelineArgs({
+ *         material,
+ *         depthPrepass: false,
+ *       }),
  *       onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
  *         renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
  *       },
- *       onInstancePipelineArgs: (geometryInstances: GeometryInstances) => {
- *         if (geometryInstances.mirrored) { return; } // Filtered out.
- *         return new UnlitPipelineArgs({
- *           material,
- *           depthPrepass: false,
- *         });
- *       }
  *     };
  *   } else if (material instanceof PBRMaterial) {
  *     return {
  *       pipelineFactory: this.pbrPipelineFactory,
+ *       pipelineArgs: new PBRPipelineArgs({material}),
  *       onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
  *         renderPass.setBindGroup(1, (material as PBRMaterial).materialBindGroup);
  *       },
- *       onInstancePipelineArgs: () => new PBRPipelineArgs({material})
  *     };
  *   }
  *   // All other materials get filtered out.
@@ -79,7 +112,7 @@ export class GeometryInstancePass {
   #attachmentLayout: AttachmentLayout;
   #materialCallback: PassMaterialCallback;
 
-  #materialPipelineCache: Map<number, GeometryInstancePipelineCache | null> = new Map();
+  #layoutPipelineCache: Map<number, MaterialPipelineCache> = new Map();
 
   constructor(attachmentLayout: AttachmentLayout, materialCallback: PassMaterialCallback) {
     this.#attachmentLayout = attachmentLayout;
@@ -91,16 +124,15 @@ export class GeometryInstancePass {
   // the pipelines are ready to use.
   precacheGeometryInstancePipelines(instanceManager: InstanceManager) {
     const pipelinePromises: Promise<GPURenderPipeline>[] = [];
-    for (let layout of instanceManager.layouts.values()) {
-      for (let materialGeometries of layout.materialInstances.values()) {
-        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-        if (cache) {
-          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-            const pipeline = cache.getPipeline(geometryInstances);
-            if (pipeline) {
-              pipelinePromises.push(pipeline.promise);
-            }
-          }
+    for (let layoutInstances of instanceManager.layouts.values()) {
+      const materialCache = this.#getMaterialPipelineCache(layoutInstances.layout);
+      for (let materialGeometries of layoutInstances.materialInstances.values()) {
+        const materialPipeline = materialCache.getPipeline(materialGeometries);
+        if (materialPipeline?.pipeline) {
+          pipelinePromises.push(materialPipeline.pipeline.promise);
+        }
+        if (materialPipeline?.mirroredPipeline) {
+          pipelinePromises.push(materialPipeline.mirroredPipeline.promise);
         }
       }
     }
@@ -109,33 +141,36 @@ export class GeometryInstancePass {
 
   // Draw all of the material/geometry combintations in the instanceManager.
   drawGeometryInstances(renderPass: GPURenderPassEncoder, instanceManager: InstanceManager, forceSync: boolean = false) {
-    for (let layout of instanceManager.layouts.values()) {
-      for (let materialGeometries of layout.materialInstances.values()) {
-        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-        if (cache) {
-          cache.onBindMaterial(renderPass);
-          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-            const pipeline = cache.getPipeline(geometryInstances, forceSync);
-            if (pipeline) {
-              pipeline.use(renderPass);
-              geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-            }
+    let lastPipeline: RenderPipeline | undefined;
+    for (let layoutInstances of instanceManager.layouts.values()) {
+      const materialCache = this.#getMaterialPipelineCache(layoutInstances.layout);
+      for (let materialGeometries of layoutInstances.materialInstances.values()) {
+        const materialPipeline = materialCache.getPipeline(materialGeometries, forceSync);
+        if (!materialPipeline) { continue; }
+
+        materialPipeline.onBindMaterial?.(renderPass, materialGeometries.material);
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+          const pipeline = geometryInstances.mirrored ? materialPipeline.mirroredPipeline : materialPipeline.pipeline;
+
+          // It's reasonable to expect that many variants of the same material will end up using the
+          // same pipeline. Do some simple de-duping to avoid churn.
+          // TODO: Do better sorting by pipeline?
+          if (pipeline != lastPipeline) {
+            pipeline!.use(renderPass);
+            lastPipeline = pipeline;
           }
+
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
         }
       }
     }
   }
 
-  #getGeometryInstancePipelineCache(material: MaterialBase): GeometryInstancePipelineCache | null {
-    let cache = this.#materialPipelineCache.get(material.id);
+  #getMaterialPipelineCache(layout: GeometryLayout): MaterialPipelineCache {
+    let cache = this.#layoutPipelineCache.get(layout.id);
     if (cache === undefined) {
-      const passMaterialArgs = this.#materialCallback(material);
-      if (!passMaterialArgs) {
-        this.#materialPipelineCache.set(material.id, null);
-        return null;
-      }
-      cache = new GeometryInstancePipelineCache(material, passMaterialArgs, this.#attachmentLayout);
-      this.#materialPipelineCache.set(material.id, cache);
+      cache = new MaterialPipelineCache(layout, this.#attachmentLayout, this.#materialCallback);
+      this.#layoutPipelineCache.set(layout.id, cache);
     }
     return cache;
   }
