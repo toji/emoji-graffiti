@@ -11,12 +11,10 @@ import { PBRMaterial } from "../../materials/pbr.ts";
 export class PBRPipelineArgs {
   transparent: boolean;
   doubleSided: boolean;
-  mirrored: boolean;
 
-  constructor(args: {material: PBRMaterial, mirrored?: boolean}) {
+  constructor(args: {material: PBRMaterial}) {
     this.transparent = args.material.transparent;
     this.doubleSided = args.material.doubleSided;
-    this.mirrored = args.mirrored ?? false;
   }
 }
 
@@ -69,6 +67,7 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
   getPipelineDescriptor(
     geometryLayout: GeometryLayout,
     attachmentLayout: AttachmentLayout,
+    mirrored: boolean,
     args: PBRPipelineArgs): GPURenderPipelineDescriptor {
       const module = this.device.createShaderModule({
         label: 'PBR Material',
@@ -192,7 +191,7 @@ export class PBRPipelineFactory extends RenderPipelineFactory<PBRPipelineArgs> {
         vertex: { module, buffers: geometryLayout.buffers },
         primitive: {
           topology: geometryLayout.topology,
-          cullMode: args.doubleSided ? 'none' : (args.mirrored ? 'front' : 'back'),
+          cullMode: args.doubleSided ? 'none' : (mirrored ? 'front' : 'back'),
         },
         depthStencil: {
           format: attachmentLayout.depthStencilFormat!,

@@ -14,15 +14,13 @@ export class UnlitPipelineArgs {
   doubleSided: boolean;
   canDecal: boolean;
   depthTest: boolean;
-  mirrored: boolean;
   depthPrepass: boolean;
 
-  constructor(args: { material: UnlitMaterial, mirrored?: boolean, depthPrepass?: boolean }) {
+  constructor(args: { material: UnlitMaterial, depthPrepass?: boolean }) {
     this.transparent = args.material.transparent;
     this.doubleSided = args.material.doubleSided;
     this.canDecal = args.material.canDecal;
     this.depthTest = args.material.depthTest;
-    this.mirrored = args.mirrored ?? false;
     this.depthPrepass = args.depthPrepass ?? false;
   }
 }
@@ -61,6 +59,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
   getPipelineDescriptor(
     geometryLayout: GeometryLayout,
     attachmentLayout: AttachmentLayout,
+    mirrored: boolean,
     args: UnlitPipelineArgs): GPURenderPipelineDescriptor {
       const module = this.device.createShaderModule({
         label: 'Unlit Material',
@@ -252,7 +251,7 @@ export class UnlitPipelineFactory extends RenderPipelineFactory<UnlitPipelineArg
         vertex: { module, buffers: geometryLayout.buffers },
         primitive: {
           topology: geometryLayout.topology,
-          cullMode: args.doubleSided ? 'none' : (args.mirrored ? 'front' : 'back'),
+          cullMode: args.doubleSided ? 'none' : (mirrored ? 'front' : 'back'),
         },
         depthStencil,
         fragment

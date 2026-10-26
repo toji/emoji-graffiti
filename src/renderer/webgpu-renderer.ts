@@ -198,16 +198,10 @@ export class WebGPURenderer {
       if (material instanceof UnlitMaterial) {
         return {
           pipelineFactory: this.unlitPipelineFactory,
+          pipelineArgs: new UnlitPipelineArgs({ material, depthPrepass: true }),
           onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
             renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
           },
-          onInstancePipelineArgs: (geometryInstances: GeometryInstances) => {
-            return new UnlitPipelineArgs({
-              material,
-              mirrored: geometryInstances.mirrored,
-              depthPrepass: true,
-            });
-          }
         };
       }
     });
@@ -216,24 +210,18 @@ export class WebGPURenderer {
       if (material instanceof UnlitMaterial) {
         return {
           pipelineFactory: this.unlitPipelineFactory,
+          pipelineArgs: new UnlitPipelineArgs({ material }),
           onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
             renderPass.setBindGroup(1, (material as UnlitMaterial).materialBindGroup);
           },
-          onInstancePipelineArgs: (geometryInstances: GeometryInstances) => {
-            return new UnlitPipelineArgs({
-              material,
-              mirrored: geometryInstances.mirrored,
-              depthPrepass: false,
-            });
-          }
         };
       } else if (material instanceof PBRMaterial) {
         return {
           pipelineFactory: this.pbrPipelineFactory,
+          pipelineArgs: new PBRPipelineArgs({material}),
           onBindMaterial(renderPass: GPURenderPassEncoder, material: MaterialBase) {
             renderPass.setBindGroup(1, (material as PBRMaterial).materialBindGroup);
           },
-          onInstancePipelineArgs: () => new PBRPipelineArgs({material})
         };
       }
     });

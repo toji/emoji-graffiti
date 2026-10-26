@@ -15776,7 +15776,8 @@ var MaterialGeometries = class {
   }
   material;
   geometryInstances = /* @__PURE__ */ new Map();
-  instanceCount = 0;
+  #instanceCount = 0;
+  #mirroredInstanceCount = 0;
   constructor(material) {
     this.material = material;
   }
@@ -15789,7 +15790,20 @@ var MaterialGeometries = class {
       this.geometryInstances.set(id, geometryInstances);
     }
     geometryInstances.addInstance(actor);
-    this.instanceCount++;
+    if (mirrored) {
+      this.#mirroredInstanceCount++;
+    } else {
+      this.#instanceCount++;
+    }
+  }
+  get hasNonMirroredInstances() {
+    return this.#instanceCount > 0;
+  }
+  get hasMirroredInstances() {
+    return this.#mirroredInstanceCount > 0;
+  }
+  get instanceCount() {
+    return this.#instanceCount + this.#mirroredInstanceCount;
   }
 };
 var GeometryLayoutInstances = class {
@@ -16962,16 +16976,16 @@ var RenderPipelineFactory = class {
   deserializeArgs(key) {
     return JSON.parse(key);
   }
-  getPipeline(geometryLayout, attachmentLayout, args, forceSync = false) {
-    const key = `${geometryLayout.serializeToString()};${attachmentLayout.serializeToString()};${JSON.stringify(args, stableStringify)}`;
-    return this.#getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync);
+  getPipeline(desc) {
+    const key = `${desc.geometryLayout.serializeToString()};${desc.attachmentLayout.serializeToString()};${desc.mirrored ? 1 : 0};${JSON.stringify(desc.args, stableStringify)}`;
+    return this.#getPipelineWithKey(desc.geometryLayout, desc.attachmentLayout, desc.mirrored ?? false, desc.args, key, desc.forceSync ?? false);
   }
-  #getPipelineWithKey(geometryLayout, attachmentLayout, args, key, forceSync = false) {
+  #getPipelineWithKey(geometryLayout, attachmentLayout, mirrored, args, key, forceSync = false) {
     let pipeline = this.#pipelineCache.get(key);
     if (pipeline && (pipeline.resolved || !forceSync)) {
       return pipeline;
     }
-    const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, args);
+    const descriptor = this.getPipelineDescriptor(geometryLayout, attachmentLayout, mirrored, args);
     if (pipeline) {
       pipeline.pipeline = this.device.createRenderPipeline(descriptor);
     } else if (!pipeline) {
@@ -17194,14 +17208,12 @@ var UnlitPipelineArgs = class {
   doubleSided;
   canDecal;
   depthTest;
-  mirrored;
   depthPrepass;
   constructor(args) {
     this.transparent = args.material.transparent;
     this.doubleSided = args.material.doubleSided;
     this.canDecal = args.material.canDecal;
     this.depthTest = args.material.depthTest;
-    this.mirrored = args.mirrored ?? false;
     this.depthPrepass = args.depthPrepass ?? false;
   }
 };
@@ -17235,7 +17247,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
       usesResourceTable: this.config.useBindless
     });
   }
-  getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
+  getPipelineDescriptor(geometryLayout, attachmentLayout, mirrored, args) {
     const module = this.device.createShaderModule({
       label: "Unlit Material",
       code: wgsl`
@@ -17423,7 +17435,7 @@ var UnlitPipelineFactory = class extends RenderPipelineFactory {
       vertex: { module, buffers: geometryLayout.buffers },
       primitive: {
         topology: geometryLayout.topology,
-        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
+        cullMode: args.doubleSided ? "none" : mirrored ? "front" : "back"
       },
       depthStencil,
       fragment
@@ -17833,11 +17845,9 @@ var PBRPipelineArgs = class {
   }
   transparent;
   doubleSided;
-  mirrored;
   constructor(args) {
     this.transparent = args.material.transparent;
     this.doubleSided = args.material.doubleSided;
-    this.mirrored = args.mirrored ?? false;
   }
 };
 var PBRPipelineFactory = class extends RenderPipelineFactory {
@@ -17885,7 +17895,7 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
       bindGroupLayouts: [gpu.frameBGL, this.materialBGL]
     });
   }
-  getPipelineDescriptor(geometryLayout, attachmentLayout, args) {
+  getPipelineDescriptor(geometryLayout, attachmentLayout, mirrored, args) {
     const module = this.device.createShaderModule({
       label: "PBR Material",
       code: wgsl`
@@ -18007,7 +18017,7 @@ var PBRPipelineFactory = class extends RenderPipelineFactory {
       vertex: { module, buffers: geometryLayout.buffers },
       primitive: {
         topology: geometryLayout.topology,
-        cullMode: args.doubleSided ? "none" : args.mirrored ? "front" : "back"
+        cullMode: args.doubleSided ? "none" : mirrored ? "front" : "back"
       },
       depthStencil: {
         format: attachmentLayout.depthStencilFormat,
@@ -18309,37 +18319,58 @@ var TimestampHelper = class {
 };
 
 // src/renderer/geometry-instance-pass.ts
-var GeometryInstancePipelineCache = class {
+var MaterialPipelineCache = class {
   static {
-    __name(this, "GeometryInstancePipelineCache");
+    __name(this, "MaterialPipelineCache");
   }
   #cache = /* @__PURE__ */ new Map();
-  material;
-  attachmentLayout;
-  passMaterialArgs;
-  constructor(material, passMaterialArgs, attachmentLayout) {
-    this.material = material;
-    this.passMaterialArgs = passMaterialArgs;
-    this.attachmentLayout = attachmentLayout;
-    this.passMaterialArgs.pipelineFactory.config.addEventListener("changed", () => {
-      this.#cache = /* @__PURE__ */ new Map();
-    });
+  #geometryLayout;
+  #attachmentLayout;
+  #materialCallback;
+  #pipelineFactories = /* @__PURE__ */ new Set();
+  constructor(geometryLayout, attachmentLayout, materialCallback) {
+    this.#geometryLayout = geometryLayout;
+    this.#attachmentLayout = attachmentLayout;
+    this.#materialCallback = materialCallback;
   }
-  getPipeline(geometryInstances, forceSync = false) {
-    let pipeline = this.#cache.get(geometryInstances.id);
-    if (pipeline === void 0) {
-      const pipelineArgs = this.passMaterialArgs.onInstancePipelineArgs(geometryInstances);
-      if (!pipelineArgs) {
-        this.#cache.set(geometryInstances.id, null);
+  getPipeline(materialGeometries, forceSync = false) {
+    const material = materialGeometries.material;
+    let materialPipeline = this.#cache.get(material.id);
+    if (materialPipeline === void 0) {
+      const passMaterialArgs = this.#materialCallback(material);
+      if (!passMaterialArgs) {
+        this.#cache.set(material.id, null);
         return null;
       }
-      pipeline = this.passMaterialArgs.pipelineFactory.getPipeline(geometryInstances.geometry.layout, this.attachmentLayout, pipelineArgs, forceSync);
-      this.#cache.set(geometryInstances.id, pipeline);
+      materialPipeline = {
+        onBindMaterial: passMaterialArgs.onBindMaterial
+      };
+      if (!this.#pipelineFactories.has(passMaterialArgs.pipelineFactory)) {
+        passMaterialArgs.pipelineFactory.config.addEventListener("changed", () => {
+          this.#cache = /* @__PURE__ */ new Map();
+          this.#pipelineFactories = /* @__PURE__ */ new Set();
+        });
+      }
+      if (materialGeometries.hasNonMirroredInstances) {
+        materialPipeline.pipeline = passMaterialArgs.pipelineFactory.getPipeline({
+          geometryLayout: this.#geometryLayout,
+          attachmentLayout: this.#attachmentLayout,
+          args: passMaterialArgs.pipelineArgs,
+          forceSync
+        });
+      }
+      if (materialGeometries.hasMirroredInstances) {
+        materialPipeline.mirroredPipeline = passMaterialArgs.pipelineFactory.getPipeline({
+          geometryLayout: this.#geometryLayout,
+          attachmentLayout: this.#attachmentLayout,
+          args: passMaterialArgs.pipelineArgs,
+          mirrored: true,
+          forceSync
+        });
+      }
+      this.#cache.set(material.id, materialPipeline);
     }
-    return pipeline;
-  }
-  onBindMaterial(renderPass) {
-    this.passMaterialArgs.onBindMaterial?.(renderPass, this.material);
+    return materialPipeline;
   }
 };
 var GeometryInstancePass = class {
@@ -18348,7 +18379,7 @@ var GeometryInstancePass = class {
   }
   #attachmentLayout;
   #materialCallback;
-  #materialPipelineCache = /* @__PURE__ */ new Map();
+  #layoutPipelineCache = /* @__PURE__ */ new Map();
   constructor(attachmentLayout, materialCallback) {
     this.#attachmentLayout = attachmentLayout;
     this.#materialCallback = materialCallback;
@@ -18358,16 +18389,15 @@ var GeometryInstancePass = class {
   // the pipelines are ready to use.
   precacheGeometryInstancePipelines(instanceManager) {
     const pipelinePromises = [];
-    for (let layout of instanceManager.layouts.values()) {
-      for (let materialGeometries of layout.materialInstances.values()) {
-        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-        if (cache) {
-          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-            const pipeline = cache.getPipeline(geometryInstances);
-            if (pipeline) {
-              pipelinePromises.push(pipeline.promise);
-            }
-          }
+    for (let layoutInstances of instanceManager.layouts.values()) {
+      const materialCache = this.#getMaterialPipelineCache(layoutInstances.layout);
+      for (let materialGeometries of layoutInstances.materialInstances.values()) {
+        const materialPipeline = materialCache.getPipeline(materialGeometries);
+        if (materialPipeline?.pipeline) {
+          pipelinePromises.push(materialPipeline.pipeline.promise);
+        }
+        if (materialPipeline?.mirroredPipeline) {
+          pipelinePromises.push(materialPipeline.mirroredPipeline.promise);
         }
       }
     }
@@ -18375,32 +18405,31 @@ var GeometryInstancePass = class {
   }
   // Draw all of the material/geometry combintations in the instanceManager.
   drawGeometryInstances(renderPass, instanceManager, forceSync = false) {
-    for (let layout of instanceManager.layouts.values()) {
-      for (let materialGeometries of layout.materialInstances.values()) {
-        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-        if (cache) {
-          cache.onBindMaterial(renderPass);
-          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-            const pipeline = cache.getPipeline(geometryInstances, forceSync);
-            if (pipeline) {
-              pipeline.use(renderPass);
-              geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
-            }
+    let lastPipeline;
+    for (let layoutInstances of instanceManager.layouts.values()) {
+      const materialCache = this.#getMaterialPipelineCache(layoutInstances.layout);
+      for (let materialGeometries of layoutInstances.materialInstances.values()) {
+        const materialPipeline = materialCache.getPipeline(materialGeometries, forceSync);
+        if (!materialPipeline) {
+          continue;
+        }
+        materialPipeline.onBindMaterial?.(renderPass, materialGeometries.material);
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+          const pipeline = geometryInstances.mirrored ? materialPipeline.mirroredPipeline : materialPipeline.pipeline;
+          if (pipeline != lastPipeline) {
+            pipeline.use(renderPass);
+            lastPipeline = pipeline;
           }
+          geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
         }
       }
     }
   }
-  #getGeometryInstancePipelineCache(material) {
-    let cache = this.#materialPipelineCache.get(material.id);
+  #getMaterialPipelineCache(layout) {
+    let cache = this.#layoutPipelineCache.get(layout.id);
     if (cache === void 0) {
-      const passMaterialArgs = this.#materialCallback(material);
-      if (!passMaterialArgs) {
-        this.#materialPipelineCache.set(material.id, null);
-        return null;
-      }
-      cache = new GeometryInstancePipelineCache(material, passMaterialArgs, this.#attachmentLayout);
-      this.#materialPipelineCache.set(material.id, cache);
+      cache = new MaterialPipelineCache(layout, this.#attachmentLayout, this.#materialCallback);
+      this.#layoutPipelineCache.set(layout.id, cache);
     }
     return cache;
   }
@@ -18552,16 +18581,10 @@ var WebGPURenderer = class {
       if (material instanceof UnlitMaterial) {
         return {
           pipelineFactory: this.unlitPipelineFactory,
+          pipelineArgs: new UnlitPipelineArgs({ material, depthPrepass: true }),
           onBindMaterial(renderPass, material2) {
             renderPass.setBindGroup(1, material2.materialBindGroup);
-          },
-          onInstancePipelineArgs: /* @__PURE__ */ __name((geometryInstances) => {
-            return new UnlitPipelineArgs({
-              material,
-              mirrored: geometryInstances.mirrored,
-              depthPrepass: true
-            });
-          }, "onInstancePipelineArgs")
+          }
         };
       }
     });
@@ -18569,24 +18592,18 @@ var WebGPURenderer = class {
       if (material instanceof UnlitMaterial) {
         return {
           pipelineFactory: this.unlitPipelineFactory,
+          pipelineArgs: new UnlitPipelineArgs({ material }),
           onBindMaterial(renderPass, material2) {
             renderPass.setBindGroup(1, material2.materialBindGroup);
-          },
-          onInstancePipelineArgs: /* @__PURE__ */ __name((geometryInstances) => {
-            return new UnlitPipelineArgs({
-              material,
-              mirrored: geometryInstances.mirrored,
-              depthPrepass: false
-            });
-          }, "onInstancePipelineArgs")
+          }
         };
       } else if (material instanceof PBRMaterial) {
         return {
           pipelineFactory: this.pbrPipelineFactory,
+          pipelineArgs: new PBRPipelineArgs({ material }),
           onBindMaterial(renderPass, material2) {
             renderPass.setBindGroup(1, material2.materialBindGroup);
-          },
-          onInstancePipelineArgs: /* @__PURE__ */ __name(() => new PBRPipelineArgs({ material }), "onInstancePipelineArgs")
+          }
         };
       }
     });
