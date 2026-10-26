@@ -15792,6 +15792,26 @@ var MaterialGeometries = class {
     this.instanceCount++;
   }
 };
+var GeometryLayoutInstances = class {
+  static {
+    __name(this, "GeometryLayoutInstances");
+  }
+  layout;
+  materialInstances = /* @__PURE__ */ new Map();
+  instanceCount = 0;
+  constructor(layout) {
+    this.layout = layout;
+  }
+  addInstance(material, geometry, actor) {
+    let materialInstances = this.materialInstances.get(material.id);
+    if (!materialInstances) {
+      materialInstances = new MaterialGeometries(material);
+      this.materialInstances.set(material.id, materialInstances);
+    }
+    materialInstances.addInstance(geometry, actor);
+    this.instanceCount++;
+  }
+};
 var InstanceBuffers = class {
   static {
     __name(this, "InstanceBuffers");
@@ -15818,7 +15838,7 @@ var InstanceBuffers = class {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
     });
   }
-  update(materials) {
+  update(layoutInstances) {
     let transformOffset = 0;
     let indexOffset = 0;
     const setNormalMat = /* @__PURE__ */ __name((normal, offset) => {
@@ -15832,14 +15852,16 @@ var InstanceBuffers = class {
       this.instanceTransformArray[offset + 9] = normal[7];
       this.instanceTransformArray[offset + 10] = normal[8];
     }, "setNormalMat");
-    for (let materialGeometries of materials.values()) {
-      for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-        geometryInstances.indexOffset = indexOffset;
-        for (let instance of geometryInstances.instances) {
-          this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-          setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-          this.instanceIndexArray[indexOffset] = indexOffset++;
-          transformOffset += 28;
+    for (let layout of layoutInstances) {
+      for (let materialGeometries of layout.materialInstances.values()) {
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+          geometryInstances.indexOffset = indexOffset;
+          for (let instance of geometryInstances.instances) {
+            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
+            this.instanceIndexArray[indexOffset] = indexOffset++;
+            transformOffset += 28;
+          }
         }
       }
     }
@@ -15852,23 +15874,23 @@ var InstanceManager = class {
     __name(this, "InstanceManager");
   }
   gpu;
-  materials = /* @__PURE__ */ new Map();
+  layouts = /* @__PURE__ */ new Map();
   instanceCount = 0;
   instanceBuffers;
   constructor(gpu) {
     this.gpu = gpu;
   }
   #clear() {
-    this.materials.clear();
+    this.layouts.clear();
     this.instanceCount = 0;
   }
   #addInstance(material, geometry, actor) {
-    let materialGeometries = this.materials.get(material);
-    if (!materialGeometries) {
-      materialGeometries = new MaterialGeometries(material);
-      this.materials.set(material, materialGeometries);
+    let layoutInstances = this.layouts.get(geometry.layout.id);
+    if (!layoutInstances) {
+      layoutInstances = new GeometryLayoutInstances(geometry.layout);
+      this.layouts.set(geometry.layout.id, layoutInstances);
     }
-    materialGeometries.addInstance(geometry, actor);
+    layoutInstances.addInstance(material, geometry, actor);
     this.instanceCount++;
   }
   updateInstances(stage) {
@@ -15876,12 +15898,11 @@ var InstanceManager = class {
     stage.query(Geometry, ActorMaterial).forEach((actor, geometry, material) => {
       this.#addInstance(material.material, geometry, actor);
     });
-    let buffersUpdated = false;
     if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
       this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf2(128, this.instanceCount));
       this.gpu.frameBindingsDirty();
     }
-    this.instanceBuffers.update(this.materials);
+    this.instanceBuffers.update(this.layouts.values());
   }
 };
 
@@ -18300,6 +18321,9 @@ var GeometryInstancePipelineCache = class {
     this.material = material;
     this.passMaterialArgs = passMaterialArgs;
     this.attachmentLayout = attachmentLayout;
+    this.passMaterialArgs.pipelineFactory.config.addEventListener("changed", () => {
+      this.#cache = /* @__PURE__ */ new Map();
+    });
   }
   getPipeline(geometryInstances, forceSync = false) {
     let pipeline = this.#cache.get(geometryInstances.id);
@@ -18334,13 +18358,15 @@ var GeometryInstancePass = class {
   // the pipelines are ready to use.
   precacheGeometryInstancePipelines(instanceManager) {
     const pipelinePromises = [];
-    for (let materialGeometries of instanceManager.materials.values()) {
-      const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-      if (cache) {
-        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const pipeline = cache.getPipeline(geometryInstances);
-          if (pipeline) {
-            pipelinePromises.push(pipeline.promise);
+    for (let layout of instanceManager.layouts.values()) {
+      for (let materialGeometries of layout.materialInstances.values()) {
+        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
+        if (cache) {
+          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+            const pipeline = cache.getPipeline(geometryInstances);
+            if (pipeline) {
+              pipelinePromises.push(pipeline.promise);
+            }
           }
         }
       }
@@ -18349,15 +18375,17 @@ var GeometryInstancePass = class {
   }
   // Draw all of the material/geometry combintations in the instanceManager.
   drawGeometryInstances(renderPass, instanceManager, forceSync = false) {
-    for (let materialGeometries of instanceManager.materials.values()) {
-      const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-      if (cache) {
-        cache.onBindMaterial(renderPass);
-        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const pipeline = cache.getPipeline(geometryInstances, forceSync);
-          if (pipeline) {
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+    for (let layout of instanceManager.layouts.values()) {
+      for (let materialGeometries of layout.materialInstances.values()) {
+        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
+        if (cache) {
+          cache.onBindMaterial(renderPass);
+          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+            const pipeline = cache.getPipeline(geometryInstances, forceSync);
+            if (pipeline) {
+              pipeline.use(renderPass);
+              geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+            }
           }
         }
       }
