@@ -4,6 +4,7 @@ import { Geometry } from "../geometry/geometry.ts";
 import { ActorMaterial, MaterialBase } from "../materials/material-base.ts";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
 import { Stage } from "../core/stage.ts";
+import { GeometryLayout } from "../geometry/geometry-layout.ts";
 
 function nextMultipleOf(multiple: number, value: number): number {
   return Math.ceil(value / multiple) * multiple;
@@ -53,6 +54,26 @@ export class MaterialGeometries {
   }
 }
 
+export class GeometryLayoutInstances {
+  layout: GeometryLayout;
+  materialInstances: Map<number, MaterialGeometries> = new Map();
+  instanceCount: number = 0;
+
+  constructor(layout: GeometryLayout) {
+    this.layout = layout;
+  }
+
+  addInstance(material: MaterialBase, geometry: Geometry, actor: Actor) {
+    let materialInstances = this.materialInstances.get(material.id);
+    if (!materialInstances) {
+      materialInstances = new MaterialGeometries(material);
+      this.materialInstances.set(material.id, materialInstances);
+    }
+    materialInstances.addInstance(geometry, actor);
+    this.instanceCount++;
+  }
+}
+
 export class InstanceBuffers {
   gpu: WebGPURenderer;
 
@@ -84,7 +105,7 @@ export class InstanceBuffers {
     });
   }
 
-  update(materials: Map<MaterialBase, MaterialGeometries>) {
+  update(layoutInstances: Iterable<GeometryLayoutInstances>) {
     let transformOffset = 0;
     let indexOffset = 0;
 
@@ -103,14 +124,16 @@ export class InstanceBuffers {
     }
 
     // Build up the arrays that will populate the instance buffers
-    for (let materialGeometries of materials.values()) {
-      for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-        geometryInstances.indexOffset = indexOffset;
-        for (let instance of geometryInstances.instances) {
-          this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
-          setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
-          this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
-          transformOffset += 28;
+    for (let layout of layoutInstances) {
+      for (let materialGeometries of layout.materialInstances.values()) {
+        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+          geometryInstances.indexOffset = indexOffset;
+          for (let instance of geometryInstances.instances) {
+            this.instanceTransformArray.set(instance.worldTransform.matrix, transformOffset);
+            setNormalMat(instance.worldTransform.normalMatrix, transformOffset + 16);
+            this.instanceIndexArray[indexOffset] = indexOffset++; // TODO: Can definitely do better here.
+            transformOffset += 28;
+          }
         }
       }
     }
@@ -123,7 +146,7 @@ export class InstanceBuffers {
 export class InstanceManager {
   gpu: WebGPURenderer;
 
-  materials: Map<MaterialBase, MaterialGeometries> = new Map();
+  layouts: Map<number, GeometryLayoutInstances> = new Map();
   instanceCount: number = 0;
   instanceBuffers?: InstanceBuffers;
 
@@ -132,17 +155,17 @@ export class InstanceManager {
   }
 
   #clear() {
-    this.materials.clear();
+    this.layouts.clear();
     this.instanceCount = 0;
   }
 
   #addInstance(material: MaterialBase, geometry: Geometry, actor: Actor) {
-    let materialGeometries = this.materials.get(material);
-    if (!materialGeometries) {
-      materialGeometries = new MaterialGeometries(material);
-      this.materials.set(material, materialGeometries);
+    let layoutInstances = this.layouts.get(geometry.layout.id);
+    if (!layoutInstances) {
+      layoutInstances = new GeometryLayoutInstances(geometry.layout);
+      this.layouts.set(geometry.layout.id, layoutInstances);
     }
-    materialGeometries.addInstance(geometry, actor);
+    layoutInstances.addInstance(material, geometry, actor);
     this.instanceCount++;
   }
 
@@ -154,11 +177,10 @@ export class InstanceManager {
       this.#addInstance(material.material, geometry, actor);
     });
 
-    let buffersUpdated = false;
     if (!this.instanceBuffers || this.instanceBuffers.maxInstanceCount < this.instanceCount) {
       this.instanceBuffers = new InstanceBuffers(this.gpu, nextMultipleOf(128, this.instanceCount));
       this.gpu.frameBindingsDirty();
     }
-    this.instanceBuffers.update(this.materials);
+    this.instanceBuffers.update(this.layouts.values());
   }
 }

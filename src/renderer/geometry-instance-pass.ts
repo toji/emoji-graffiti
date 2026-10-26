@@ -18,6 +18,9 @@ class GeometryInstancePipelineCache {
     this.material = material;
     this.passMaterialArgs = passMaterialArgs;
     this.attachmentLayout = attachmentLayout;
+    this.passMaterialArgs.pipelineFactory.config.addEventListener('changed', () => {
+      this.#cache = new Map();
+    });
   }
 
   getPipeline(geometryInstances: GeometryInstances, forceSync: boolean = false): RenderPipeline | null {
@@ -70,6 +73,7 @@ class GeometryInstancePipelineCache {
  *   // All other materials get filtered out.
  * });
  *
+ * forwardPass.drawGeometryInstances(renderPass, instanceManager);
  */
 export class GeometryInstancePass {
   #attachmentLayout: AttachmentLayout;
@@ -87,13 +91,15 @@ export class GeometryInstancePass {
   // the pipelines are ready to use.
   precacheGeometryInstancePipelines(instanceManager: InstanceManager) {
     const pipelinePromises: Promise<GPURenderPipeline>[] = [];
-    for (let materialGeometries of instanceManager.materials.values()) {
-      const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-      if (cache) {
-        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const pipeline = cache.getPipeline(geometryInstances);
-          if (pipeline) {
-            pipelinePromises.push(pipeline.promise);
+    for (let layout of instanceManager.layouts.values()) {
+      for (let materialGeometries of layout.materialInstances.values()) {
+        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
+        if (cache) {
+          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+            const pipeline = cache.getPipeline(geometryInstances);
+            if (pipeline) {
+              pipelinePromises.push(pipeline.promise);
+            }
           }
         }
       }
@@ -103,16 +109,17 @@ export class GeometryInstancePass {
 
   // Draw all of the material/geometry combintations in the instanceManager.
   drawGeometryInstances(renderPass: GPURenderPassEncoder, instanceManager: InstanceManager, forceSync: boolean = false) {
-
-    for (let materialGeometries of instanceManager.materials.values()) {
-      const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
-      if (cache) {
-        cache.onBindMaterial(renderPass);
-        for (let geometryInstances of materialGeometries.geometryInstances.values()) {
-          const pipeline = cache.getPipeline(geometryInstances, forceSync);
-          if (pipeline) {
-            pipeline.use(renderPass);
-            geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+    for (let layout of instanceManager.layouts.values()) {
+      for (let materialGeometries of layout.materialInstances.values()) {
+        const cache = this.#getGeometryInstancePipelineCache(materialGeometries.material);
+        if (cache) {
+          cache.onBindMaterial(renderPass);
+          for (let geometryInstances of materialGeometries.geometryInstances.values()) {
+            const pipeline = cache.getPipeline(geometryInstances, forceSync);
+            if (pipeline) {
+              pipeline.use(renderPass);
+              geometryInstances.geometry.bindAndDraw(renderPass, geometryInstances.instanceCount, geometryInstances.indexOffset);
+            }
           }
         }
       }
