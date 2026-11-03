@@ -5,6 +5,9 @@ export class RenderConfig extends Config {
   @immutable
   useBindless: boolean = true;
 
+  @immutable
+  useImmediates: boolean = true;
+
   colorFormat: GPUTextureFormat = navigator.gpu?.getPreferredCanvasFormat() ?? 'bgra8unorm';
   depthStencilFormat: GPUTextureFormat = 'depth24plus';
   selectionFormat: GPUTextureFormat = 'r32uint';
@@ -22,6 +25,7 @@ export class RenderConfig extends Config {
 
     // Initialize any other defaults needed here based on device.
     defaults.useBindless = QueryArgs.getBool('bindless', true) && device.features.has('chromium-experimental-sampling-resource-table');
+    defaults.useImmediates = 'setImmediates' in GPUComputePassEncoder;
 
     return defaults;
   }

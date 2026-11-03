@@ -1,5 +1,6 @@
 import { Vec2, Vec4 } from "gl-matrix";
 import { WebGPURenderer } from "./webgpu-renderer.ts";
+import { wgsl } from "../util/wgsl-preprocessor.ts";
 
 export class SelectionManager {
   gpu: WebGPURenderer;
@@ -11,13 +12,13 @@ export class SelectionManager {
   selectionBuffer: GPUBuffer;
   selectionReadbackBuffers: GPUBuffer[] = [];
   immediateArray = new Uint32Array(2);
+  immediateBuffer?: GPUBuffer; // Only needed if immediates aren't supported
 
   constructor(gpu: WebGPURenderer) {
     this.gpu = gpu;
 
-    this.selectionBindGroupLayout = gpu.device.createBindGroupLayout({
-      label: 'Decal Selection',
-      entries: [{
+    const entries: GPUBindGroupLayoutEntry[] = [
+      {
         binding: 0,
         visibility: GPUShaderStage.COMPUTE,
         texture: { sampleType: 'uint' }
@@ -25,7 +26,20 @@ export class SelectionManager {
         binding: 1,
         visibility: GPUShaderStage.COMPUTE,
         buffer: { type: 'storage' }
-      }]
+      }
+    ];
+
+    if (!gpu.config.useImmediates) {
+      entries.push({
+        binding: 2,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {}
+      });
+    }
+
+    this.selectionBindGroupLayout = gpu.device.createBindGroupLayout({
+      label: 'Decal Selection',
+      entries
     });
 
     this.selectionBuffer = gpu.device.createBuffer({
@@ -36,8 +50,12 @@ export class SelectionManager {
 
     const module = gpu.device.createShaderModule({
       label: 'Decal Selection',
-      code: `
+      code: wgsl`
+      #if ${gpu.config.useImmediates}
         var<immediate> selectCoord: vec2u;
+      #else
+        @group(0) @binding(2) var<uniform> selectCoord: vec2u;
+      #endif
 
         @group(0) @binding(0) var selectionTexture: texture_2d<u32>;
         @group(0) @binding(1) var<storage, read_write> selection: u32;
@@ -62,12 +80,20 @@ export class SelectionManager {
       layout: gpu.device.createPipelineLayout({
         bindGroupLayouts: [this.selectionBindGroupLayout],
         // @ts-expect-error TypeScript defs for immediates not available yet.
-        immediateSize: Vec2.BYTE_LENGTH,
+        immediateSize: gpu.config.useImmediates ? Vec2.BYTE_LENGTH : undefined,
       }),
       compute: {
         module
       }
     });
+
+    if (!gpu.config.useImmediates) {
+      this.immediateBuffer = gpu.device.createBuffer({
+        label: 'Immediates Fallback Uniform Buffer',
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+        size: this.immediateArray.byteLength,
+      });
+    }
   }
 
   onResize(width: number, height: number) {
@@ -85,16 +111,27 @@ export class SelectionManager {
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
     });
 
-    this.selectionBindGroup = device.createBindGroup({
-      label: 'Decal Selection',
-      layout: this.selectionBindGroupLayout,
-      entries: [{
+    const entries: GPUBindGroupEntry[] = [
+      {
         binding: 0,
         resource: this.selectionTexture,
       }, {
         binding: 1,
         resource: this.selectionBuffer
-      }]
+      }
+    ];
+
+    if (!this.gpu.config.useImmediates) {
+      entries.push({
+        binding: 2,
+        resource: this.immediateBuffer!
+      });
+    }
+
+    this.selectionBindGroup = device.createBindGroup({
+      label: 'Decal Selection',
+      layout: this.selectionBindGroupLayout,
+      entries
     });
   }
 
@@ -127,8 +164,13 @@ export class SelectionManager {
 
     this.immediateArray[0] = x;
     this.immediateArray[1] = y;
-    // @ts-expect-error TypeScript defs for immediates not available yet.
-    computePass.setImmediates(0, this.immediateArray);
+    
+    if (this.gpu.config.useImmediates) {
+      // @ts-expect-error TypeScript defs for immediates not available yet.
+      computePass.setImmediates(0, this.immediateArray);
+    } else {
+      device.queue.writeBuffer(this.immediateBuffer!, 0, this.immediateArray);
+    }
 
     computePass.dispatchWorkgroups(1);
 
