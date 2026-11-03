@@ -15519,6 +15519,7 @@ var _RenderConfig = class _RenderConfig extends Config {
     __name(this, "RenderConfig");
   }
   useBindless = true;
+  useImmediates = true;
   colorFormat = navigator.gpu?.getPreferredCanvasFormat() ?? "bgra8unorm";
   depthStencilFormat = "depth24plus";
   selectionFormat = "r32uint";
@@ -15531,12 +15532,16 @@ var _RenderConfig = class _RenderConfig extends Config {
   static SetDefaults(isMobile, device) {
     const defaults = isMobile ? new MobileRenderConfig() : new _RenderConfig();
     defaults.useBindless = QueryArgs.getBool("bindless", true) && device.features.has("chromium-experimental-sampling-resource-table");
+    defaults.useImmediates = "setImmediates" in GPUComputePassEncoder;
     return defaults;
   }
 };
 __decorateClass([
   immutable
 ], _RenderConfig.prototype, "useBindless", 2);
+__decorateClass([
+  immutable
+], _RenderConfig.prototype, "useImmediates", 2);
 var RenderConfig = _RenderConfig;
 var MobileRenderConfig = class extends RenderConfig {
   static {
@@ -17660,19 +17665,32 @@ var SelectionManager = class {
   selectionBuffer;
   selectionReadbackBuffers = [];
   immediateArray = new Uint32Array(2);
+  immediateBuffer;
+  // Only needed if immediates aren't supported
   constructor(gpu) {
     this.gpu = gpu;
-    this.selectionBindGroupLayout = gpu.device.createBindGroupLayout({
-      label: "Decal Selection",
-      entries: [{
+    const entries = [
+      {
         binding: 0,
         visibility: GPUShaderStage.COMPUTE,
         texture: { sampleType: "uint" }
-      }, {
+      },
+      {
         binding: 1,
         visibility: GPUShaderStage.COMPUTE,
         buffer: { type: "storage" }
-      }]
+      }
+    ];
+    if (!gpu.config.useImmediates) {
+      entries.push({
+        binding: 2,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {}
+      });
+    }
+    this.selectionBindGroupLayout = gpu.device.createBindGroupLayout({
+      label: "Decal Selection",
+      entries
     });
     this.selectionBuffer = gpu.device.createBuffer({
       label: "Decal Selection",
@@ -17681,8 +17699,12 @@ var SelectionManager = class {
     });
     const module = gpu.device.createShaderModule({
       label: "Decal Selection",
-      code: `
+      code: wgsl`
+      #if ${gpu.config.useImmediates}
         var<immediate> selectCoord: vec2u;
+      #else
+        @group(0) @binding(2) var<uniform> selectCoord: vec2u;
+      #endif
 
         @group(0) @binding(0) var selectionTexture: texture_2d<u32>;
         @group(0) @binding(1) var<storage, read_write> selection: u32;
@@ -17706,12 +17728,19 @@ var SelectionManager = class {
       layout: gpu.device.createPipelineLayout({
         bindGroupLayouts: [this.selectionBindGroupLayout],
         // @ts-expect-error TypeScript defs for immediates not available yet.
-        immediateSize: Vec2.BYTE_LENGTH
+        immediateSize: gpu.config.useImmediates ? Vec2.BYTE_LENGTH : void 0
       }),
       compute: {
         module
       }
     });
+    if (!gpu.config.useImmediates) {
+      this.immediateBuffer = gpu.device.createBuffer({
+        label: "Immediates Fallback Uniform Buffer",
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+        size: this.immediateArray.byteLength
+      });
+    }
   }
   onResize(width, height) {
     const device = this.gpu.device;
@@ -17725,16 +17754,26 @@ var SelectionManager = class {
       format: this.gpu.config.selectionFormat,
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
     });
+    const entries = [
+      {
+        binding: 0,
+        resource: this.selectionTexture
+      },
+      {
+        binding: 1,
+        resource: this.selectionBuffer
+      }
+    ];
+    if (!this.gpu.config.useImmediates) {
+      entries.push({
+        binding: 2,
+        resource: this.immediateBuffer
+      });
+    }
     this.selectionBindGroup = device.createBindGroup({
       label: "Decal Selection",
       layout: this.selectionBindGroupLayout,
-      entries: [{
-        binding: 0,
-        resource: this.selectionTexture
-      }, {
-        binding: 1,
-        resource: this.selectionBuffer
-      }]
+      entries
     });
   }
   #getSelectionReadbackBuffer() {
@@ -17757,7 +17796,11 @@ var SelectionManager = class {
     computePass.setBindGroup(0, this.selectionBindGroup);
     this.immediateArray[0] = x3;
     this.immediateArray[1] = y3;
-    computePass.setImmediates(0, this.immediateArray);
+    if (this.gpu.config.useImmediates) {
+      computePass.setImmediates(0, this.immediateArray);
+    } else {
+      device.queue.writeBuffer(this.immediateBuffer, 0, this.immediateArray);
+    }
     computePass.dispatchWorkgroups(1);
     computePass.end();
     commandEncoder.copyBufferToBuffer(this.selectionBuffer, readbackBuffer);
