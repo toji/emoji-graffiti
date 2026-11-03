@@ -92,7 +92,7 @@ export interface ConfigEventDetail {
 
 function isMobileBrowser() {
   //@ts-ignore
-  if ('mobile' in navigator.userAgentData) {
+  if (('userAgentData' in navigator) && ('mobile' in navigator.userAgentData)) {
     //@ts-ignore
     return navigator.userAgentData.mobile;
   }

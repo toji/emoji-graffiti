@@ -15270,7 +15270,7 @@ function SaveAllConfigs() {
 }
 __name(SaveAllConfigs, "SaveAllConfigs");
 function isMobileBrowser() {
-  if ("mobile" in navigator.userAgentData) {
+  if ("userAgentData" in navigator && "mobile" in navigator.userAgentData) {
     return navigator.userAgentData.mobile;
   }
   let check = false;
